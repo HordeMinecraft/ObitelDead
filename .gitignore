@@ -1,0 +1,15 @@
+.data/
+node_modules/
+.env
+.env.*
+!.env.example
+.repository/
+data/
+dist/
+.wrangler/
+*.tar.gz
+*.log
+beta-upgrade.mjs
+polish-v3.mjs
+rig-upgrade.mjs
+v3-upgrade.mjs

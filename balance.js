@@ -10,7 +10,7 @@ export const ENERGY_MAX=60;
 export const ENERGY_INTERVAL=5*60*1000;
 export const RAID_COST=8;
 export const BOSS_COST=12;
-export const freshSave=()=>({version:1,scrap:180,cores:0,xp:0,cleared:[],districtRuns:[0,0,0,0,0],energy:60,energyAt:Date.now(),weapon:0,owned:[0],weaponLevel:0,armor:0,engine:0,body:0,trunk:0,kills:0,daily:{date:'',kills:0,claimed:false}});
+export const freshSave=()=>({version:1,armorTier:0,ownedArmor:[0],bossKills:0,cloth:0,scrap:180,cores:0,xp:0,cleared:[],districtRuns:[0,0,0,0,0],energy:60,energyAt:Date.now(),weapon:0,owned:[0],weaponLevel:0,armor:0,engine:0,body:0,trunk:0,kills:0,daily:{date:'',kills:0,claimed:false}});
 export function restoreEnergy(s,now=Date.now()){s.energy=Math.min(ENERGY_MAX,Math.max(0,s.energy??ENERGY_MAX));s.energyAt=Math.min(now,s.energyAt??now);if(s.energy>=ENERGY_MAX){s.energyAt=now;return s.energy}const recovered=Math.floor((now-s.energyAt)/ENERGY_INTERVAL);s.energy=Math.min(ENERGY_MAX,s.energy+recovered);if(s.energy===ENERGY_MAX)s.energyAt=now;else s.energyAt+=recovered*ENERGY_INTERVAL;return s.energy}
 export function spendEnergy(s,amount,now=Date.now()){restoreEnergy(s,now);if(s.energy<amount)return false;if(s.energy===ENERGY_MAX)s.energyAt=now;s.energy-=amount;return true}
 export const bossUnlocked=(s,i)=>unlocked(s,i)&&(s.districtRuns?.[i]||0)>=3&&playerLevel(s)>=MAPS[i].level;
@@ -20,7 +20,16 @@ export const levelProgress=s=>{const level=playerLevel(s),start=xpForLevel(level
 export const runXP=(kills,win,map=0)=>Math.floor(kills*1.5)+(win?24+map*8:0);
 export const raidDamage=s=>Math.round(stats(s).damage*(WEAPONS[s.weapon].pellets||1)/WEAPONS[s.weapon].rate*5*(s.weapon===2?.72:1));
 export function sprintStep(stamina,exhausted,wantsRun,moving,dt){if(exhausted&&stamina>=30)exhausted=false;const running=wantsRun&&moving&&!exhausted&&stamina>0;stamina=Math.max(0,Math.min(100,stamina+(running?-24:17)*dt));if(stamina===0)exhausted=true;return {stamina,exhausted,running:running&&stamina>0,multiplier:running?1.65:1}}
-export const stats=s=>({hp:Math.round((110+s.armor*12)*(1+s.body*.04)),damage:WEAPONS[s.weapon].damage*(1+s.weaponLevel*.08)*(1+s.engine*.04),loot:1+s.trunk*.05,speed:148});
+export const stats=s=>({hp:Math.round((110+s.armor*8+(ARMOR[s.armorTier||0]?.hp||0))*(1+s.body*.04)),damage:WEAPONS[s.weapon].damage*(1+s.weaponLevel*.08)*(1+s.engine*.04),loot:1+s.trunk*.05,speed:148});
 export const upgradeCost=(level)=>Math.round(80*Math.pow(1.42,level));
 export const unlocked=(s,i)=>i===0||s.cleared.includes(i-1);
 export const enemyStats=(map,wave,type)=>({hp:(type==='boss'?230:type==='tank'?86:type==='runner'?28:40)*(1+map*.32)*(1+(wave-1)*.15),speed:type==='boss'?34:type==='runner'?95:type==='tank'?28:47,damage:(type==='boss'?23:type==='tank'?17:10)*(1+map*.16)});
+
+export const ARMOR=[
+ {name:'Одежда выжившего',hp:0,level:1,bosses:0,cost:0,cloth:0,cores:0,icon:3,description:'Твоя привычная футболка и брюки. Свобода движения.'},
+ {name:'Жилет «Барьер»',hp:28,level:2,bosses:1,cost:320,cloth:8,cores:0,icon:4,description:'Плиты, ремни и подсумки. Первая серьёзная защита.'},
+ {name:'Комплект «Дозор»',hp:60,level:4,bosses:3,cost:780,cloth:24,cores:3,icon:4,description:'Полевая куртка, усиленный жилет и защита плеч.'},
+ {name:'Броня «Цитадель»',hp:100,level:6,bosses:6,cost:1600,cloth:48,cores:9,icon:5,description:'Тяжёлые пластины. Открытое лицо, знакомый силуэт.'}
+];
+export const armorUnlocked=(s,i)=>playerLevel(s)>=ARMOR[i].level||(s.bossKills||0)>=ARMOR[i].bosses&&ARMOR[i].bosses>0||i===0;
+export function migrateSave(s){s.armorTier??=s.armor>0?1:0;s.ownedArmor??=s.armor>0?[0,1]:[0];s.bossKills??=s.cleared.length;s.cloth??=0;return s}
