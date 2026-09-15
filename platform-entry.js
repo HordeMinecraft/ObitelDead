@@ -1,10 +1,12 @@
 import bridge from '@vkontakte/vk-bridge';
 export const VK_APP_ID=54626490;
 const launch=new URLSearchParams(location.search);
-export const inVK=launch.has('vk_app_id')||launch.has('api_id')||window.parent!==window;
+export const inVK=launch.has('vk_app_id')||launch.has('api_id')||bridge.isEmbedded()||Boolean(window.ReactNativeWebView);
 // Signal readiness independently of game assets or the game API.
-if(inVK){
- bridge.send('VKWebAppInit').catch(()=>{});
+if(inVK&&!window.__obitelVKStarted){
+ window.__obitelVKStarted=true;
+ window.__obitelVKState='waiting';
+ bridge.send('VKWebAppInit').then(()=>{window.__obitelVKState='ready'}).catch(()=>{window.__obitelVKState='failed'});
  if(launch.has('api_id')&&launch.has('viewer_id')){
   const sdk=document.createElement('script');sdk.src='https://vk.com/js/api/xd_connection.js?2';sdk.async=true;
   sdk.onload=()=>window.VK?.init(()=>{},()=>{},'5.199');

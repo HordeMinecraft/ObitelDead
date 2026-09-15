@@ -1,8 +1,11 @@
 import {mkdirSync,cpSync,writeFileSync} from 'node:fs';
 import {build} from 'esbuild';
+import {resolve} from 'node:path';
 mkdirSync('dist/client',{recursive:true});mkdirSync('dist/server',{recursive:true});
 for(const file of ['index.html','style.css','theme.css','beta-theme.css','game.js','config.js','client-api.js','friends-ui.js','art.js','balance.js','assets'])cpSync(file,'dist/client/'+file,{recursive:true});
 await build({entryPoints:['worker.js'],outfile:'dist/server/index.js',bundle:true,format:'esm',platform:'browser',target:'es2022'});
 await build({entryPoints:['platform-entry.js'],outfile:'platform.js',bundle:true,format:'esm',platform:'browser',target:'es2020'});
 cpSync('platform.js','dist/client/platform.js');
+await build({entryPoints:['boot-entry.js'],outfile:'game-boot.js',bundle:true,format:'iife',platform:'browser',target:'es2018',plugins:[{name:'platform-source',setup(builder){builder.onResolve({filter:/^\.\/platform\.js$/},()=>({path:resolve('platform-entry.js')}))}}]});
+for(const file of ['game-boot.js','startup.js'])cpSync(file,'dist/client/'+file);
 writeFileSync('dist/server/package.json',JSON.stringify({type:'module',main:'index.js'}));

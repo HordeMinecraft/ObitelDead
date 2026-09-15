@@ -259,9 +259,14 @@ var dist_default = src_bridge;
 // platform-entry.js
 var VK_APP_ID = 54626490;
 var launch = new URLSearchParams(location.search);
-var inVK = launch.has("vk_app_id") || launch.has("api_id") || window.parent !== window;
-if (inVK) {
-  dist_default.send("VKWebAppInit").catch(() => {
+var inVK = launch.has("vk_app_id") || launch.has("api_id") || dist_default.isEmbedded() || Boolean(window.ReactNativeWebView);
+if (inVK && !window.__obitelVKStarted) {
+  window.__obitelVKStarted = true;
+  window.__obitelVKState = "waiting";
+  dist_default.send("VKWebAppInit").then(() => {
+    window.__obitelVKState = "ready";
+  }).catch(() => {
+    window.__obitelVKState = "failed";
   });
   if (launch.has("api_id") && launch.has("viewer_id")) {
     const sdk = document.createElement("script");
