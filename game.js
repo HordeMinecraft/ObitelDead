@@ -17,6 +17,7 @@ const STATIC_MODE=
   location.hostname.includes('sourcecraft.site')||
   location.hostname.endsWith('.workers.dev')||
   location.hostname.endsWith('.pages.dev')||
+  location.hostname.endsWith('.github.io')||
   location.hostname==='127.0.0.1'||
   location.hostname==='localhost'||
   location.protocol==='file:'||
