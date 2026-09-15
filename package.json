@@ -13,6 +13,7 @@
     "esbuild": "^0.28.2"
   },
   "dependencies": {
+    "@vkontakte/vk-bridge": "^3.0.2",
     "drizzle-orm": "^0.45.2"
   },
   "packageManager": "pnpm@11.19.0"

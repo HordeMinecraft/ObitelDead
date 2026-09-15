@@ -1,3 +1,4 @@
+import {socialAction,ensureSocial} from './friends-domain.js';
 import {freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave} from './balance.js';
 export function createHandler(db,commit,id){
  const err=(text,status=400)=>{throw Object.assign(new Error(text),{status})};
@@ -13,6 +14,7 @@ export function createHandler(db,commit,id){
    let p=db.players[session],s=migrateSave(p.save);daily(s);let b={};if(req.method==='POST'){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>4096)err('Слишком большой запрос',413)}try{b=raw?JSON.parse(raw):{}}catch{err('Некорректный JSON')}}
    let result={};const path=url.pathname;
    if(req.method==='GET'&&path==='/api/profile')result={name:p.name};
+   else if(path.startsWith('/api/friends'))result=socialAction(db,session,path,req.method,b,id);
    else if(req.method==='POST'&&path==='/api/upgrade'){const f=b.field;if(!['weaponLevel','armor','engine','body','trunk'].includes(f))err('Нет такого улучшения');let price=upgradeCost(s[f]);if(s[f]>=10||s.scrap<price)err('Не хватает деталей');s.scrap-=price;s[f]++}
    else if(req.method==='POST'&&path==='/api/armor'){let i=b.armor;if(!Number.isInteger(i)||!ARMOR[i])err('Нет такой брони');if(!s.ownedArmor.includes(i)){let a=ARMOR[i];if(!armorUnlocked(s,i))err('Нужен уровень '+a.level+' или победы над боссами: '+a.bosses);if(s.scrap<a.cost||s.cloth<a.cloth||s.cores<a.cores)err('Недостаточно материалов');s.scrap-=a.cost;s.cloth-=a.cloth;s.cores-=a.cores;s.ownedArmor.push(i)}s.armorTier=i}
    else if(req.method==='POST'&&path==='/api/weapon'){let i=b.weapon;if(!Number.isInteger(i)||!WEAPONS[i])err('Нет такого оружия');if(!s.owned.includes(i)){if(s.scrap<WEAPONS[i].cost)err('Не хватает деталей');s.scrap-=WEAPONS[i].cost;s.owned.push(i)}s.weapon=i}

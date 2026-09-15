@@ -1,3 +1,50 @@
+// friends-domain.js
+function ensureSocial(player, id) {
+  player.publicId ??= id().slice(0, 12);
+  player.friends ??= [];
+  player.friendRequests ??= [];
+}
+function socialAction(db, uid, path, method, body, id) {
+  const player = db.players[uid];
+  ensureSocial(player, id);
+  const fail = (message, status = 400) => {
+    throw Object.assign(new Error(message), { status });
+  };
+  const target = () => {
+    if (typeof body.code !== "string" || !/^[a-f0-9]{12}$/.test(body.code)) fail("\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u043E\u0434 \u0438\u0433\u0440\u043E\u043A\u0430 \u0438\u0437 12 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432");
+    const entry = Object.entries(db.players).find(([, p]) => p.publicId === body.code);
+    if (!entry) fail("\u0418\u0433\u0440\u043E\u043A \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D", 404);
+    if (entry[0] === uid) fail("\u042D\u0442\u043E \u0442\u0432\u043E\u0439 \u043A\u043E\u0434");
+    ensureSocial(entry[1], id);
+    return entry;
+  };
+  if (method === "POST") {
+    const [otherId, other] = target();
+    if (path === "/api/friends/request") {
+      if (player.friends.includes(otherId)) fail("\u0412\u044B \u0443\u0436\u0435 \u0434\u0440\u0443\u0437\u044C\u044F");
+      if (other.friendRequests.length >= 100) fail("\u0423 \u0438\u0433\u0440\u043E\u043A\u0430 \u0441\u043B\u0438\u0448\u043A\u043E\u043C \u043C\u043D\u043E\u0433\u043E \u0437\u0430\u044F\u0432\u043E\u043A");
+      if (!other.friendRequests.includes(uid)) other.friendRequests.push(uid);
+    } else if (path === "/api/friends/accept") {
+      if (!player.friendRequests.includes(otherId)) fail("\u041D\u0435\u0442 \u0432\u0445\u043E\u0434\u044F\u0449\u0435\u0439 \u0437\u0430\u044F\u0432\u043A\u0438");
+      if (player.friends.length >= 100 || other.friends.length >= 100) fail("\u0412 \u0441\u043F\u0438\u0441\u043A\u0435 \u0443\u0436\u0435 100 \u0434\u0440\u0443\u0437\u0435\u0439");
+      if (!player.friends.includes(otherId)) player.friends.push(otherId);
+      if (!other.friends.includes(uid)) other.friends.push(uid);
+      player.friendRequests = player.friendRequests.filter((x) => x !== otherId);
+      other.friendRequests = other.friendRequests.filter((x) => x !== uid);
+    } else if (path === "/api/friends/decline") {
+      player.friendRequests = player.friendRequests.filter((x) => x !== otherId);
+    } else fail("\u041C\u0435\u0442\u043E\u0434 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D", 404);
+  } else if (method !== "GET" || path !== "/api/friends") fail("\u041C\u0435\u0442\u043E\u0434 \u043D\u0435 \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044F", 405);
+  const view = (pid) => {
+    const p = db.players[pid];
+    if (!p) return null;
+    ensureSocial(p, id);
+    const raid = Object.values(db.raids).find((r) => r.owner === pid && r.hp > 0);
+    return { code: p.publicId, name: p.name, raid: raid ? { id: raid.id, map: raid.map, hp: raid.hp } : null };
+  };
+  return { code: player.publicId, friends: player.friends.map(view).filter(Boolean), requests: player.friendRequests.map(view).filter(Boolean) };
+}
+
 // balance.js
 var MAPS = [
   { name: "\u0422\u0438\u0445\u0438\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", desc: "\u0412 \u043E\u043A\u043D\u0430\u0445 \u0435\u0449\u0451 \u0433\u043E\u0440\u0438\u0442 \u0441\u0432\u0435\u0442. \u041D\u0430 \u0443\u043B\u0438\u0446\u0430\u0445 \u0443\u0436\u0435 \u043D\u0438\u043A\u043E\u0433\u043E \u0436\u0438\u0432\u043E\u0433\u043E.", goal: "\u0417\u0430\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u0436\u0438\u043B\u043E\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", boss: "\u0421\u043C\u043E\u0442\u0440\u0438\u0442\u0435\u043B\u044C", level: 1, palette: ["#6c7660", "#485340", "#8b8870", "#a4a080"], reward: 85, kind: "town" },
@@ -105,6 +152,7 @@ function createHandler(db, commit, id) {
       let result = {};
       const path = url.pathname;
       if (req.method === "GET" && path === "/api/profile") result = { name: p.name };
+      else if (path.startsWith("/api/friends")) result = socialAction(db, session, path, req.method, b, id);
       else if (req.method === "POST" && path === "/api/upgrade") {
         const f = b.field;
         if (!["weaponLevel", "armor", "engine", "body", "trunk"].includes(f)) err("\u041D\u0435\u0442 \u0442\u0430\u043A\u043E\u0433\u043E \u0443\u043B\u0443\u0447\u0448\u0435\u043D\u0438\u044F");

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@vkontakte/vk-bridge':
+        specifier: ^3.0.2
+        version: 3.0.2
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2
@@ -476,6 +479,12 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@swc/helpers@0.5.23':
+    resolution: {integrity: sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw==}
+
+  '@vkontakte/vk-bridge@3.0.2':
+    resolution: {integrity: sha512-MTp+nl0/jH4Sa2TXDyxNfy9VkhOhRQR1oQ4yhvthVDA4aWUa26npns7bRgfTuR3xDVGFiqW7zAwLnwcv3mL+dA==}
+
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
 
@@ -607,6 +616,9 @@ packages:
   source-map@0.6.1:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
+
+  tslib@2.8.1:
+    resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
   tsx@4.23.13:
     resolution: {integrity: sha512-BL5MGkRln6aDYhb0xbQlEAGw743BaZYWdbWtdJOBriYJboKgUUYCadFp2/FpBBZquBC/ezNBn7wMMPx7FDZUDw==}
@@ -849,6 +861,14 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
+  '@swc/helpers@0.5.23':
+    dependencies:
+      tslib: 2.8.1
+
+  '@vkontakte/vk-bridge@3.0.2':
+    dependencies:
+      '@swc/helpers': 0.5.23
+
   buffer-from@1.1.2: {}
 
   drizzle-kit@0.31.10:
@@ -958,6 +978,8 @@ snapshots:
       source-map: 0.6.1
 
   source-map@0.6.1: {}
+
+  tslib@2.8.1: {}
 
   tsx@4.23.13:
     dependencies:
