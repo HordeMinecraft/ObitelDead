@@ -224,8 +224,13 @@ function createHandler(db, commit, id) {
 // worker.js
 async function api(request, env) {
   const url = new URL(request.url);
+  const origin = request.headers.get("origin");
+  const allowed = origin === url.origin || origin === "https://obitel.sourcecraft.site";
+  if (origin && !allowed) return Response.json({ error: "\u041D\u0435\u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0439 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0437\u0430\u043F\u0440\u043E\u0441\u0430" }, { status: 403 });
+  const cors = new Headers({ "Vary": "Origin", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, X-Obitel-Session", "Access-Control-Expose-Headers": "X-Obitel-Session", "Cache-Control": "no-store" });
+  if (origin) cors.set("Access-Control-Allow-Origin", origin);
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (!["GET", "POST"].includes(request.method)) return Response.json({ error: "\u041C\u0435\u0442\u043E\u0434 \u043D\u0435 \u043F\u043E\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044F" }, { status: 405 });
-  if (request.headers.get("origin") && request.headers.get("origin") !== url.origin) return Response.json({ error: "\u041D\u0435\u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0439 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0437\u0430\u043F\u0440\u043E\u0441\u0430" }, { status: 403 });
   if (Number(request.headers.get("content-length") || 0) > 4096) return new Response(null, { status: 413 });
   const raw = await request.text();
   if (raw.length > 4096) return new Response(null, { status: 413 });
@@ -235,13 +240,21 @@ async function api(request, env) {
       await env.DB.prepare("INSERT OR IGNORE INTO game_world (id, data, revision) VALUES (?, ?, 0)").bind("beta", JSON.stringify({ players: {}, raids: {} })).run();
       continue;
     }
-    const db = JSON.parse(row.data), headers = new Headers();
+    const db = JSON.parse(row.data), headers = new Headers(cors);
     let status = 200, body = "";
-    const req = { method: request.method, headers: Object.fromEntries(request.headers), async *[Symbol.asyncIterator]() {
+    const inbound = Object.fromEntries(request.headers);
+    delete inbound.origin;
+    const session = request.headers.get("x-obitel-session");
+    if (session && /^[a-f0-9]{32}$/.test(session)) inbound.cookie = "obitel_session=" + session;
+    const req = { method: request.method, headers: inbound, async *[Symbol.asyncIterator]() {
       yield raw;
     } };
     const res = { setHeader(k, v) {
-      headers.set(k, k.toLowerCase() === "set-cookie" ? v.replace("SameSite=Strict", "SameSite=None; Secure") : v);
+      if (k.toLowerCase() === "set-cookie") {
+        headers.set("X-Obitel-Session", v.match(/session=([a-f0-9]{32})/)[1]);
+        v = v.replace("SameSite=Strict", "SameSite=None; Secure");
+      }
+      headers.set(k, v);
     }, writeHead(s, h) {
       status = s;
       for (const [k, v] of Object.entries(h)) headers.set(k, v);
