@@ -250,19 +250,41 @@ async function api(path,body){
 }
 async function connect(){
   const status=$('.connection');
+
+  if(STATIC_MODE){
+    try{
+      await api('profile');
+      networkReady=true;
+
+      // Убираем индикатор подключения
+      status.hidden=true;
+
+      // Убираем оранжевое окно "Связь потеряна"
+      $('#connection-error').hidden=true;
+
+      refresh();
+      return;
+    }catch(e){
+      console.error(e);
+    }
+  }
+
+  status.hidden=false;
   status.textContent='ПОДКЛЮЧЕНИЕ…';
+
   try{
     await api('profile');
     networkReady=true;
-    status.innerHTML=STATIC_MODE?'<i></i> ЛОКАЛЬНЫЙ РЕЖИМ':'<i></i> СЕРВЕР НА СВЯЗИ';
-    $('#connection-error').hidden=true
+    status.innerHTML='<i></i> СЕРВЕР НА СВЯЗИ';
+    $('#connection-error').hidden=true;
   }catch(e){
     networkReady=false;
     status.textContent='НЕТ СВЯЗИ';
     $('#connection-error').hidden=false;
-    $('#connection-message').textContent=e.message
+    $('#connection-message').textContent=e.message;
   }
-  refresh()
+
+  refresh();
 }
 
 async function action(fn){if(busy)return;if(!networkReady){toast('Сначала подключись к игровому серверу');return}busy=true;try{await fn()}catch(e){toast(e.message)}finally{busy=false;refresh()}}
