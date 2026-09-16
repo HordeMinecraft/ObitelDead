@@ -4,7 +4,7 @@
 
 ## Запуск
 
-Node.js 24: `node server.mjs`, открыть http://127.0.0.1:4173/.
+Node.js 24: `node server.mjs`,
 Тесты: `node --test tests/*.test.mjs`.
 Сборка хостинга: `pnpm install --frozen-lockfile`, `pnpm build`, `node package-beta.mjs`.
 
