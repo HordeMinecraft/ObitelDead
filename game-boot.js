@@ -376,7 +376,7 @@
   var init_config = __esm({
     "config.js"() {
       staticHosts = ["obitel.sourcecraft.site", "hordeminecraft.github.io"];
-      API_BASE = staticHosts.includes(location.hostname) ? "https://obitel-dead-beta.imdeantoo.chatgpt.site/api/" : new URL("api/", location.href).href;
+      API_BASE = staticHosts.includes(location.hostname) ? "https://obiteldead.deniswww127.workers.dev/api/" : new URL("api/", location.href).href;
     }
   });
 
