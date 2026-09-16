@@ -10,7 +10,7 @@
     {
       "binding": "DB",
       "database_name": "obitel-dead",
-      "database_id": "PASTE_D1_DATABASE_ID_HERE",
+      "database_id": "6e661e8b-4b64-427b-bfe5-5d18fc7790bd",
       "migrations_dir": "drizzle"
     }
   ]
