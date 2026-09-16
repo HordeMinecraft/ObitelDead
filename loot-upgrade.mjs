@@ -1,0 +1,19 @@
+import {readFileSync as read,writeFileSync as write} from 'node:fs';
+let art=read('art.js','utf8').replace('itemAtlas=null,appearance','itemAtlas=null,weaponAtlas=null,appearance');
+art=art.replace("loadSprite('assets/items.png').then(c=>itemAtlas=c)","loadSprite('assets/items.png').then(c=>itemAtlas=c),loadSprite('assets/weapons-loot.png').then(c=>weaponAtlas=c)");
+art+=`\nexport function drawWeapon(canvas,index){if(!weaponAtlas)return;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);ctx.imageSmoothingEnabled=false;ctx.drawImage(weaponAtlas,index*512,0,512,512,0,0,canvas.width,canvas.height)}
+export function loot(g,x,y,kind,time,amount=0){const health=kind==='health',size=health?35:30,bob=Math.sin(time*3+x)*2;g.save();g.translate(x,y);g.fillStyle='#080e09aa';g.beginPath();g.ellipse(0,4,16,6,0,0,Math.PI*2);g.fill();g.strokeStyle=health?'#b0d2a580':'#e4b77380';g.lineWidth=1;g.beginPath();g.ellipse(0,3,18,7,0,0,Math.PI*2);g.stroke();if(weaponAtlas){g.imageSmoothingEnabled=false;g.drawImage(weaponAtlas,health?512:0,512,512,512,-size/2,-size+bob,size,size)}else{g.fillStyle=health?'#a8c794':'#d6ad6d';g.fillRect(-5,-13,10,10)}if(amount){g.font='bold 9px monospace';g.textAlign='center';g.strokeStyle='#11190f';g.lineWidth=3;g.strokeText(amount,0,14);g.fillStyle='#efdab3';g.fillText(amount,0,14)}g.restore()}
+`;
+write('art.js',art);
+let game=read('game.js','utf8').replace('setAppearance,drawItem}', 'setAppearance,drawItem,drawWeapon,loot}');
+const helper=`function renderWeapons(){const boost=(1+save.weaponLevel*.08)*(1+save.engine*.04);return '<div class="section-title"><h3>Арсенал убежища</h3><span>03 ЧЕРТЕЖА · МАСТЕРСКАЯ</span></div><div class="weapon-grid">'+WEAPONS.map((w,i)=>{const owned=save.owned.includes(i),equipped=save.weapon===i,dps=w.damage*(w.pellets||1)/w.rate*boost;return '<article class="weapon-card '+(equipped?'equipped':'')+'"><div class="weapon-stage"><span class="weapon-number">0'+(i+1)+'</span><span class="weapon-type">'+['КОРОТКОСТВОЛ','ШТУРМОВОЕ','БЛИЖНИЙ БОЙ'][i]+'</span><canvas data-weapon-art="'+i+'" width="440" height="440"></canvas><span class="weapon-state">'+(equipped?'● В РУКАХ':owned?'В ИНВЕНТАРЕ':'ЧЕРТЁЖ')+'</span></div><div class="weapon-info"><h3>'+w.name+'</h3><p>'+w.description+'</p><div class="weapon-stats"><div><small>УРОН</small><b>'+Math.round(w.damage*boost)+(w.pellets?' × '+w.pellets:'')+'</b></div><div><small>ПЕРЕЗАРЯДКА</small><b>'+w.rate+' с</b></div><div><small>ДАЛЬНОСТЬ</small><b>'+w.range+'</b></div></div><div class="power-label"><span>УРОН В СЕКУНДУ</span><strong>'+Math.round(dps)+'</strong></div><div class="weapon-power"><i style="width:'+Math.min(100,dps/200*100)+'%"></i></div><small class="weapon-note">'+(w.pellets?'Показатель при попадании всех дробин.':'С учётом мастерской и генератора.')+'</small><button class="'+(equipped?'secondary':'primary')+'" data-weapon="'+i+'" '+(equipped||!owned&&save.scrap<w.cost?'disabled':'')+'>'+(equipped?'ЭКИПИРОВАНО':owned?'ВЗЯТЬ В РУКИ':'СОЗДАТЬ · '+w.cost+' ДЕТАЛЕЙ')+'</button></div></article>'}).join('')+'</div>'}
+`;
+game=game.replace('function renderPage(){',helper+'function renderPage(){');
+const start=game.indexOf('<div class="item-grid">${WEAPONS.map'),end=game.indexOf('<div class="item-grid">${upgrade',start);
+if(start<0||end<0)throw new Error('Weapon section missing');
+game=game.slice(0,start)+'${renderWeapons()}'+game.slice(end);
+game=game.replace("if($('#loadout-avatar'))", "document.querySelectorAll('[data-weapon-art]').forEach(c=>drawWeapon(c,Number(c.dataset.weaponArt)));if($('#loadout-avatar'))");
+const ds=game.indexOf('for(let d of r.drops){g.fillStyle'),de=game.indexOf('let actors=',ds);
+if(ds<0||de<0)throw new Error('Drop rendering missing');
+game=game.slice(0,ds)+"for(let d of r.drops)loot(g,d.x,d.y,d.kind,r.time,d.amount||0);"+game.slice(de);
+write('game.js',game);

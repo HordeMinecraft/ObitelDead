@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>VK Mini App — диагностика</title>
+  <style>
+    html,body{margin:0;min-height:100%;background:#111;color:#eee;font-family:Arial,sans-serif}
+    body{display:grid;place-items:center;padding:24px;box-sizing:border-box}
+    .card{width:min(720px,100%);background:#1d1d1f;border:1px solid #444;border-radius:16px;padding:24px;box-sizing:border-box}
+    h1{margin:0 0 16px;font-size:26px}
+    .row{padding:10px 0;border-bottom:1px solid #333}
+    .ok{color:#71d58a}.bad{color:#ff7777}.wait{color:#f2c76e}
+    code{word-break:break-all;color:#b9d7ff}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Диагностика VK Mini App</h1>
+    <div class="row">Страница загрузилась: <b class="ok">ДА</b></div>
+    <div class="row">В iframe: <b id="iframe" class="wait">проверка…</b></div>
+    <div class="row">VK Bridge: <b id="bridge" class="wait">загрузка…</b></div>
+    <div class="row">VKWebAppInit: <b id="init" class="wait">ожидание…</b></div>
+    <div class="row">URL: <code id="url"></code></div>
+    <div class="row">Параметры VK: <code id="params"></code></div>
+  </div>
+
+  <script>
+    document.getElementById('iframe').textContent = window.parent !== window ? 'ДА' : 'НЕТ';
+    document.getElementById('iframe').className = window.parent !== window ? 'ok' : 'bad';
+    document.getElementById('url').textContent = location.href;
+    document.getElementById('params').textContent =
+      [...new URLSearchParams(location.search).keys()].filter(k => k.startsWith('vk_')).join(', ') || 'не найдены';
+  </script>
+
+  <script src="https://unpkg.com/@vkontakte/vk-bridge@2.15.12/dist/browser.min.js"></script>
+  <script>
+    (async function () {
+      const bridgeEl = document.getElementById('bridge');
+      const initEl = document.getElementById('init');
+
+      if (!window.vkBridge || typeof window.vkBridge.send !== 'function') {
+        bridgeEl.textContent = 'НЕ ЗАГРУЗИЛСЯ';
+        bridgeEl.className = 'bad';
+        initEl.textContent = 'невозможно';
+        initEl.className = 'bad';
+        return;
+      }
+
+      bridgeEl.textContent = 'ЗАГРУЖЕН';
+      bridgeEl.className = 'ok';
+
+      try {
+        await window.vkBridge.send('VKWebAppInit');
+        initEl.textContent = 'УСПЕШНО';
+        initEl.className = 'ok';
+      } catch (e) {
+        initEl.textContent = 'ОШИБКА: ' + (e && (e.error_type || e.message) || String(e));
+        initEl.className = 'bad';
+        console.error('VKWebAppInit error:', e);
+      }
+    })();
+  </script>
+</body>
+</html>

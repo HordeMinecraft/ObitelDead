@@ -1,0 +1,20 @@
+ОБИТЕЛЬ МЁРТВЫХ — ONLINE READY
+
+Изменено:
+- worker.js — Cloudflare Worker + D1 + CORS + health
+- domain.js — старые игровые API + online + leaderboard
+- friends-domain.js — друзья/онлайн/уровень/remove
+- friends-ui.js — друзья, заявки, онлайн, топ, VK-приглашения
+- platform-entry.js / platform.js — VK-профиль, выбор друзей VK, request box
+- game.js — GitHub Pages теперь использует реальный API, heartbeat
+- client-api.js — bearer session и диагностика подключения
+- config.js — адрес Worker API
+- wrangler.jsonc — D1 binding
+- drizzle/0000_noisy_old_lace.sql — схема D1
+- tests/online.test.mjs — тесты online/leaderboard
+
+Перед деплоем обязательны две замены:
+1) database_id в wrangler.jsonc
+2) URL Worker в config.js после первого deploy
+
+Инструкция: CLOUDFLARE-ONLINE.md

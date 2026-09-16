@@ -1,0 +1,17 @@
+{
+  "name": "obitel-dead-api",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-16",
+  "workers_dev": true,
+  "vars": {
+    "ALLOWED_ORIGINS": "https://hordeminecraft.github.io"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "obitel-dead",
+      "database_id": "PASTE_D1_DATABASE_ID_HERE",
+      "migrations_dir": "drizzle"
+    }
+  ]
+}
