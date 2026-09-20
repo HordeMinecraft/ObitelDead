@@ -344,6 +344,41 @@
     }
   });
 
+  // profile-ui.js
+  function profileEditor(root, profile, api2, toast2, onSave) {
+    const panel = document.createElement("section");
+    panel.className = "settings-card profile-editor";
+    panel.innerHTML = '<span class="eyebrow">\u041B\u0418\u0427\u041D\u041E\u0415 \u0414\u0415\u041B\u041E</span><h2>\u0422\u0432\u043E\u0439 \u043F\u043E\u0437\u044B\u0432\u043D\u043E\u0439.</h2><form><label for="player-name">\u041D\u0438\u043A \u0438\u0433\u0440\u043E\u043A\u0430</label><input id="player-name" name="name" minlength="2" maxlength="32" required autocomplete="nickname"><fieldset><legend>\u0410\u0432\u0430\u0442\u0430\u0440</legend><div class="avatar-picker">' + AVATARS.map((symbol, i) => '<button type="button" class="avatar-option avatar-' + i + '" data-avatar="' + i + '" aria-label="\u0410\u0432\u0430\u0442\u0430\u0440 ' + (i + 1) + '" aria-pressed="' + (i === (profile.avatar || 0)) + '">' + symbol + "</button>").join("") + '</div></fieldset><button class="primary" type="submit">\u0421\u041E\u0425\u0420\u0410\u041D\u0418\u0422\u042C \u041F\u0420\u041E\u0424\u0418\u041B\u042C</button><p role="status" class="profile-status"></p></form>';
+    panel.querySelector("input").value = profile.name || "";
+    let avatar = profile.avatar || 0;
+    panel.querySelectorAll("[data-avatar]").forEach((button) => button.onclick = () => {
+      avatar = Number(button.dataset.avatar);
+      panel.querySelectorAll("[data-avatar]").forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+    });
+    panel.querySelector("form").onsubmit = async (e) => {
+      e.preventDefault();
+      const button = panel.querySelector("[type=submit]");
+      button.disabled = true;
+      try {
+        const data = await api2("profile", { name: panel.querySelector("input").value, avatar });
+        onSave(data);
+        panel.querySelector(".profile-status").textContent = "\u041F\u0440\u043E\u0444\u0438\u043B\u044C \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D";
+        toast2("\u041F\u043E\u0437\u044B\u0432\u043D\u043E\u0439 \u0438 \u0430\u0432\u0430\u0442\u0430\u0440 \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u044B");
+      } catch (error) {
+        panel.querySelector(".profile-status").textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    };
+    root.prepend(panel);
+  }
+  var AVATARS;
+  var init_profile_ui = __esm({
+    "profile-ui.js"() {
+      AVATARS = ["\u271A", "\u25C8", "\u265C", "\u26A1", "\u2620", "\u2605"];
+    }
+  });
+
   // balance.js
   function restoreEnergy(s, now = Date.now()) {
     var _a2, _b2;
@@ -640,7 +675,7 @@
     });
   }
   async function loadArt() {
-    await Promise.all([Promise.all(Array.from({ length: 5 }, (_, i) => new Promise((resolve) => {
+    await Promise.all([Promise.all(Array.from({ length: 8 }, (_, i) => new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
         environments[i] = img;
@@ -694,12 +729,12 @@
     return Math.abs(Math.sin(n * 127.1 + 311.7) * 43758.5453) % 1;
   }
   function background(g2, map) {
-    if (map >= 5) {
-      expansionBackground(g2, map);
-      return;
-    }
     if (environments[map]) {
       g2.drawImage(environments[map], 0, 0, 960, 600);
+      return;
+    }
+    if (map >= 5) {
+      expansionBackground(g2, map);
       return;
     }
     let [dark, mid, light, cream] = palettes[map];
@@ -1055,8 +1090,19 @@
 
   // game.js
   var game_exports = {};
+  function showProfile(data) {
+    playerProfile = { ...playerProfile, ...data };
+    const name = document.getElementById("profile-name");
+    if (name) name.textContent = playerProfile.name;
+    const avatar = document.querySelector(".profile .avatar");
+    if (avatar) {
+      avatar.textContent = AVATARS[playerProfile.avatar || 0];
+      avatar.className = "avatar avatar-" + (playerProfile.avatar || 0);
+    }
+  }
   async function api(path, body) {
     const data = await requestAPI(path, body);
+    if (path === "profile") showProfile({ name: data.name, avatar: data.avatar || 0 });
     if (data.save) {
       save = data.save;
       persist();
@@ -1591,7 +1637,7 @@
     let available = bossUnlocked(save, m);
     let mine = raid == null ? void 0 : raid.members.find((p) => p.me);
     let cooldown = raid ? Math.max(0, Math.ceil((raid.nextAttack - Date.now() - serverOffset) / 1e3)) : 0;
-    root.innerHTML = '<p class="page-intro">\u0414\u0440\u0443\u0437\u044C\u044F \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F. \u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435 \u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0437\u0430\u0447\u0438\u0441\u0442\u0438 \u0440\u0430\u0439\u043E\u043D \u0442\u0440\u0438\u0436\u0434\u044B, \u0437\u0430\u0442\u0435\u043C \u0441\u043E\u0431\u0435\u0440\u0438 \u043E\u0442\u0440\u044F\u0434 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435.</p>' + (!raid ? '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410 \xB7 ' + MAPS[m].name + "</span><h2>" + MAPS[m].boss + "</h2><p>\u0414\u043E\u0441\u0442\u0443\u043F: 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0438 \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + MAPS[m].level + ".<br>\u0421\u0435\u0439\u0447\u0430\u0441 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A: " + save.districtRuns[m] + ' / 3.</p><button class="primary" id="create-raid" ' + (!available ? "disabled" : "") + ">\u0421\u041E\u0417\u0414\u0410\u0422\u042C \u0420\u0415\u0419\u0414</button></div></div>" : '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0410\u0421\u0418\u041D\u0425\u0420\u041E\u041D\u041D\u042B\u0419 \u0420\u0415\u0419\u0414 \xB7 ' + raid.id + "</span><h2>" + MAPS[m].boss + '</h2><div class="raid-health"><i style="width:' + raid.hp / raid.maxHp * 100 + '%"></i></div><p>' + raid.hp + " / " + raid.maxHp + " HP \xB7 " + raid.members.length + ' / 10 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432</p><button class="primary" id="raid-attack" ' + (!raid.joined || !available || raid.hp <= 0 || cooldown || save.energy < BOSS_COST ? "disabled" : "") + ">" + (raid.hp <= 0 ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : cooldown ? "\u0412\u041E\u0417\u0412\u0420\u0410\u0429\u0415\u041D\u0418\u0415 \xB7 " + cooldown + " \u0421\u0415\u041A" : "\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C \xB7 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418") + '</button><small>\u0423\u0440\u043E\u043D \u0440\u0430\u0441\u0441\u0447\u0438\u0442\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u043F\u043E \u044D\u043A\u0438\u043F\u0438\u0440\u043E\u0432\u043A\u0435. \u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434.</small></div></div><div class="raid-controls">' + (!raid.joined && raid.hp > 0 ? '<button class="primary" id="join-raid">\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F</button>' : "") + '<button class="secondary" id="copy-raid">\u0421\u041A\u041E\u041F\u0418\u0420\u041E\u0412\u0410\u0422\u042C \u0421\u0421\u042B\u041B\u041A\u0423 \u0414\u041B\u042F \u0414\u0420\u0423\u0417\u0415\u0419</button>' + (raid.hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423 \xB7 ' + MAPS[m].reward * 2 + " \u0414\u0415\u0422. + 3 \u042F\u0414\u0420\u0410</button>" : "") + '<button class="secondary" id="close-raid">\u0414\u0420\u0423\u0413\u041E\u0419 \u0420\u0415\u0419\u0414</button></div><div class="party-list">' + raid.members.map((p) => "<div><span>" + p.name + (p.me ? " \xB7 \u0422\u042B" : "") + "</span><b>" + p.damage + " \u0443\u0440\u043E\u043D\u0430</b><small>" + (p.claimed ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430" : "") + "</small></div>").join("") + "</div>") + '<div class="network-note">\u0411\u0435\u0442\u0430 \xB7 \u0433\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u044D\u0442\u043E\u043C\u0443 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443. \u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0430\u0439 \u0434\u0440\u0443\u0437\u0435\u0439 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435: \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435. \u0412\u0445\u043E\u0434 \u0438 \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u0441\u044F \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E.</div>';
+    root.innerHTML = '<p class="page-intro">\u0414\u0440\u0443\u0437\u044C\u044F \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F. \u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435 \u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0437\u0430\u0447\u0438\u0441\u0442\u0438 \u0440\u0430\u0439\u043E\u043D \u0442\u0440\u0438\u0436\u0434\u044B, \u0437\u0430\u0442\u0435\u043C \u0441\u043E\u0431\u0435\u0440\u0438 \u043E\u0442\u0440\u044F\u0434 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435.</p>' + (!raid ? '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410 \xB7 ' + MAPS[m].name + "</span><h2>" + MAPS[m].boss + "</h2><p>\u0414\u043E\u0441\u0442\u0443\u043F: 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0438 \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + MAPS[m].level + ".<br>\u0421\u0435\u0439\u0447\u0430\u0441 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A: " + save.districtRuns[m] + ' / 3.</p><button class="primary" id="create-raid" ' + (!available ? "disabled" : "") + ">\u0421\u041E\u0417\u0414\u0410\u0422\u042C \u0420\u0415\u0419\u0414</button></div></div>" : '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0410\u0421\u0418\u041D\u0425\u0420\u041E\u041D\u041D\u042B\u0419 \u0420\u0415\u0419\u0414 \xB7 ' + raid.id + "</span><h2>" + MAPS[m].boss + '</h2><div class="raid-health"><i style="width:' + raid.hp / raid.maxHp * 100 + '%"></i></div><p>' + raid.hp + " / " + raid.maxHp + " HP \xB7 " + raid.members.length + ' / 10 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432</p><button class="primary" id="raid-attack" ' + (!raid.joined || !available || raid.hp <= 0 || cooldown || save.energy < BOSS_COST ? "disabled" : "") + ">" + (raid.hp <= 0 ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : cooldown ? "\u0412\u041E\u0417\u0412\u0420\u0410\u0429\u0415\u041D\u0418\u0415 \xB7 " + cooldown + " \u0421\u0415\u041A" : "\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C \xB7 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418") + '</button><small>\u0423\u0440\u043E\u043D \u0440\u0430\u0441\u0441\u0447\u0438\u0442\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u043F\u043E \u044D\u043A\u0438\u043F\u0438\u0440\u043E\u0432\u043A\u0435. \u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434.</small></div></div><div class="raid-controls">' + (!raid.joined && raid.hp > 0 ? '<button class="primary" id="join-raid">\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F</button>' : "") + '<button class="secondary" id="copy-raid">\u0421\u041A\u041E\u041F\u0418\u0420\u041E\u0412\u0410\u0422\u042C \u0421\u0421\u042B\u041B\u041A\u0423 \u0414\u041B\u042F \u0414\u0420\u0423\u0417\u0415\u0419</button>' + (raid.hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423 \xB7 ' + MAPS[m].reward * 2 + " \u0414\u0415\u0422. + 3 \u042F\u0414\u0420\u0410</button>" : "") + '<button class="secondary" id="close-raid">\u0414\u0420\u0423\u0413\u041E\u0419 \u0420\u0415\u0419\u0414</button></div><div class="party-list">' + raid.members.map((p) => "<div><span>" + String(p.name).replace(/[&<>"']/g, (c2) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c2]) + (p.me ? " \xB7 \u0422\u042B" : "") + "</span><b>" + p.damage + " \u0443\u0440\u043E\u043D\u0430</b><small>" + (p.claimed ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430" : "") + "</small></div>").join("") + "</div>") + '<div class="network-note">\u0411\u0435\u0442\u0430 \xB7 \u0433\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u044D\u0442\u043E\u043C\u0443 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443. \u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0430\u0439 \u0434\u0440\u0443\u0437\u0435\u0439 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435: \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435. \u0412\u0445\u043E\u0434 \u0438 \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u0441\u044F \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E.</div>';
     const trait = document.createElement("p");
     trait.className = "page-intro";
     trait.textContent = raidProfile(m).trait;
@@ -1636,6 +1682,7 @@
   function renderSettings() {
     const el = $("#settings-page");
     el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043B\u0435\u0432\u0430, \u0431\u0435\u0433 \u0441\u043F\u0440\u0430\u0432\u0430. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.3</span></div></div>';
+    profileEditor(el, playerProfile, api, toast, showProfile);
     el.querySelectorAll("[data-setting]").forEach((input) => input.onchange = () => {
       prefs[input.dataset.setting] = input.checked;
       localStorage.setItem(prefsKey, JSON.stringify(prefs));
@@ -1664,15 +1711,17 @@
     }
     if (launchValue("friend")) navigate("friends");
   }
-  var $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy;
+  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy;
   var init_game = __esm({
     "game.js"() {
+      init_profile_ui();
       init_clans_ui();
       init_friends_ui();
       init_platform_entry();
       init_client_api();
       init_balance();
       init_art();
+      playerProfile = { name: "\u0421\u0442\u0440\u0430\u043D\u043D\u0438\u043A", avatar: 0 };
       $ = (s) => document.querySelector(s);
       key = "obitel-save-v1";
       save = freshSave();

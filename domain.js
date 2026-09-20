@@ -53,11 +53,13 @@ export function createHandler(db,commit,id){
     try{b=raw?JSON.parse(raw):{}}catch{err('Некорректный JSON')}
    }
    let result={};const path=url.pathname;
-   if(req.method==='GET'&&path==='/api/profile')result={name:p.name,code:p.publicId,online:true};
+   if(req.method==='GET'&&path==='/api/profile')result={name:p.name,avatar:p.avatar||0,code:p.publicId,online:true};
    else if(req.method==='POST'&&path==='/api/profile'){
     const name=String(b.name||'').replace(/\s+/g,' ').trim();
-    if(name){if(name.length<2||name.length>MAX_NAME)err('Имя должно быть от 2 до 32 символов');p.name=name}
-    result={name:p.name,code:p.publicId,online:true};
+    if(b.name!==undefined&&(name.length<2||name.length>MAX_NAME||/[<>\x00-\x1f]/.test(name)))err('Ник: 2–32 символа, без угловых скобок');
+    if(b.avatar!==undefined&&(!Number.isInteger(b.avatar)||b.avatar<0||b.avatar>5))err('Аватар не найден');
+    if(b.name!==undefined)p.name=name;if(b.avatar!==undefined)p.avatar=b.avatar;
+    result={name:p.name,avatar:p.avatar||0,code:p.publicId,online:true};
    }
    else if(req.method==='GET'&&path==='/api/online')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='POST'&&path==='/api/online/ping')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
