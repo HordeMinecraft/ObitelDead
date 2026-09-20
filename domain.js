@@ -1,5 +1,6 @@
+import {clanAction} from './clans-domain.js';
 import {socialAction,ensureSocial} from './friends-domain.js';
-import {freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave,playerLevel} from './balance.js';
+import {freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave,playerLevel,raidProfile} from './balance.js';
 
 const ONLINE_WINDOW=90_000;
 const MAX_NAME=32;
@@ -61,6 +62,7 @@ export function createHandler(db,commit,id){
    else if(req.method==='GET'&&path==='/api/online')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='POST'&&path==='/api/online/ping')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='GET'&&path==='/api/leaderboard')result=leaderboard(session);
+   else if(path.startsWith('/api/clans'))result=clanAction(db,session,path,req.method,b,id);
    else if(path.startsWith('/api/friends'))result=socialAction(db,session,path,req.method,b,id,{onlineWindow:ONLINE_WINDOW});
    else if(req.method==='POST'&&path==='/api/upgrade'){
     const f=b.field;if(!['weaponLevel','armor','engine','body','trunk'].includes(f))err('Нет такого улучшения');
@@ -92,14 +94,14 @@ export function createHandler(db,commit,id){
    else if(req.method==='POST'&&path==='/api/raids'){
     const m=b.map;if(!Number.isInteger(m)||!MAPS[m]||!bossUnlocked(s,m))err('Нужны 3 зачистки и рекомендуемый уровень');
     const existing=Object.values(db.raids).find(r=>r.owner===session&&r.map===m&&r.hp>0);
-    if(existing)result.raid=viewRaid(existing,session);else{const rid=id().slice(0,12),hp=750*(1+m*.7);const r={id:rid,map:m,owner:session,hp,maxHp:hp,created:now(),members:{[session]:{damage:0,nextAttack:0,claimed:false}}};db.raids[rid]=r;result.raid=viewRaid(r,session)}
+    if(existing)result.raid=viewRaid(existing,session);else{const rid=id().slice(0,12),hp=raidProfile(m).hp;const r={id:rid,map:m,owner:session,hp,maxHp:hp,created:now(),members:{[session]:{damage:0,nextAttack:0,claimed:false}}};db.raids[rid]=r;result.raid=viewRaid(r,session)}
    }
    else if(/^\/api\/raids\/[a-f0-9]{12}(\/join|\/attack|\/claim)?$/.test(path)){
     const parts=path.split('/'),r=db.raids[parts[3]];if(!r)err('Рейд не найден',404);const action=parts[4];
     if(req.method==='POST'&&action==='join'){
      if(r.hp<=0)err('Босс уже повержен');if(!r.members[session]){if(Object.keys(r.members).length>=10)err('В рейде уже 10 игроков');r.members[session]={damage:0,nextAttack:0,claimed:false}}
     }else if(req.method==='POST'&&action==='attack'){
-     const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!bossUnlocked(s,r.map))err('Нужны 3 зачистки района и рекомендуемый уровень');if(r.hp<=0)err('Босс уже повержен');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,BOSS_COST))err('Недостаточно энергии');const damage=Math.min(r.hp,raidDamage(s));r.hp-=damage;member.damage+=damage;member.nextAttack=now()+45000;result.damage=damage;
+     const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!bossUnlocked(s,r.map))err('Нужны 3 зачистки района и рекомендуемый уровень');if(r.hp<=0)err('Босс уже повержен');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,BOSS_COST))err('Недостаточно энергии');const damage=Math.min(r.hp,Math.round(raidDamage(s)*(1-raidProfile(r.map).armor)));r.hp-=damage;member.damage+=damage;member.nextAttack=now()+raidProfile(r.map).cooldown;result.damage=damage;
     }else if(req.method==='POST'&&action==='claim'){
      const member=r.members[session];if(!member||!member.damage||member.claimed||r.hp>0)err('Награда недоступна');member.claimed=true;s.scrap+=MAPS[r.map].reward*2;s.cores+=3;s.bossKills++;s.cloth+=6;s.xp+=45;if(!s.cleared.includes(r.map))s.cleared.push(r.map);
     }else if(req.method!=='GET'||action)err('Метод не поддерживается',405);

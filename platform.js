@@ -1,4 +1,4 @@
-// node_modules/.pnpm/@vkontakte+vk-bridge@3.0.2/node_modules/@vkontakte/vk-bridge/dist/index.js
+// ../обитель/node_modules/.pnpm/@vkontakte+vk-bridge@3.0.2/node_modules/@vkontakte/vk-bridge/dist/index.js
 function createCounter() {
   return {
     current: 0,
@@ -278,33 +278,38 @@ if (inVK && !window.__obitelVKStarted) {
     document.head.append(sdk);
   }
 }
+var withTimeout = (promise, message) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(message)), 1e4))]);
 async function currentVKUser() {
   if (!inVK) return null;
   try {
-    return await Promise.race([dist_default.send("VKWebAppGetUserInfo", {}), new Promise((_, reject) => setTimeout(() => reject(new Error("VK profile timeout")), 1e4))]);
+    return await withTimeout(dist_default.send("VKWebAppGetUserInfo", {}), "\u0412\u041A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043D\u0430 \u0437\u0430\u043F\u0440\u043E\u0441 \u043F\u0440\u043E\u0444\u0438\u043B\u044F.");
   } catch {
     return null;
   }
 }
 async function inviteVK(link = "") {
-  if (!inVK) throw new Error("Приглашения ВК доступны при запуске игры внутри ВК.");
+  if (!inVK) throw new Error("\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u0412\u041A \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u043F\u0440\u0438 \u0437\u0430\u043F\u0443\u0441\u043A\u0435 \u0438\u0433\u0440\u044B \u0432\u043D\u0443\u0442\u0440\u0438 \u0412\u041A.");
   if (link) {
     try {
-      return await Promise.race([dist_default.send("VKWebAppShare", { link }), new Promise((_, reject) => setTimeout(() => reject(new Error("ВК не ответил. Скопируй ссылку приглашения.")), 1e4))]);
+      return await withTimeout(dist_default.send("VKWebAppShare", { link }), "\u0412\u041A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B. \u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439 \u0441\u0441\u044B\u043B\u043A\u0443 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F.");
     } catch {
     }
   }
-  return Promise.race([dist_default.send("VKWebAppShowInviteBox", {}), new Promise((_, reject) => setTimeout(() => reject(new Error("ВК не ответил. Скопируй ссылку приглашения.")), 1e4))]);
+  return withTimeout(dist_default.send("VKWebAppShowInviteBox", {}), "\u0412\u041A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B. \u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439 \u0441\u0441\u044B\u043B\u043A\u0443 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F.");
 }
 async function inviteVKFriends(code) {
-  if (!inVK) throw new Error("Выбор друзей ВК доступен только внутри приложения ВК.");
-  const result = await Promise.race([dist_default.send("VKWebAppGetFriends", { multi: true }), new Promise((_, reject) => setTimeout(() => reject(new Error("ВК не открыл список друзей.")), 1e4))]);
+  if (!inVK) throw new Error("\u0412\u044B\u0431\u043E\u0440 \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A \u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D \u0442\u043E\u043B\u044C\u043A\u043E \u0432\u043D\u0443\u0442\u0440\u0438 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F \u0412\u041A.");
+  const result = await withTimeout(dist_default.send("VKWebAppGetFriends", { multi: true }), "\u0412\u041A \u043D\u0435 \u043E\u0442\u043A\u0440\u044B\u043B \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439.");
   const users = Array.isArray(result?.users) ? result.users : [];
   if (!users.length) return { sent: 0, users: [] };
   let sent = 0;
   for (const user of users.slice(0, 20)) {
     try {
-      await Promise.race([dist_default.send("VKWebAppShowRequestBox", { uid: user.id, message: "Присоединяйся ко мне в «Обители Мёртвых»!", requestKey: "friend=" + code }), new Promise((_, reject) => setTimeout(() => reject(new Error("Не удалось отправить приглашение.")), 1e4))]);
+      await withTimeout(dist_default.send("VKWebAppShowRequestBox", {
+        uid: user.id,
+        message: "\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0439\u0441\u044F \u043A\u043E \u043C\u043D\u0435 \u0432 \xAB\u041E\u0431\u0438\u0442\u0435\u043B\u0438 \u041C\u0451\u0440\u0442\u0432\u044B\u0445\xBB!",
+        requestKey: "friend=" + code
+      }), "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0442\u043F\u0440\u0430\u0432\u0438\u0442\u044C \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435.");
       sent++;
     } catch {
     }

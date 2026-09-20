@@ -9,7 +9,7 @@
     }
   };
 
-  // node_modules/.pnpm/@vkontakte+vk-bridge@3.0.2/node_modules/@vkontakte/vk-bridge/dist/index.js
+  // ../обитель/node_modules/.pnpm/@vkontakte+vk-bridge@3.0.2/node_modules/@vkontakte/vk-bridge/dist/index.js
   function createCounter() {
     return {
       current: 0,
@@ -178,7 +178,7 @@
   }
   var IS_CLIENT_SIDE, IS_ANDROID_WEBVIEW, _a, _b, IS_IOS_WEBVIEW, IS_REACT_NATIVE_WEBVIEW, IS_WEB, IS_MVK, IS_DESKTOP_VK, EVENT_TYPE, DESKTOP_METHODS, supportedHandlers, androidBridge, iosBridge, webBridge, package_namespaceObject, src_bridge, dist_default;
   var init_dist = __esm({
-    "node_modules/.pnpm/@vkontakte+vk-bridge@3.0.2/node_modules/@vkontakte/vk-bridge/dist/index.js"() {
+    "../\u043E\u0431\u0438\u0442\u0435\u043B\u044C/node_modules/.pnpm/@vkontakte+vk-bridge@3.0.2/node_modules/@vkontakte/vk-bridge/dist/index.js"() {
       IS_CLIENT_SIDE = "u" > typeof window;
       IS_ANDROID_WEBVIEW = Boolean(IS_CLIENT_SIDE && window.AndroidBridge);
       IS_IOS_WEBVIEW = Boolean(IS_CLIENT_SIDE && ((_b = (_a = window.webkit) == null ? void 0 : _a.messageHandlers) == null ? void 0 : _b.VKWebAppClose));
@@ -274,9 +274,35 @@
   });
 
   // platform-entry.js
-  async function inviteVK() {
+  async function inviteVK(link = "") {
     if (!inVK) throw new Error("\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u0412\u041A \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u043F\u0440\u0438 \u0437\u0430\u043F\u0443\u0441\u043A\u0435 \u0438\u0433\u0440\u044B \u0432\u043D\u0443\u0442\u0440\u0438 \u0412\u041A.");
-    return Promise.race([dist_default.send("VKWebAppShowInviteBox", {}), new Promise((_, reject) => setTimeout(() => reject(new Error("\u0412\u041A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B. \u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439 \u0441\u0441\u044B\u043B\u043A\u0443 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F.")), 1e4))]);
+    if (link) {
+      try {
+        return await withTimeout(dist_default.send("VKWebAppShare", { link }), "\u0412\u041A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B. \u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439 \u0441\u0441\u044B\u043B\u043A\u0443 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F.");
+      } catch (e) {
+      }
+    }
+    return withTimeout(dist_default.send("VKWebAppShowInviteBox", {}), "\u0412\u041A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B. \u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439 \u0441\u0441\u044B\u043B\u043A\u0443 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F.");
+  }
+  async function inviteVKFriends(code) {
+    if (!inVK) throw new Error("\u0412\u044B\u0431\u043E\u0440 \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A \u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D \u0442\u043E\u043B\u044C\u043A\u043E \u0432\u043D\u0443\u0442\u0440\u0438 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F \u0412\u041A.");
+    const result = await withTimeout(dist_default.send("VKWebAppGetFriends", { multi: true }), "\u0412\u041A \u043D\u0435 \u043E\u0442\u043A\u0440\u044B\u043B \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439.");
+    const users = Array.isArray(result == null ? void 0 : result.users) ? result.users : [];
+    if (!users.length) return { sent: 0, users: [] };
+    let sent = 0;
+    for (const user of users.slice(0, 20)) {
+      try {
+        await withTimeout(dist_default.send("VKWebAppShowRequestBox", {
+          uid: user.id,
+          message: "\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0439\u0441\u044F \u043A\u043E \u043C\u043D\u0435 \u0432 \xAB\u041E\u0431\u0438\u0442\u0435\u043B\u0438 \u041C\u0451\u0440\u0442\u0432\u044B\u0445\xBB!",
+          requestKey: "friend=" + code
+        }), "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0442\u043F\u0440\u0430\u0432\u0438\u0442\u044C \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435.");
+        sent++;
+      } catch (e) {
+      }
+    }
+    if (!sent) await inviteVK(inviteLink("friend", code));
+    return { sent, users };
   }
   function inviteLink(kind, code) {
     const value = kind + "=" + encodeURIComponent(code);
@@ -286,7 +312,7 @@
     const hash = new URLSearchParams(location.hash.slice(1)), request = new URLSearchParams(launch.get("request_key") || "");
     return launch.get(key2) || hash.get(key2) || request.get(key2);
   }
-  var VK_APP_ID, launch, inVK;
+  var VK_APP_ID, launch, inVK, withTimeout;
   var init_platform_entry = __esm({
     "platform-entry.js"() {
       init_dist();
@@ -314,113 +340,7 @@
           document.head.append(sdk);
         }
       }
-    }
-  });
-
-  // friends-ui.js
-  function friendsUI(root, api2, toast2, openRaid) {
-    let loading = false;
-    async function render() {
-      if (loading) return;
-      loading = true;
-      try {
-        const data = await api2("friends");
-        root.innerHTML = `<div class="settings-card"><span class="eyebrow orange">\u0421\u0412\u041E\u0418 \u0412 \u0413\u041E\u0420\u041E\u0414\u0415</span><h2>\u0412\u044B\u0436\u0438\u0432\u0430\u0442\u044C \u0432\u043C\u0435\u0441\u0442\u0435.</h2><p>\u0414\u043E\u0431\u0430\u0432\u043B\u044F\u0439 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 \u043F\u043E \u043A\u043E\u0434\u0443 \u0438\u043B\u0438 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044E. \u041F\u043E\u0441\u043B\u0435 \u043F\u0440\u0438\u043D\u044F\u0442\u0438\u044F \u0437\u0430\u044F\u0432\u043A\u0438 \u0437\u0434\u0435\u0441\u044C \u043F\u043E\u044F\u0432\u0438\u0442\u0441\u044F \u0438\u0445 \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u0440\u0435\u0439\u0434. \u041A\u0430\u0436\u0434\u044B\u0439 \u0430\u0442\u0430\u043A\u0443\u0435\u0442 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F \u2014 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435.</p><div class="friend-code"><span>\u0422\u0412\u041E\u0419 \u041A\u041E\u0414</span><strong>${data.code}</strong><button class="secondary" id="friend-copy">\u0421\u0421\u042B\u041B\u041A\u0410 \u041F\u0420\u0418\u0413\u041B\u0410\u0428\u0415\u041D\u0418\u042F</button>${inVK ? '<button class="secondary" id="vk-invite">\u041F\u0420\u0418\u0413\u041B\u0410\u0421\u0418\u0422\u042C \u0418\u0417 \u0412\u041A</button>' : ""}</div><form id="friend-form"><label for="friend-code-input">\u041A\u043E\u0434 \u0434\u0440\u0443\u0433\u0430</label><div class="friend-form"><input id="friend-code-input" maxlength="12" required pattern="[a-fA-F0-9]{12}" autocomplete="off" placeholder="12 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432" value="${escape(launchValue("friend") || "")}"><button class="primary">\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F</button></div></form></div><div class="section-title"><h3>\u0412\u0445\u043E\u0434\u044F\u0449\u0438\u0435 \u0437\u0430\u044F\u0432\u043A\u0438</h3><span>${data.requests.length}</span></div><div class="party-list">${data.requests.map((p) => `<div><b>${escape(p.name)}</b><button class="primary" data-accept="${p.code}">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-decline="${p.code}">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button></div>`).join("") || '<p class="page-intro">\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043F\u043E\u043A\u0430 \u043D\u0435\u0442.</p>'}</div><div class="section-title"><h3>\u0422\u0432\u043E\u0439 \u043E\u0442\u0440\u044F\u0434</h3><button class="secondary" id="friends-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div><div class="party-list">${data.friends.map((p) => `<div><span><b>${escape(p.name)}</b><small>${p.raid ? "\u041E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u0440\u0435\u0439\u0434 \xB7 " + p.raid.hp + " HP" : "\u0413\u043E\u0442\u043E\u0432\u0438\u0442\u0441\u044F \u043A \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0439 \u0432\u044B\u043B\u0430\u0437\u043A\u0435"}</small></span>${p.raid ? `<button class="primary" data-friend-raid="${p.raid.id}">\u041A \u0411\u041E\u0421\u0421\u0423 \u2192</button>` : ""}</div>`).join("") || '<p class="page-intro">\u041E\u0442\u043F\u0440\u0430\u0432\u044C \u0434\u0440\u0443\u0433\u0443 \u0441\u0441\u044B\u043B\u043A\u0443 \u0438 \u043F\u0440\u0438\u043C\u0438 \u0435\u0433\u043E \u0437\u0430\u044F\u0432\u043A\u0443. \u0417\u0434\u0435\u0441\u044C \u043F\u043E\u044F\u0432\u0438\u0442\u0441\u044F \u0432\u0430\u0448 \u043E\u0442\u0440\u044F\u0434.</p>'}</div>`;
-        root.querySelector("#friends-refresh").onclick = render;
-        const mutate = async (path, code) => {
-          try {
-            await api2(path, { code });
-            toast2(path.endsWith("request") ? "\u0417\u0430\u044F\u0432\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430" : "\u0421\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D");
-            await render();
-          } catch (e) {
-            toast2(e.message);
-          }
-        };
-        root.querySelector("#friend-form").onsubmit = (e) => {
-          e.preventDefault();
-          mutate("friends/request", root.querySelector("input").value.trim().toLowerCase());
-        };
-        root.querySelectorAll("[data-accept]").forEach((b) => b.onclick = () => mutate("friends/accept", b.dataset.accept));
-        root.querySelectorAll("[data-decline]").forEach((b) => b.onclick = () => mutate("friends/decline", b.dataset.decline));
-        root.querySelectorAll("[data-friend-raid]").forEach((b) => b.onclick = () => openRaid(b.dataset.friendRaid));
-        root.querySelector("#friend-copy").onclick = async () => {
-          const link = inviteLink("friend", data.code);
-          try {
-            await navigator.clipboard.writeText(link);
-            toast2("\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u043E");
-          } catch (e) {
-            root.querySelector("input").value = data.code;
-            toast2("\u041F\u0435\u0440\u0435\u0434\u0430\u0439 \u0434\u0440\u0443\u0433\u0443 \u0441\u0432\u043E\u0439 \u043A\u043E\u0434: " + data.code);
-          }
-        };
-        if (root.querySelector("#vk-invite")) root.querySelector("#vk-invite").onclick = () => inviteVK().catch((e) => toast2(e.message || "\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u0437\u0430\u043A\u0440\u044B\u0442\u043E"));
-      } catch (e) {
-        root.innerHTML = '<div class="settings-card"><p>' + escape(e.message) + '</p><button class="secondary" id="friends-retry">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
-        root.querySelector("button").onclick = render;
-      } finally {
-        loading = false;
-      }
-    }
-    render();
-  }
-  var escape;
-  var init_friends_ui = __esm({
-    "friends-ui.js"() {
-      init_platform_entry();
-      escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-    }
-  });
-
-  // config.js
-  var staticHosts, API_BASE;
-  var init_config = __esm({
-    "config.js"() {
-      staticHosts = ["obitel.sourcecraft.site", "hordeminecraft.github.io"];
-      API_BASE = staticHosts.includes(location.hostname) ? "https://obiteldead.deniswww127.workers.dev/api/" : new URL("api/", location.href).href;
-    }
-  });
-
-  // client-api.js
-  async function requestAPI(path, body) {
-    var _a2;
-    const headers = {};
-    if (body !== void 0) headers["Content-Type"] = "application/json";
-    if (tokenMode && token) headers["X-Obitel-Session"] = token;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15e3);
-    let response;
-    try {
-      response = await fetch(new URL(path, API_BASE), { method: body === void 0 ? "GET" : "POST", headers, credentials: crossOrigin ? "omit" : "same-origin", body: body === void 0 ? void 0 : JSON.stringify(body), signal: controller.signal });
-    } catch (e) {
-      throw new Error("\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u0432\u044F\u0437\u0430\u0442\u044C\u0441\u044F \u0441 \u0441\u0435\u0440\u0432\u0435\u0440\u043E\u043C. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0438\u043D\u0442\u0435\u0440\u043D\u0435\u0442 \u0438 \u043F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0435.");
-    } finally {
-      clearTimeout(timeout);
-    }
-    if (!((_a2 = response.headers.get("content-type")) == null ? void 0 : _a2.includes("application/json"))) throw new Error("\u0418\u0433\u0440\u043E\u0432\u043E\u0439 \u0441\u0435\u0440\u0432\u0435\u0440 \u043D\u0435 \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0451\u043D \u0438\u043B\u0438 \u0442\u0440\u0435\u0431\u0443\u0435\u0442 \u0432\u0445\u043E\u0434\u0430. \u041F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u043D\u0435 \u0438\u0437\u043C\u0435\u043D\u0451\u043D.");
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D");
-    const issued = response.headers.get("X-Obitel-Session");
-    if (tokenMode && issued && /^[a-f0-9]{32}$/.test(issued)) {
-      token = issued;
-      try {
-        localStorage.setItem(tokenKey, issued);
-      } catch (e) {
-      }
-    }
-    return data;
-  }
-  var tokenKey, crossOrigin, tokenMode, token;
-  var init_client_api = __esm({
-    "client-api.js"() {
-      init_config();
-      tokenKey = "obitel-session:" + API_BASE;
-      crossOrigin = new URL(API_BASE).origin !== location.origin;
-      tokenMode = crossOrigin || window.parent !== window;
-      token = "";
-      try {
-        token = localStorage.getItem(tokenKey) || "";
-      } catch (e) {
-      }
+      withTimeout = (promise, message) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(message)), 1e4))]);
     }
   });
 
@@ -446,7 +366,7 @@
     if (stamina === 0) exhausted = true;
     return { stamina, exhausted, running: running && stamina > 0, multiplier: running ? 1.65 : 1 };
   }
-  var MAPS, WEAPONS, ENERGY_MAX, ENERGY_INTERVAL, RAID_COST, BOSS_COST, freshSave, bossUnlocked, xpForLevel, playerLevel, levelProgress, stats, upgradeCost, unlocked, enemyStats, ARMOR, armorUnlocked;
+  var MAPS, WEAPONS, ENERGY_MAX, raidProfile, ENERGY_INTERVAL, RAID_COST, BOSS_COST, freshSave, bossUnlocked, xpForLevel, playerLevel, levelProgress, stats, upgradeCost, unlocked, enemyStats, ARMOR, armorUnlocked;
   var init_balance = __esm({
     "balance.js"() {
       MAPS = [
@@ -454,14 +374,18 @@
         { name: "\u0410\u0417\u0421 \xAB\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F\xBB", desc: "\u0417\u0430\u043F\u0430\u0445 \u0431\u0435\u043D\u0437\u0438\u043D\u0430. \u041F\u0443\u0441\u0442\u044B\u0435 \u0431\u0430\u043A\u0438. \u0418 \u043A\u0442\u043E-\u0442\u043E \u0437\u0430 \u043A\u043E\u043B\u043E\u043D\u043A\u043E\u0439.", goal: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0437\u0430\u043F\u0430\u0441 \u0442\u043E\u043F\u043B\u0438\u0432\u0430", boss: "\u041F\u043E\u0434\u0436\u0438\u0433\u0430\u0442\u0435\u043B\u044C", level: 2, palette: ["#786953", "#514b3a", "#a38d65", "#c5a271"], reward: 110, kind: "gas" },
         { name: "\u0413\u0440\u0443\u0437\u043E\u0432\u043E\u0439 \u0434\u0432\u043E\u0440", desc: "\u041A\u043E\u043D\u0442\u0435\u0439\u043D\u0435\u0440\u044B \u0437\u0430\u043F\u0435\u0440\u0442\u044B \u0438\u0437\u043D\u0443\u0442\u0440\u0438. \u0421\u0442\u0443\u043A \u043D\u0435 \u043F\u0440\u0435\u043A\u0440\u0430\u0449\u0430\u0435\u0442\u0441\u044F.", goal: "\u0412\u0441\u043A\u0440\u044B\u0442\u044C \u0441\u043A\u043B\u0430\u0434 \u0441\u043D\u0430\u0431\u0436\u0435\u043D\u0438\u044F", boss: "\u041A\u0440\u0430\u043D\u043E\u0432\u0449\u0438\u043A", level: 3, palette: ["#627272", "#3e5150", "#738886", "#98a5a0"], reward: 140, kind: "yard" },
         { name: "\u0411\u043E\u043B\u044C\u043D\u0438\u0446\u0430 \u2116 6", desc: "\u041A\u0430\u0440\u0430\u043D\u0442\u0438\u043D \u0441\u043D\u044F\u0442. \u041F\u0430\u0446\u0438\u0435\u043D\u0442\u044B \u043E\u0441\u0442\u0430\u043B\u0438\u0441\u044C.", goal: "\u041D\u0430\u0439\u0442\u0438 \u043C\u0435\u0434\u0438\u0446\u0438\u043D\u0441\u043A\u0438\u0439 \u043C\u043E\u0434\u0443\u043B\u044C", boss: "\u0413\u043B\u0430\u0432\u0432\u0440\u0430\u0447", level: 4, palette: ["#687468", "#465b4f", "#8c9a84", "#b0b49b"], reward: 175, kind: "hospital" },
-        { name: "\u0427\u0451\u0440\u043D\u044B\u0439 \u043B\u0435\u0441", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B \u043F\u0440\u0438\u0448\u0451\u043B \u043E\u0442\u0441\u044E\u0434\u0430. \u0414\u0430\u043B\u044C\u0448\u0435 \u2014 \u0442\u0438\u0448\u0438\u043D\u0430.", goal: "\u041D\u0430\u0439\u0442\u0438 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0441\u0438\u0433\u043D\u0430\u043B\u0430", boss: "\u041A\u043E\u0440\u043D\u0435\u0432\u043E\u0439", level: 5, palette: ["#525f4a", "#354736", "#71825b", "#94a071"], reward: 220, kind: "forest" }
+        { name: "\u0427\u0451\u0440\u043D\u044B\u0439 \u043B\u0435\u0441", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B \u043F\u0440\u0438\u0448\u0451\u043B \u043E\u0442\u0441\u044E\u0434\u0430. \u0414\u0430\u043B\u044C\u0448\u0435 \u2014 \u0442\u0438\u0448\u0438\u043D\u0430.", goal: "\u041D\u0430\u0439\u0442\u0438 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0441\u0438\u0433\u043D\u0430\u043B\u0430", boss: "\u041A\u043E\u0440\u043D\u0435\u0432\u043E\u0439", level: 5, palette: ["#525f4a", "#354736", "#71825b", "#94a071"], reward: 220, kind: "forest" },
+        { name: "\u0417\u0430\u0442\u043E\u043F\u043B\u0435\u043D\u043D\u043E\u0435 \u043C\u0435\u0442\u0440\u043E", desc: "\u0412\u043E\u0434\u0430 \u0441\u043A\u0440\u044B\u0432\u0430\u0435\u0442 \u0440\u0435\u043B\u044C\u0441\u044B. \u0412 \u0442\u043E\u043D\u043D\u0435\u043B\u0435 \u0441\u043B\u044B\u0448\u0435\u043D \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043F\u043E\u0435\u0437\u0434.", goal: "\u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C \u0430\u0432\u0430\u0440\u0438\u0439\u043D\u044B\u0435 \u043D\u0430\u0441\u043E\u0441\u044B", boss: "\u041C\u0430\u0448\u0438\u043D\u0438\u0441\u0442", level: 6, palette: ["#334c50", "#23373c", "#75908b", "#b4bca2"], reward: 260, kind: "metro" },
+        { name: "\u041F\u0440\u043E\u043C\u0437\u043E\u043D\u0430 \xAB\u041F\u0435\u043F\u0435\u043B\xBB", desc: "\u041F\u0435\u0447\u0438 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u044E\u0442 \u0440\u0430\u0431\u043E\u0442\u0430\u0442\u044C \u0431\u0435\u0437 \u043B\u044E\u0434\u0435\u0439.", goal: "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0432\u0435\u0439\u0435\u0440", boss: "\u041F\u043B\u0430\u0432\u0438\u043B\u044C\u0449\u0438\u043A", level: 7, palette: ["#624535", "#382c26", "#a7794f", "#d9b47e"], reward: 305, kind: "factory" },
+        { name: "\u041F\u043E\u0440\u0442 \xAB\u0421\u0435\u0432\u0435\u0440\u043D\u044B\u0439\xBB", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043A\u043E\u0440\u0430\u0431\u043B\u044C \u043D\u0435 \u043F\u043E\u043A\u0438\u043D\u0443\u043B \u043F\u0440\u0438\u0447\u0430\u043B.", goal: "\u0417\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u044C \u0443\u0437\u0435\u043B \u0434\u0430\u043B\u044C\u043D\u0435\u0439 \u0441\u0432\u044F\u0437\u0438", boss: "\u0410\u0434\u043C\u0438\u0440\u0430\u043B", level: 8, palette: ["#354a5c", "#253647", "#728b9b", "#b2c2c3"], reward: 355, kind: "port" }
       ];
       WEAPONS = [{ name: "\u041F\u0438\u0441\u0442\u043E\u043B\u0435\u0442 \xAB\u0421\u0438\u0433\u043D\u0430\u043B\xBB", damage: 22, rate: 0.48, range: 370, cost: 0, description: "\u0422\u043E\u0447\u043D\u044B\u0439 \u0438 \u043D\u0430\u0434\u0451\u0436\u043D\u044B\u0439. \u0425\u043E\u0440\u043E\u0448 \u0434\u043B\u044F \u043F\u0435\u0440\u0432\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A." }, { name: "\u041A\u0430\u0440\u0430\u0431\u0438\u043D \xAB\u0420\u0443\u0431\u0435\u0436\xBB", damage: 15, rate: 0.28, range: 430, cost: 360, description: "\u0412\u044B\u0441\u043E\u043A\u0430\u044F \u0441\u043A\u043E\u0440\u043E\u0441\u0442\u0440\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C. \u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E." }, { name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A \xAB\u0413\u0440\u043E\u043C\xBB", damage: 13, rate: 0.82, range: 240, pellets: 5, cost: 440, description: "\u041F\u044F\u0442\u044C \u0434\u0440\u043E\u0431\u0438\u043D. \u041F\u043E\u0434\u043F\u0443\u0441\u043A\u0430\u0439 \u0431\u043B\u0438\u0436\u0435 \u0438 \u043E\u0442\u0445\u043E\u0434\u0438 \u0431\u0435\u0433\u043E\u043C." }];
       ENERGY_MAX = 60;
+      raidProfile = (map) => map === 5 ? { hp: 3900, cooldown: 35e3, armor: 0.1, trait: "\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0440\u0438\u0442\u043C: \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 35 \u0441\u0435\u043A\u0443\u043D\u0434. \u0411\u0440\u043E\u043D\u044F \u0441\u043D\u0438\u0436\u0430\u0435\u0442 \u0443\u0440\u043E\u043D \u043D\u0430 10%." } : map === 6 ? { hp: 4700, cooldown: 45e3, armor: 0.2, trait: "\u0421\u0442\u0430\u043B\u044C\u043D\u0430\u044F \u043A\u043E\u0436\u0430: \u0432\u0445\u043E\u0434\u044F\u0449\u0438\u0439 \u0443\u0440\u043E\u043D \u0441\u043D\u0438\u0436\u0435\u043D \u043D\u0430 20%." } : map === 7 ? { hp: 6200, cooldown: 5e4, armor: 0.05, trait: "\u041E\u0441\u0430\u0434\u0430: \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0430\u0441 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 50 \u0441\u0435\u043A\u0443\u043D\u0434." } : { hp: 750 * (1 + map * 0.7), cooldown: 45e3, armor: 0, trait: "\u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434." };
       ENERGY_INTERVAL = 5 * 60 * 1e3;
       RAID_COST = 8;
       BOSS_COST = 12;
-      freshSave = () => ({ version: 1, armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: [0, 0, 0, 0, 0], energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
+      freshSave = () => ({ version: 1, armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: Array(MAPS.length).fill(0), energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
       bossUnlocked = (s, i) => {
         var _a2;
         return unlocked(s, i) && (((_a2 = s.districtRuns) == null ? void 0 : _a2[i]) || 0) >= 3 && playerLevel(s) >= MAPS[i].level;
@@ -490,6 +414,202 @@
         { name: "\u0411\u0440\u043E\u043D\u044F \xAB\u0426\u0438\u0442\u0430\u0434\u0435\u043B\u044C\xBB", hp: 100, level: 6, bosses: 6, cost: 1600, cloth: 48, cores: 9, icon: 5, description: "\u0422\u044F\u0436\u0451\u043B\u044B\u0435 \u043F\u043B\u0430\u0441\u0442\u0438\u043D\u044B. \u041E\u0442\u043A\u0440\u044B\u0442\u043E\u0435 \u043B\u0438\u0446\u043E, \u0437\u043D\u0430\u043A\u043E\u043C\u044B\u0439 \u0441\u0438\u043B\u0443\u044D\u0442." }
       ];
       armorUnlocked = (s, i) => playerLevel(s) >= ARMOR[i].level || (s.bossKills || 0) >= ARMOR[i].bosses && ARMOR[i].bosses > 0 || i === 0;
+    }
+  });
+
+  // clans-ui.js
+  async function clansUI(root, api2, toast2, openRaid) {
+    root.innerHTML = '<p class="page-intro">\u0421\u0432\u044F\u0437\u044B\u0432\u0430\u0435\u043C\u0441\u044F \u0441 \u043A\u043B\u0430\u043D\u0430\u043C\u0438\u2026</p>';
+    try {
+      const data = await api2("clans");
+      if (root.hidden) return;
+      const c = data.clan;
+      const row = (title, detail, buttons = "") => '<div class="clan-row"><div><strong>' + title + "</strong><small>" + detail + "</small></div>" + buttons + "</div>";
+      root.innerHTML = '<div class="clan-banner"><span class="eyebrow orange">\u0421\u0418\u041B\u0410 \u0412 \u0415\u0414\u0418\u041D\u0421\u0422\u0412\u0415</span><h2>' + esc((c == null ? void 0 : c.name) || "\u041D\u0430\u0439\u0434\u0438 \u0441\u0432\u043E\u0438\u0445.") + "</h2><p>\u0414\u043E 20 \u0432\u044B\u0436\u0438\u0432\u0448\u0438\u0445. \u0421\u043E\u0432\u043C\u0435\u0441\u0442\u043D\u044B\u0435 \u0440\u0435\u0439\u0434\u044B. \u041E\u0431\u0449\u0430\u044F \u0446\u0435\u043B\u044C.</p></div>" + (c ? '<div class="clan-columns"><section class="settings-card"><h3>\u041E\u0442\u0440\u044F\u0434 \xB7 ' + c.members.length + "/20</h3>" + c.members.map((m) => row(esc(m.name), "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + m.level)).join("") + '<button class="secondary" data-clan-action="leave">\u041F\u041E\u041A\u0418\u041D\u0423\u0422\u042C \u041A\u041B\u0410\u041D</button></section><section class="settings-card"><h3>\u0410\u043A\u0442\u0438\u0432\u043D\u044B\u0435 \u0440\u0435\u0439\u0434\u044B</h3>' + (c.raids.map((r) => row(esc(MAPS[r.map].boss), r.hp + " / " + r.maxHp + " HP", '<button class="primary" data-raid="' + r.id + '">\u041A \u0411\u041E\u0421\u0421\u0423</button>')).join("") || "<p>\u0421\u043E\u0437\u0434\u0430\u0439 \u0440\u0435\u0439\u0434 \u043D\u0430 \u043A\u0430\u0440\u0442\u0435. \u041E\u043D \u043F\u043E\u044F\u0432\u0438\u0442\u0441\u044F \u0443 \u0432\u0441\u0435\u0433\u043E \u043A\u043B\u0430\u043D\u0430.</p>") + (c.owner ? "<h3>\u0417\u0430\u044F\u0432\u043A\u0438</h3>" + (c.requests.map((m) => row(esc(m.name), "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + m.level, '<button class="primary" data-clan-action="accept" data-code="' + m.code + '">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-clan-action="decline" data-code="' + m.code + '">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button>')).join("") || "<p>\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043D\u0435\u0442.</p>") : "") + "</section></div>" : '<div class="clan-columns"><section class="settings-card"><h3>\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u043A\u043B\u0430\u043D</h3><p>\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E \u0441\u043E 2 \u0443\u0440\u043E\u0432\u043D\u044F. \u041F\u0440\u0438\u043D\u0438\u043C\u0430\u0439 \u0437\u0430\u044F\u0432\u043A\u0438 \u0438 \u0441\u043E\u0431\u0438\u0440\u0430\u0439 \u043E\u0442\u0440\u044F\u0434.</p><form id="clan-create" class="friend-form"><input aria-label="\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u043A\u043B\u0430\u043D\u0430" placeholder="\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u043A\u043B\u0430\u043D\u0430" minlength="3" maxlength="28" required><button class="primary">\u0421\u041E\u0417\u0414\u0410\u0422\u042C</button></form></section><section class="settings-card"><h3>\u041E\u0442\u043A\u0440\u044B\u0442\u044B\u0435 \u043A\u043B\u0430\u043D\u044B</h3>' + (data.clans.map((x) => row(esc(x.name), x.count + "/20 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432", '<button class="secondary" data-clan-action="request" data-code="' + x.code + '" ' + (x.requested || x.count >= 20 ? "disabled" : "") + ">" + (x.requested ? "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410" : "\u0412\u0421\u0422\u0423\u041F\u0418\u0422\u042C") + "</button>")).join("") || "<p>\u0421\u0442\u0430\u043D\u044C \u043E\u0441\u043D\u043E\u0432\u0430\u0442\u0435\u043B\u0435\u043C \u043F\u0435\u0440\u0432\u043E\u0433\u043E \u043A\u043B\u0430\u043D\u0430.</p>") + "</section></div>");
+      const act = async (action2, body) => {
+        try {
+          await api2("clans/" + action2, body);
+          await clansUI(root, api2, toast2, openRaid);
+        } catch (e) {
+          toast2(e.message);
+        }
+      };
+      root.querySelectorAll("[data-clan-action]").forEach((button) => button.onclick = () => {
+        button.disabled = true;
+        act(button.dataset.clanAction, { code: button.dataset.code }).finally(() => button.disabled = false);
+      });
+      root.querySelectorAll("[data-raid]").forEach((button) => button.onclick = () => openRaid(button.dataset.raid));
+      const form = root.querySelector("form");
+      if (form) form.onsubmit = (e) => {
+        e.preventDefault();
+        act("create", { name: form.querySelector("input").value });
+      };
+    } catch (e) {
+      root.innerHTML = '<p class="page-intro">' + esc(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button>';
+      root.querySelector("button").onclick = () => clansUI(root, api2, toast2, openRaid);
+    }
+  }
+  var esc;
+  var init_clans_ui = __esm({
+    "clans-ui.js"() {
+      init_balance();
+      esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+    }
+  });
+
+  // friends-ui.js
+  function friendsUI(root, api2, toast2, openRaid) {
+    let loading = false;
+    async function render() {
+      if (loading) return;
+      loading = true;
+      try {
+        const [data, onlineData, leaderData] = await Promise.all([api2("friends"), api2("online"), api2("leaderboard")]);
+        const invited = String(launchValue("friend") || "").toLowerCase();
+        const leaderboard = (leaderData.players || []).slice(0, 10);
+        root.innerHTML = `
+    <div class="settings-card">
+     <span class="eyebrow orange">\u0421\u0412\u041E\u0418 \u0412 \u0413\u041E\u0420\u041E\u0414\u0415 \xB7 ${Number(onlineData.online || 0)} \u0412 \u0421\u0415\u0422\u0418</span>
+     <h2>\u0412\u044B\u0436\u0438\u0432\u0430\u0442\u044C \u0432\u043C\u0435\u0441\u0442\u0435.</h2>
+     <p>\u0414\u043E\u0431\u0430\u0432\u043B\u044F\u0439 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 \u043F\u043E \u043A\u043E\u0434\u0443 \u0438\u043B\u0438 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u0439 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u0447\u0435\u0440\u0435\u0437 \u0412\u041A. \u041A\u043E\u0433\u0434\u0430 \u0434\u0440\u0443\u0433 \u043F\u0440\u0438\u043C\u0435\u0442 \u0437\u0430\u044F\u0432\u043A\u0443, \u0437\u0434\u0435\u0441\u044C \u0431\u0443\u0434\u0435\u0442 \u0432\u0438\u0434\u0435\u043D \u0435\u0433\u043E \u0441\u0442\u0430\u0442\u0443\u0441 \u0438 \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u0440\u0435\u0439\u0434.</p>
+     <div class="friend-code"><span>\u0422\u0412\u041E\u0419 \u041A\u041E\u0414</span><strong>${data.code}</strong><button class="secondary" id="friend-copy">\u0421\u0421\u042B\u041B\u041A\u0410 \u041F\u0420\u0418\u0413\u041B\u0410\u0428\u0415\u041D\u0418\u042F</button>${inVK ? '<button class="primary" id="vk-friends">\u0412\u042B\u0411\u0420\u0410\u0422\u042C \u0414\u0420\u0423\u0417\u0415\u0419 \u0412\u041A</button><button class="secondary" id="vk-invite">\u041F\u041E\u0414\u0415\u041B\u0418\u0422\u042C\u0421\u042F \u0421\u0421\u042B\u041B\u041A\u041E\u0419</button>' : ""}</div>
+     <form id="friend-form"><label for="friend-code-input">\u041A\u043E\u0434 \u0434\u0440\u0443\u0433\u0430</label><div class="friend-form"><input id="friend-code-input" maxlength="12" required pattern="[a-fA-F0-9]{12}" autocomplete="off" placeholder="12 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432" value="${escape(invited)}"><button class="primary">\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F</button></div></form>
+    </div>
+    <div class="section-title"><h3>\u0412\u0445\u043E\u0434\u044F\u0449\u0438\u0435 \u0437\u0430\u044F\u0432\u043A\u0438</h3><span>${data.requests.length}</span></div>
+    <div class="party-list">${data.requests.map((p) => `<div><span><b>${escape(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${p.level || 1}</small></span><button class="primary" data-accept="${p.code}">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-decline="${p.code}">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button></div>`).join("") || '<p class="page-intro">\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043F\u043E\u043A\u0430 \u043D\u0435\u0442.</p>'}</div>
+    <div class="section-title"><h3>\u0422\u0432\u043E\u0439 \u043E\u0442\u0440\u044F\u0434</h3><button class="secondary" id="friends-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div>
+    <div class="party-list">${data.friends.map((p) => `<div><span><b>${escape(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${p.level || 1}${p.raid ? " \xB7 \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u0440\u0435\u0439\u0434 " + p.raid.hp + " HP" : ""}</small></span>${p.raid ? `<button class="primary" data-friend-raid="${p.raid.id}">\u041A \u0411\u041E\u0421\u0421\u0423 \u2192</button>` : ""}<button class="secondary" data-remove="${p.code}">\u0423\u0414\u0410\u041B\u0418\u0422\u042C</button></div>`).join("") || '<p class="page-intro">\u041E\u0442\u043F\u0440\u0430\u0432\u044C \u0434\u0440\u0443\u0433\u0443 \u0441\u0441\u044B\u043B\u043A\u0443. \u041F\u043E\u0441\u043B\u0435 \u043F\u0440\u0438\u043D\u044F\u0442\u0438\u044F \u0437\u0430\u044F\u0432\u043A\u0438 \u043E\u043D \u043F\u043E\u044F\u0432\u0438\u0442\u0441\u044F \u0437\u0434\u0435\u0441\u044C.</p>'}</div>
+    <div class="section-title"><h3>\u0422\u043E\u043F \u0432\u044B\u0436\u0438\u0432\u0448\u0438\u0445</h3><span>\u0422\u0412\u041E\u0401 \u041C\u0415\u0421\u0422\u041E: ${leaderData.meRank || "\u2014"}</span></div>
+    <div class="party-list leaderboard-list">${leaderboard.map((p) => `<div><strong>#${p.rank}</strong><span><b>${escape(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418 \xB7 " : ""}\u0443\u0440. ${p.level} \xB7 ${p.xp} XP \xB7 \u0431\u043E\u0441\u0441\u044B ${p.bossKills}</small></span></div>`).join("") || '<p class="page-intro">\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E\u043A\u0430 \u043F\u0443\u0441\u0442.</p>'}</div>`;
+        root.querySelector("#friends-refresh").onclick = render;
+        const mutate = async (path, code) => {
+          try {
+            await api2(path, { code });
+            toast2(path.endsWith("request") ? "\u0417\u0430\u044F\u0432\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430" : "\u0421\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D");
+            await render();
+          } catch (e) {
+            toast2(e.message);
+          }
+        };
+        root.querySelector("#friend-form").onsubmit = (e) => {
+          e.preventDefault();
+          mutate("friends/request", root.querySelector("input").value.trim().toLowerCase());
+        };
+        root.querySelectorAll("[data-accept]").forEach((b) => b.onclick = () => mutate("friends/accept", b.dataset.accept));
+        root.querySelectorAll("[data-decline]").forEach((b) => b.onclick = () => mutate("friends/decline", b.dataset.decline));
+        root.querySelectorAll("[data-remove]").forEach((b) => b.onclick = () => mutate("friends/remove", b.dataset.remove));
+        root.querySelectorAll("[data-friend-raid]").forEach((b) => b.onclick = () => openRaid(b.dataset.friendRaid));
+        root.querySelector("#friend-copy").onclick = async () => {
+          const link = inviteLink("friend", data.code);
+          try {
+            await navigator.clipboard.writeText(link);
+            toast2("\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u043E");
+          } catch (e) {
+            root.querySelector("input").value = data.code;
+            toast2("\u041F\u0435\u0440\u0435\u0434\u0430\u0439 \u0434\u0440\u0443\u0433\u0443 \u0441\u0432\u043E\u0439 \u043A\u043E\u0434: " + data.code);
+          }
+        };
+        if (root.querySelector("#vk-friends")) root.querySelector("#vk-friends").onclick = async () => {
+          try {
+            const r = await inviteVKFriends(data.code);
+            toast2(r.sent ? "\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u044B: " + r.sent : "\u041D\u0438\u043A\u0442\u043E \u043D\u0435 \u0432\u044B\u0431\u0440\u0430\u043D");
+          } catch (e) {
+            toast2(e.message || "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0442\u043A\u0440\u044B\u0442\u044C \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A");
+          }
+        };
+        if (root.querySelector("#vk-invite")) root.querySelector("#vk-invite").onclick = () => inviteVK(inviteLink("friend", data.code)).catch((e) => toast2(e.message || "\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u0437\u0430\u043A\u0440\u044B\u0442\u043E"));
+        if (/^[a-f0-9]{12}$/.test(invited) && invited !== data.code) {
+          const key2 = "obitel-friend-invite:" + invited;
+          if (!sessionStorage.getItem(key2)) {
+            sessionStorage.setItem(key2, "1");
+            try {
+              await api2("friends/request", { code: invited });
+              toast2("\u0417\u0430\u044F\u0432\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430 \u0438\u0433\u0440\u043E\u043A\u0443, \u043A\u043E\u0442\u043E\u0440\u044B\u0439 \u043F\u0440\u0438\u0433\u043B\u0430\u0441\u0438\u043B \u0442\u0435\u0431\u044F");
+            } catch (e) {
+            }
+          }
+        }
+      } catch (e) {
+        root.innerHTML = '<div class="settings-card"><p>' + escape(e.message) + '</p><button class="secondary" id="friends-retry">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
+        root.querySelector("button").onclick = render;
+      } finally {
+        loading = false;
+      }
+    }
+    render();
+  }
+  var escape;
+  var init_friends_ui = __esm({
+    "friends-ui.js"() {
+      init_platform_entry();
+      escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+    }
+  });
+
+  // config.js
+  var CLOUD_API, isRemoteFrontend, normalize, override, API_BASE;
+  var init_config = __esm({
+    "config.js"() {
+      CLOUD_API = "https://obiteldead.deniswww127.workers.dev/api/";
+      isRemoteFrontend = location.hostname === "hordeminecraft.github.io" || location.hostname === "obitel.sourcecraft.site" || location.hostname.endsWith(".pages.dev");
+      normalize = (value) => value.endsWith("/") ? value : value + "/";
+      override = globalThis.OBITEL_API_BASE;
+      API_BASE = normalize(override || (isRemoteFrontend ? CLOUD_API : new URL("api/", location.href).href));
+    }
+  });
+
+  // client-api.js
+  function configured() {
+    return !API_BASE.includes("PASTE-YOUR-WORKER-URL-HERE");
+  }
+  async function requestAPI(path, body) {
+    var _a2;
+    if (!configured()) throw new Error("API \u0435\u0449\u0451 \u043D\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043D. \u0412 config.js \u0443\u043A\u0430\u0436\u0438 \u0430\u0434\u0440\u0435\u0441 Cloudflare Worker.");
+    const headers = {};
+    if (body !== void 0) headers["Content-Type"] = "application/json";
+    if (tokenMode && token) headers["X-Obitel-Session"] = token;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15e3);
+    let response;
+    try {
+      response = await fetch(new URL(path, API_BASE), {
+        method: body === void 0 ? "GET" : "POST",
+        headers,
+        credentials: crossOrigin ? "omit" : "same-origin",
+        body: body === void 0 ? void 0 : JSON.stringify(body),
+        signal: controller.signal
+      });
+    } catch (error) {
+      if ((error == null ? void 0 : error.name) === "AbortError") throw new Error("\u0418\u0433\u0440\u043E\u0432\u043E\u0439 \u0441\u0435\u0440\u0432\u0435\u0440 \u043E\u0442\u0432\u0435\u0447\u0430\u0435\u0442 \u0441\u043B\u0438\u0448\u043A\u043E\u043C \u0434\u043E\u043B\u0433\u043E. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u043F\u044B\u0442\u043A\u0443.");
+      throw new Error("\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u0432\u044F\u0437\u0430\u0442\u044C\u0441\u044F \u0441 \u0441\u0435\u0440\u0432\u0435\u0440\u043E\u043C. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0438\u043D\u0442\u0435\u0440\u043D\u0435\u0442 \u0438 \u0430\u0434\u0440\u0435\u0441 API.");
+    } finally {
+      clearTimeout(timeout);
+    }
+    if (!((_a2 = response.headers.get("content-type")) == null ? void 0 : _a2.includes("application/json"))) throw new Error("\u0418\u0433\u0440\u043E\u0432\u043E\u0439 \u0441\u0435\u0440\u0432\u0435\u0440 \u0432\u0435\u0440\u043D\u0443\u043B \u043D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u043E\u0442\u0432\u0435\u0442. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0430\u0434\u0440\u0435\u0441 API.");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D");
+    const issued = response.headers.get("X-Obitel-Session");
+    if (tokenMode && issued && /^[a-f0-9]{32}$/.test(issued)) {
+      token = issued;
+      try {
+        localStorage.setItem(tokenKey, issued);
+      } catch (e) {
+      }
+    }
+    return data;
+  }
+  var tokenKey, crossOrigin, tokenMode, token;
+  var init_client_api = __esm({
+    "client-api.js"() {
+      init_config();
+      tokenKey = "obitel-session:" + API_BASE;
+      crossOrigin = new URL(API_BASE).origin !== location.origin;
+      tokenMode = crossOrigin || window.parent !== window;
+      token = "";
+      try {
+        token = localStorage.getItem(tokenKey) || "";
+      } catch (e) {
+      }
     }
   });
 
@@ -574,6 +694,10 @@
     return Math.abs(Math.sin(n * 127.1 + 311.7) * 43758.5453) % 1;
   }
   function background(g2, map) {
+    if (map >= 5) {
+      expansionBackground(g2, map);
+      return;
+    }
     if (environments[map]) {
       g2.drawImage(environments[map], 0, 0, 960, 600);
       return;
@@ -819,6 +943,102 @@
     }
     g2.restore();
   }
+  function expansionBackground(g2, map) {
+    const colors = map === 5 ? ["#17292d", "#49666a", "#7fa4a0"] : map === 6 ? ["#30251f", "#72513b", "#dd9952"] : ["#1a2938", "#485e70", "#a5bac5"];
+    const [dark, mid, light] = colors;
+    rect(g2, 0, 0, 960, 600, dark);
+    const sky = g2.createLinearGradient(0, 0, 0, 600);
+    sky.addColorStop(0, dark);
+    sky.addColorStop(1, mid);
+    g2.fillStyle = sky;
+    g2.fillRect(0, 0, 960, 600);
+    if (map === 5) {
+      for (let x = 0; x < 960; x += 160) {
+        rect(g2, x, 30, 18, 275, mid);
+        rect(g2, x, 30, 160, 15, mid);
+        rect(g2, x + 30, 65, 100, 150, "#0b171b");
+        rect(g2, x + 42, 81, 76, 3, light);
+      }
+      rect(g2, 0, 258, 960, 35, "#78847a");
+      label(g2, "\u041C\u0415\u0422\u0420\u041E / \u0421\u0415\u0412\u0415\u0420\u041D\u0410\u042F", 320, 235, 25, light);
+      for (let y = 335; y < 600; y += 85) {
+        rect(g2, 0, y, 960, 5, "#8a8e73");
+        for (let x = 0; x < 960; x += 45) rect(g2, x, y + 4, 25, 9, "#243333");
+      }
+      rect(g2, 670, 125, 230, 128, "#5d776d");
+      for (let x = 692; x < 890; x += 57) rect(g2, x, 145, 39, 51, "#162b31");
+      rect(g2, 670, 232, 230, 12, "#cfb27a");
+    } else if (map === 6) {
+      for (let x = 30; x < 960; x += 190) {
+        building(g2, x, 50, 165, 210, mid, "\u0426\u0415\u0425");
+        rect(g2, x + 30, 0, 25, 62, "#624e43");
+        rect(g2, x + 45, 144, 70, 105, "#211914");
+        rect(g2, x + 54, 182, 53, 65, "#e8923a");
+        rect(g2, x + 62, 209, 35, 38, "#f2c46d");
+      }
+      for (let x = 0; x < 960; x += 100) {
+        rect(g2, x, 310, 65, 13, "#c29757");
+        rect(g2, x + 15, 323, 15, 28, "#211e1a");
+      }
+    } else {
+      rect(g2, 0, 142, 960, 149, "#345b6c");
+      poly(g2, [[155, 182], [620, 182], [564, 260], [220, 260]], "#1a2632");
+      building(g2, 315, 89, 180, 94, mid, "\u0421\u0415\u0412\u0415\u0420\u041D\u042B\u0419");
+      for (let x = 90; x < 960; x += 310) {
+        rect(g2, x, 20, 15, 255, light);
+        rect(g2, x - 70, 20, 220, 10, light);
+        rect(g2, x + 140, 30, 3, 90, light);
+        rect(g2, x + 127, 116, 28, 12, "#dcc48c");
+      }
+      for (let x = 0; x < 960; x += 40) rect(g2, x, 286, 25, 9, "#a4a390");
+    }
+    rect(g2, 0, 360, 960, 240, map === 5 ? "#233c40" : "#444b46");
+    for (let i = 0; i < 190; i++) {
+      let x = noise(i + map * 23) * 960, y = 365 + noise(i + 400) * 230;
+      rect(g2, x, y, 3 + noise(i) * 15, 2, noise(i) > 0.6 ? light : dark);
+    }
+    for (let x = 0; x < 960; x += 165) {
+      crate(g2, x + 20, 354);
+      lamp(g2, x + 105, 330);
+    }
+    const shade = g2.createLinearGradient(0, 0, 0, 600);
+    shade.addColorStop(0, "#0003");
+    shade.addColorStop(0.6, "#0000");
+    shade.addColorStop(1, "#0006");
+    g2.fillStyle = shade;
+    g2.fillRect(0, 0, 960, 600);
+  }
+  function bossPortrait(g2, map) {
+    g2.save();
+    g2.translate(650, 390);
+    const color = ["#ccb378", "#d9824e", "#9bb4b2", "#b8cc93", "#7d9c65", "#71b8c2", "#ec9c57", "#8eafd4"][map];
+    g2.strokeStyle = color;
+    g2.lineWidth = 3;
+    g2.beginPath();
+    g2.ellipse(0, -75, 100, 135, 0, 0, Math.PI * 2);
+    g2.stroke();
+    g2.globalAlpha = 0.18;
+    g2.fillStyle = color;
+    g2.fill();
+    g2.globalAlpha = 1;
+    g2.filter = "hue-rotate(" + map * 21 + "deg)";
+    person(g2, 0, 0, map === 6 ? "tank" : "boss", 3.2, 0, -1);
+    g2.filter = "none";
+    if (map === 5) {
+      rect(g2, -65, -202, 100, 14, "#324b59");
+      rect(g2, -43, -226, 61, 25, "#4a6472");
+      rect(g2, -17, -216, 13, 9, color);
+    }
+    if (map === 6) {
+      rect(g2, -56, -194, 77, 22, "#b0793f");
+      rect(g2, -39, -185, 40, 13, "#ebc27b");
+    }
+    if (map === 7) {
+      poly(g2, [[-67, -204], [-26, -249], [22, -204]], "#293e55");
+      rect(g2, -56, -204, 74, 10, color);
+    }
+    g2.restore();
+  }
   var environments, spriteAtlas, equipmentAtlas, armorAtlas, itemAtlas, weaponAtlas, appearance, palettes;
   var init_art = __esm({
     "art.js"() {
@@ -953,6 +1173,14 @@
     }).join("") + "</div>";
   }
   function renderPage() {
+    if (page === "clans") clansUI($("#clans-page"), api, toast, async (id) => {
+      try {
+        raid = (await api("raids/" + id)).raid;
+        navigate("raids");
+      } catch (e) {
+        toast(e.message);
+      }
+    });
     if (page === "friends") friendsUI($("#friends-page"), api, toast, async (id) => {
       try {
         raid = (await api("raids/" + id)).raid;
@@ -1002,7 +1230,7 @@
     page = p;
     document.querySelectorAll(".page").forEach((el) => el.hidden = el.id !== `${p}-page`);
     document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("active", b.dataset.page === p));
-    $("#page-title").textContent = { map: "\u0413\u043E\u0440\u043E\u0434 \u0431\u043E\u043B\u044C\u0448\u0435 \u043D\u0435 \u0441\u043F\u0438\u0442.", gear: "\u0421\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435 \u0440\u0435\u0448\u0430\u0435\u0442.", garage: "\u0414\u043E\u043C \u043D\u0430 \u0447\u0435\u0442\u044B\u0440\u0451\u0445 \u043A\u043E\u043B\u0451\u0441\u0430\u0445.", daily: "\u041A\u0430\u0436\u0434\u044B\u0439 \u0434\u0435\u043D\u044C \u2014 \u043D\u043E\u0432\u0430\u044F \u0446\u0435\u043B\u044C.", guide: "\u0417\u043D\u0430\u043D\u0438\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 \u0436\u0438\u0437\u043D\u044C.", raids: "\u041E\u0434\u0438\u043D \u0431\u043E\u0441\u0441. \u041E\u0431\u0449\u0430\u044F \u0446\u0435\u043B\u044C.", friends: "\u0421\u0432\u043E\u0438 \u043D\u0435 \u0431\u0440\u043E\u0441\u0430\u044E\u0442.", settings: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439 \u0441\u0432\u043E\u0439 \u0440\u0438\u0442\u043C." }[p];
+    $("#page-title").textContent = { map: "\u0413\u043E\u0440\u043E\u0434 \u0431\u043E\u043B\u044C\u0448\u0435 \u043D\u0435 \u0441\u043F\u0438\u0442.", gear: "\u0421\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435 \u0440\u0435\u0448\u0430\u0435\u0442.", garage: "\u0414\u043E\u043C \u043D\u0430 \u0447\u0435\u0442\u044B\u0440\u0451\u0445 \u043A\u043E\u043B\u0451\u0441\u0430\u0445.", daily: "\u041A\u0430\u0436\u0434\u044B\u0439 \u0434\u0435\u043D\u044C \u2014 \u043D\u043E\u0432\u0430\u044F \u0446\u0435\u043B\u044C.", guide: "\u0417\u043D\u0430\u043D\u0438\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 \u0436\u0438\u0437\u043D\u044C.", raids: "\u041E\u0434\u0438\u043D \u0431\u043E\u0441\u0441. \u041E\u0431\u0449\u0430\u044F \u0446\u0435\u043B\u044C.", friends: "\u0421\u0432\u043E\u0438 \u043D\u0435 \u0431\u0440\u043E\u0441\u0430\u044E\u0442.", clans: "\u0412\u044B\u0436\u0438\u0432\u0430\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u0435.", settings: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439 \u0441\u0432\u043E\u0439 \u0440\u0438\u0442\u043C." }[p];
     renderPage();
   }
   async function start() {
@@ -1335,14 +1563,18 @@
     update(dt);
     if (run && !$("#game").hidden) {
       draw();
-      let portrait = innerWidth / innerHeight < 0.85, vw = portrait ? Math.round(600 * innerWidth / innerHeight) : 960;
-      if (canvas.width !== vw || canvas.height !== 600) {
+      let ratio = canvas.clientWidth / Math.max(1, canvas.clientHeight), vw = Math.min(960, Math.max(240, Math.round(600 * ratio)));
+      let portrait = vw < 960;
+      let vh = Math.min(600, Math.round(vw / ratio));
+      if (canvas.width !== vw || canvas.height !== vh) {
         canvas.width = vw;
-        canvas.height = 600;
+        canvas.height = vh;
       }
       let left = portrait ? Math.max(0, Math.min(960 - vw, run.x - vw / 2)) : 0;
       display.imageSmoothingEnabled = false;
-      display.drawImage(world, left, 0, vw, 600, 0, 0, vw, 600);
+      let top = Math.max(0, Math.min(600 - vh, run.y - vh / 2));
+      if (canvas.height !== vh) canvas.height = vh;
+      display.drawImage(world, left, top, vw, vh, 0, 0, vw, vh);
     }
     requestAnimationFrame(frame);
   }
@@ -1360,10 +1592,14 @@
     let mine = raid == null ? void 0 : raid.members.find((p) => p.me);
     let cooldown = raid ? Math.max(0, Math.ceil((raid.nextAttack - Date.now() - serverOffset) / 1e3)) : 0;
     root.innerHTML = '<p class="page-intro">\u0414\u0440\u0443\u0437\u044C\u044F \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F. \u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435 \u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0437\u0430\u0447\u0438\u0441\u0442\u0438 \u0440\u0430\u0439\u043E\u043D \u0442\u0440\u0438\u0436\u0434\u044B, \u0437\u0430\u0442\u0435\u043C \u0441\u043E\u0431\u0435\u0440\u0438 \u043E\u0442\u0440\u044F\u0434 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435.</p>' + (!raid ? '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410 \xB7 ' + MAPS[m].name + "</span><h2>" + MAPS[m].boss + "</h2><p>\u0414\u043E\u0441\u0442\u0443\u043F: 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0438 \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + MAPS[m].level + ".<br>\u0421\u0435\u0439\u0447\u0430\u0441 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A: " + save.districtRuns[m] + ' / 3.</p><button class="primary" id="create-raid" ' + (!available ? "disabled" : "") + ">\u0421\u041E\u0417\u0414\u0410\u0422\u042C \u0420\u0415\u0419\u0414</button></div></div>" : '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0410\u0421\u0418\u041D\u0425\u0420\u041E\u041D\u041D\u042B\u0419 \u0420\u0415\u0419\u0414 \xB7 ' + raid.id + "</span><h2>" + MAPS[m].boss + '</h2><div class="raid-health"><i style="width:' + raid.hp / raid.maxHp * 100 + '%"></i></div><p>' + raid.hp + " / " + raid.maxHp + " HP \xB7 " + raid.members.length + ' / 10 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432</p><button class="primary" id="raid-attack" ' + (!raid.joined || !available || raid.hp <= 0 || cooldown || save.energy < BOSS_COST ? "disabled" : "") + ">" + (raid.hp <= 0 ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : cooldown ? "\u0412\u041E\u0417\u0412\u0420\u0410\u0429\u0415\u041D\u0418\u0415 \xB7 " + cooldown + " \u0421\u0415\u041A" : "\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C \xB7 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418") + '</button><small>\u0423\u0440\u043E\u043D \u0440\u0430\u0441\u0441\u0447\u0438\u0442\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u043F\u043E \u044D\u043A\u0438\u043F\u0438\u0440\u043E\u0432\u043A\u0435. \u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434.</small></div></div><div class="raid-controls">' + (!raid.joined && raid.hp > 0 ? '<button class="primary" id="join-raid">\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F</button>' : "") + '<button class="secondary" id="copy-raid">\u0421\u041A\u041E\u041F\u0418\u0420\u041E\u0412\u0410\u0422\u042C \u0421\u0421\u042B\u041B\u041A\u0423 \u0414\u041B\u042F \u0414\u0420\u0423\u0417\u0415\u0419</button>' + (raid.hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423 \xB7 ' + MAPS[m].reward * 2 + " \u0414\u0415\u0422. + 3 \u042F\u0414\u0420\u0410</button>" : "") + '<button class="secondary" id="close-raid">\u0414\u0420\u0423\u0413\u041E\u0419 \u0420\u0415\u0419\u0414</button></div><div class="party-list">' + raid.members.map((p) => "<div><span>" + p.name + (p.me ? " \xB7 \u0422\u042B" : "") + "</span><b>" + p.damage + " \u0443\u0440\u043E\u043D\u0430</b><small>" + (p.claimed ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430" : "") + "</small></div>").join("") + "</div>") + '<div class="network-note">\u0411\u0435\u0442\u0430 \xB7 \u0433\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u044D\u0442\u043E\u043C\u0443 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443. \u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0430\u0439 \u0434\u0440\u0443\u0437\u0435\u0439 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435: \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435. \u0412\u0445\u043E\u0434 \u0438 \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u0441\u044F \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E.</div>';
+    const trait = document.createElement("p");
+    trait.className = "page-intro";
+    trait.textContent = raidProfile(m).trait;
+    root.prepend(trait);
     let c = root.querySelector("canvas");
     scene(c, m, -1);
     let cg = c.getContext("2d");
-    person(cg, 650, 390, "boss", 3.2, 0, -1);
+    bossPortrait(cg, m);
     if ($("#create-raid")) $("#create-raid").onclick = () => action(async () => {
       raid = (await api("raids", { map: selected })).raid;
     });
@@ -1431,6 +1667,7 @@
   var $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy;
   var init_game = __esm({
     "game.js"() {
+      init_clans_ui();
       init_friends_ui();
       init_platform_entry();
       init_client_api();
@@ -1466,7 +1703,7 @@
       upgrade = (field, name, desc) => item(field === "engine" ? "\u2699" : field === "trunk" ? "\u25A4" : "\u25C7", name, `\u0423\u0420\u041E\u0412\u0415\u041D\u042C ${save[field]} / 10`, desc, `<button class="primary" data-upgrade="${field}" ${save[field] >= 10 || save.scrap < upgradeCost(save[field]) ? "disabled" : ""}>${save[field] >= 10 ? "\u041C\u0410\u041A\u0421\u0418\u041C\u0423\u041C" : `\u0423\u041B\u0423\u0427\u0428\u0418\u0422\u042C \xB7 ${upgradeCost(save[field])} \u0414\u0415\u0422.`}</button>`);
       itemArt = (i) => '<canvas class="loot-art" data-item="' + i + '" width="180" height="180"></canvas>';
       menuIcons = { "map": "M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2z M9 3v16 M15 5v16", "gear": "M4 14l3-3 3 3 8-8 2 2-8 8 2 3-3 2-3-3-3 1-2-2z", "garage": "M4 15V9l3-5h10l3 5v6 M3 10h18v7H3z M6 17v3 M18 17v3 M6 13h2 M16 13h2", "daily": "M7 4H4v17h16V4h-3 M8 2h8v5H8z M8 11h8 M8 15h6", "raids": "M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z M9 9l6 6 M15 9l-6 6", "guide": "M3 4h7l2 2 2-2h7v15h-7l-2 2-2-2H3z M12 6v15", "settings": "M9 3h6l1 4 4 1v8l-4 1-1 4H9l-1-4-4-1V8l4-1z M15 12a3 3 0 1 0-6 0 3 3 0 0 0 6 0" };
-      document.querySelectorAll("nav [data-page]").forEach((b) => b.querySelector("span").innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + menuIcons[b.dataset.page] + '"/></svg>');
+      document.querySelectorAll("nav [data-page]").forEach((b) => b.querySelector("span").innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + (menuIcons[b.dataset.page] || "M4 20v-6h16v6 M8 14V8h8v6 M12 2v6") + '"/></svg>');
       document.querySelectorAll("[data-page]").forEach((b) => b.onclick = () => navigate(b.dataset.page));
       $(".brand").onclick = (e) => {
         e.preventDefault();
