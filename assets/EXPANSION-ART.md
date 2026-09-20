@@ -6,3 +6,5 @@
 - district-7.png: северный порт, грузовой корабль, краны, туман.
 
 Все фоны: 1536×1024, детализированный пиксельный стиль, без персонажей и интерфейса, свободная нижняя зона для боя.
+
+arsenal-expanded.png: atlas 3×2, revolver, SMG, scoped rifle, machine gun, pump shotgun, assault rifle; magenta chromakey; imagegen.

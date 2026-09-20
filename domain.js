@@ -1,6 +1,6 @@
 import {clanAction} from './clans-domain.js';
 import {socialAction,ensureSocial} from './friends-domain.js';
-import {freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave,playerLevel,raidProfile} from './balance.js';
+import {freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave,playerLevel,raidProfile,weaponUnlocked} from './balance.js';
 
 const ONLINE_WINDOW=90_000;
 const MAX_NAME=32;
@@ -72,16 +72,16 @@ export function createHandler(db,commit,id){
    }
    else if(req.method==='POST'&&path==='/api/armor'){
     const i=b.armor;if(!Number.isInteger(i)||!ARMOR[i])err('Нет такой брони');
-    if(!s.ownedArmor.includes(i)){const a=ARMOR[i];if(!armorUnlocked(s,i))err('Нужен уровень '+a.level+' или победы над боссами: '+a.bosses);if(s.scrap<a.cost||s.cloth<a.cloth||s.cores<a.cores)err('Недостаточно материалов');s.scrap-=a.cost;s.cloth-=a.cloth;s.cores-=a.cores;s.ownedArmor.push(i)}s.armorTier=i;
+    if(!s.ownedArmor.includes(i)){const a=ARMOR[i];if(a.votes)err('Покупки за голоса ещё не подключены',503);if(!armorUnlocked(s,i))err('Нужен уровень '+a.level+' или победы над боссами: '+a.bosses);if(s.scrap<a.cost||s.cloth<a.cloth||s.cores<a.cores)err('Недостаточно материалов');s.scrap-=a.cost;s.cloth-=a.cloth;s.cores-=a.cores;s.ownedArmor.push(i)}s.armorTier=i;
    }
    else if(req.method==='POST'&&path==='/api/weapon'){
-    const i=b.weapon;if(!Number.isInteger(i)||!WEAPONS[i])err('Нет такого оружия');if(!s.owned.includes(i)){if(s.scrap<WEAPONS[i].cost)err('Не хватает деталей');s.scrap-=WEAPONS[i].cost;s.owned.push(i)}s.weapon=i;
+    const i=b.weapon;if(!Number.isInteger(i)||!WEAPONS[i])err('Нет такого оружия');if(!weaponUnlocked(s,i))err('Нужен уровень '+WEAPONS[i].level);if(!s.owned.includes(i)){if(WEAPONS[i].votes)err('Покупки за голоса ещё не подключены',503);if(s.scrap<WEAPONS[i].cost)err('Не хватает деталей');s.scrap-=WEAPONS[i].cost;s.owned.push(i)}s.weapon=i;
    }
    else if(req.method==='POST'&&path==='/api/daily'){
     if(s.daily.kills<20||s.daily.claimed)err('Награда недоступна');s.scrap+=120;s.cores++;s.daily.claimed=true;
    }
    else if(req.method==='POST'&&path==='/api/run/start'){
-    const m=b.map;if(!Number.isInteger(m)||!MAPS[m]||!unlocked(s,m))err('Район закрыт');if(!spendEnergy(s,RAID_COST))err('Недостаточно энергии');p.ticket={id:id(),map:m,started:now()};result.ticket=p.ticket.id;
+    const m=b.map;if(!Number.isInteger(m)||!MAPS[m]||!unlocked(s,m))err('Район закрыт');if(!spendEnergy(s,RAID_COST))err('Недостаточно энергии');p.ticket={id:id(),map:m,started:now(),level:playerLevel(s)};result.ticket=p.ticket.id;
    }
    else if(req.method==='POST'&&path==='/api/run/end'){
     if(p.lastResult?.ticket===b.ticket){send(200,{...p.lastResult.result,save:s,serverTime:now()});return true}
@@ -89,7 +89,7 @@ export function createHandler(db,commit,id){
     const maxKills=27+t.map*3,kills=Math.max(0,Math.min(maxKills,Math.floor(Number(b.kills)||0)));
     const win=b.win===true&&kills===maxKills&&now()-t.started>18000;
     const loot=Math.max(0,Math.min(kills*8,Math.floor(Number(b.loot)||0)));
-    const reward=Math.round((win?MAPS[t.map].reward+loot:loot*.35)*stats(s).loot),xp=runXP(kills,win,t.map);
+    const reward=Math.round((win?MAPS[t.map].reward+loot:loot*.35)*stats(s).loot),xp=runXP(kills,win,t.map,t.level||1);
     s.scrap+=reward;s.cloth+=win?3+t.map:0;s.xp+=xp;s.kills+=kills;s.daily.kills+=kills;if(win)s.districtRuns[t.map]++;
     p.ticket=null;result={reward,xp,win};p.lastResult={ticket:t.id,result};
    }
