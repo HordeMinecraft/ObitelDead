@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {conflictAction} from '../conflict-domain.js';
+import {freshSave} from '../balance.js';
+const time=1800000000000;
+function fixture(){const db={players:{},clans:{a:{code:'a',name:'Север',members:['a']},b:{code:'b',name:'Юг',members:['b']}}};for(const k of ['a','b'])db.players[k]={name:k,publicId:k.repeat(12),save:{...freshSave(),xp:20000,cleared:[0,1,2,3,4]}};return db;}
+const call=(db,u,mode,b={},t=time)=>conflictAction(db,u,'/api/conflict'+(mode?'/'+mode:''),mode?'POST':'GET',b,t);
+test('arena excludes self, limits rematches and rewards server-computed results',()=>{const db=fixture();const before=db.players.a.save.scrap;const r=call(db,'a','arena',{code:'b'.repeat(12),tactic:'assault'});assert.equal(r.arenaLeft,2);assert.equal(db.players.a.save.scrap,before+r.report.reward);assert.throws(()=>call(db,'a','arena',{code:'b'.repeat(12),tactic:'assault'}));assert.throws(()=>call(db,'a','arena',{code:'b'.repeat(12),tactic:'assault'},time+31000));assert.equal(call(db,'a').opponents.length,1);});
+test('war prevents same-clan fights and seasonal clan switching',()=>{const db=fixture();call(db,'a','war',{code:'b'.repeat(12),tactic:'cover'});db.clans.a.members=[];db.clans.c={code:'c',name:'Третий',members:['a']};assert.throws(()=>call(db,'a','war',{code:'b'.repeat(12),tactic:'cover'},time+86400000));assert.equal(call(db,'a').wars.length,1);});
+test('underground pays once on stage completion, shares HP and requires energy',()=>{const db=fixture();call(db,'a');db.conflict.bosses.a={stage:0,hp:1,maxHp:12000,damage:{b:10}};const before=db.players.b.save.cores;call(db,'a','depth',{tactic:'assault'});assert.equal(db.players.b.save.cores,before+3);assert.equal(db.conflict.bosses.a.stage,1);assert.equal(db.conflict.bosses.a.hp,24000);assert.throws(()=>call(db,'a','depth',{tactic:'assault'}));db.players.a.save.energy=0;assert.throws(()=>call(db,'a','depth',{tactic:'flank'},time+31000));assert.equal(db.players.b.save.cores,before+3);});
+test('season rotates and clears boards; unknown routes do not attack',()=>{const db=fixture();call(db,'a','arena',{code:'b'.repeat(12),tactic:'assault'});assert.equal(call(db,'a','',{},time+7*86400000).arena.length,0);assert.throws(()=>call(db,'a','invalid'));});

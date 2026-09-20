@@ -1,3 +1,4 @@
+import {conflictAction} from './conflict-domain.js';
 import {clanAction} from './clans-domain.js';
 import {socialAction,ensureSocial} from './friends-domain.js';
 import {freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave,playerLevel,raidProfile,weaponUnlocked} from './balance.js';
@@ -64,6 +65,7 @@ export function createHandler(db,commit,id){
    else if(req.method==='GET'&&path==='/api/online')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='POST'&&path==='/api/online/ping')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='GET'&&path==='/api/leaderboard')result=leaderboard(session);
+   else if(path.startsWith('/api/conflict'))result=conflictAction(db,session,path,req.method,b);
    else if(path.startsWith('/api/clans'))result=clanAction(db,session,path,req.method,b,id);
    else if(path.startsWith('/api/friends'))result=socialAction(db,session,path,req.method,b,id,{onlineWindow:ONLINE_WINDOW});
    else if(req.method==='POST'&&path==='/api/upgrade'){
