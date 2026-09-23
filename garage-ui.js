@@ -1,0 +1,16 @@
+import {VEHICLES,vehicleFor} from './vehicles.js';
+let filter='all';
+const art=v=>`<div class="vehicle-art" role="img" aria-label="${v.type} ${v.name}" style="--vx:${v.art%4*100/3}%;--vy:${Math.floor(v.art/4)*25}%"></div>`;
+const bonus=v=>`<span>+${v.damage}% урон</span><span>+${v.hp}% здоровье</span><span>+${v.loot}% детали</span>`;
+export function garageUI(root,save,level,upgrades,buy,rerender){
+ const current=vehicleFor(save),owned=save.ownedVehicles||['nomad'];
+ const options=[['all','Все · 20'],['scrap','За детали · 13'],['votes','За голоса · 6'],['owned','Мои · '+owned.length]];
+ const list=VEHICLES.filter(v=>filter==='all'||filter==='scrap'&&v.cost>0||filter==='votes'&&v.votes||filter==='owned'&&owned.includes(v.id));
+ root.innerHTML=`<div class="garage-showroom"><div class="garage-platform">${art(current)}<span class="garage-stamp">МОБИЛЬНАЯ БАЗА / ${String(current.art+1).padStart(2,'0')}</span></div><div class="garage-summary"><span class="eyebrow orange">АКТИВНЫЙ АВТОМОБИЛЬ</span><h2>«${current.name}»</h2><p>${current.description}</p><div class="vehicle-bonuses">${bonus(current)}</div><small>Бонусы кузова действуют только у выбранной машины. Улучшения мастерской сохраняются при смене автомобиля.</small></div></div><div class="section-title"><h3>Мастерская</h3><span>ОБЩИЕ МОДУЛИ АВТОПАРКА</span></div><div class="item-grid">${upgrades}</div><div class="section-title"><h3>Автопарк убежища</h3><span>${owned.length} / 20 В КОЛЛЕКЦИИ</span></div><div class="vehicle-filters" role="group" aria-label="Фильтр автомобилей">${options.map(([id,label])=>`<button class="secondary ${filter===id?'selected':''}" data-vehicle-filter="${id}" aria-pressed="${filter===id}">${label}</button>`).join('')}</div><p class="page-intro">Покупка за детали навсегда. Коллекционные кузова за голоса имеют характеристики бесплатных аналогов и те же требования к уровню. Оплата голосами пока недоступна — указаны планируемые цены.</p><div class="vehicle-grid">${list.map(v=>{
+ const have=owned.includes(v.id),active=current.id===v.id,locked=level<v.level,disabled=active||locked||(!have&&(!!v.votes||save.scrap<v.cost));
+ const label=active?'ВЫБРАН':locked?'НУЖЕН УРОВЕНЬ '+v.level:have?'ВЫБРАТЬ':v.votes?'СКОРО · '+v.votes+' ГОЛОСОВ':save.scrap<v.cost?'НЕ ХВАТАЕТ ДЕТАЛЕЙ':'КУПИТЬ · '+v.cost.toLocaleString('ru-RU');
+ return `<article class="vehicle-card ${active?'equipped':''} ${v.votes?'collectible':''}"><div class="vehicle-picture">${art(v)}<span class="vehicle-number">${String(v.art+1).padStart(2,'0')}</span><span class="vehicle-tag">${v.votes?'КОЛЛЕКЦИОННЫЙ':have?'В ГАРАЖЕ':'ЗА ДЕТАЛИ'}</span></div><div class="vehicle-info"><small>${v.type} · УР. ${v.level}</small><h3>${v.name}</h3><p>${v.description}</p><div class="vehicle-bonuses">${bonus(v)}</div><div class="vehicle-price">${v.votes?v.votes+' голосов':v.cost?v.cost.toLocaleString('ru-RU')+' деталей':'Стартовый автомобиль'}</div><button class="${active?'secondary':'primary'}" data-vehicle="${v.id}" ${disabled?'disabled':''}>${label}</button></div></article>`;
+ }).join('')}</div>`;
+ root.querySelectorAll('[data-vehicle-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.vehicleFilter;rerender()});
+ root.querySelectorAll('[data-vehicle]').forEach(b=>b.onclick=()=>buy(b.dataset.vehicle));
+}

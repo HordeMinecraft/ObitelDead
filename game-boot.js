@@ -362,6 +362,67 @@
     }
   });
 
+  // vehicles.js
+  var VEHICLES, vehicleFor;
+  var init_vehicles = __esm({
+    "vehicles.js"() {
+      VEHICLES = [
+        ["nomad", "\u041A\u043E\u0447\u0435\u0432\u043D\u0438\u043A", "\u0412\u043D\u0435\u0434\u043E\u0440\u043E\u0436\u043D\u0438\u043A", 1, 0, 0, 0, 0, "\u041F\u0435\u0440\u0432\u0430\u044F \u043C\u043E\u0431\u0438\u043B\u044C\u043D\u0430\u044F \u0431\u0430\u0437\u0430. \u041D\u0430\u0434\u0451\u0436\u043D\u044B\u0439 \u043A\u0443\u0437\u043E\u0432 \u0438 \u0432\u0441\u0451 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C\u043E\u0435 \u0434\u043B\u044F \u0432\u044B\u043B\u0430\u0437\u043A\u0438."],
+        ["spark", "\u0418\u0441\u043A\u0440\u0430", "\u0425\u044D\u0442\u0447\u0431\u0435\u043A", 2, 300, 2, 0, 3, "\u041B\u0451\u0433\u043A\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430 \u0434\u043B\u044F \u043A\u043E\u0440\u043E\u0442\u043A\u0438\u0445 \u0440\u0435\u0439\u0441\u043E\u0432 \u0437\u0430 \u043F\u0440\u0438\u043F\u0430\u0441\u0430\u043C\u0438."],
+        ["hauler", "\u0414\u043E\u0431\u044B\u0442\u0447\u0438\u043A", "\u041F\u0438\u043A\u0430\u043F", 4, 650, 0, 3, 6, "\u041E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u043A\u0443\u0437\u043E\u0432 \u0438 \u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u044F \u0434\u043B\u044F \u0434\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0433\u043E \u0433\u0440\u0443\u0437\u0430."],
+        ["medic", "\u0421\u0430\u043D\u0438\u0442\u0430\u0440", "\u041C\u0435\u0434\u0438\u0446\u0438\u043D\u0441\u043A\u0438\u0439 \u0444\u0443\u0440\u0433\u043E\u043D", 6, 1100, 0, 8, 2, "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0434\u043B\u044F \u043E\u043F\u0430\u0441\u043D\u044B\u0445 \u0441\u043F\u0430\u0441\u0430\u0442\u0435\u043B\u044C\u043D\u044B\u0445 \u043C\u0430\u0440\u0448\u0440\u0443\u0442\u043E\u0432."],
+        ["dune", "\u0411\u0430\u0440\u0445\u0430\u043D", "\u0411\u0430\u0433\u0433\u0438", 10, 1800, 7, 0, 4, "\u041B\u0451\u0433\u043A\u0430\u044F \u0440\u0430\u043C\u0430 \u0438 \u043C\u043E\u0449\u043D\u0430\u044F \u043E\u0440\u0443\u0436\u0435\u0439\u043D\u0430\u044F \u044D\u043B\u0435\u043A\u0442\u0440\u043E\u0441\u0442\u0430\u043D\u0446\u0438\u044F."],
+        ["trail", "\u0421\u043B\u0435\u0434\u043E\u043F\u044B\u0442", "\u0423\u043D\u0438\u0432\u0435\u0440\u0441\u0430\u043B", 15, 2600, 3, 4, 8, "\u042D\u043A\u0441\u043F\u0435\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0431\u0430\u0433\u0430\u0436\u043D\u0438\u043A \u0434\u043B\u044F \u0434\u043E\u043B\u0433\u0438\u0445 \u0441\u0431\u043E\u0440\u043E\u0432 \u0440\u0435\u0441\u0443\u0440\u0441\u043E\u0432."],
+        ["interceptor", "\u041F\u0435\u0440\u0435\u0445\u0432\u0430\u0442\u0447\u0438\u043A", "\u041F\u0430\u0442\u0440\u0443\u043B\u044C\u043D\u044B\u0439 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u044C", 25, 4e3, 9, 4, 0, "\u0411\u043E\u0435\u0432\u043E\u0439 \u0432\u044B\u0435\u0437\u0434: \u0432\u044B\u0441\u043E\u043A\u0438\u0439 \u0443\u0440\u043E\u043D \u043F\u0440\u0438 \u043D\u0435\u0431\u043E\u043B\u044C\u0448\u043E\u043C \u0433\u0440\u0443\u0437\u043E\u0432\u043E\u043C \u043E\u0442\u0441\u0435\u043A\u0435."],
+        ["tow", "\u0422\u044F\u0433\u0430\u0447", "\u042D\u0432\u0430\u043A\u0443\u0430\u0442\u043E\u0440", 40, 5800, 2, 7, 10, "\u041B\u0435\u0431\u0451\u0434\u043A\u0430 \u0438 \u0433\u0440\u0443\u0437\u043E\u0432\u0430\u044F \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0430 \u0434\u043B\u044F \u0442\u044F\u0436\u0451\u043B\u044B\u0445 \u0442\u0440\u043E\u0444\u0435\u0435\u0432."],
+        ["ranger", "\u0415\u0433\u0435\u0440\u044C", "\u042D\u043A\u0441\u043F\u0435\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0434\u0436\u0438\u043F", 60, 8200, 7, 7, 7, "\u0421\u0431\u0430\u043B\u0430\u043D\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u0430\u044F \u0431\u0430\u0437\u0430 \u0434\u043B\u044F \u043B\u044E\u0431\u043E\u0433\u043E \u0440\u0430\u0439\u043E\u043D\u0430 \u0433\u043E\u0440\u043E\u0434\u0430."],
+        ["vault", "\u0421\u0435\u0439\u0444", "\u0411\u0440\u043E\u043D\u0435\u0444\u0443\u0440\u0433\u043E\u043D", 90, 11500, 3, 13, 5, "\u0411\u0440\u043E\u043D\u0435\u043F\u043B\u0438\u0442\u044B \u0434\u043B\u044F \u0432\u044B\u0436\u0438\u0432\u0430\u043D\u0438\u044F \u043F\u043E\u0434 \u0434\u0430\u0432\u043B\u0435\u043D\u0438\u0435\u043C \u043E\u0440\u0434\u044B."],
+        ["engineer", "\u041C\u043E\u043D\u0442\u0430\u0436\u043D\u0438\u043A", "\u0421\u0435\u0440\u0432\u0438\u0441\u043D\u044B\u0439 \u0433\u0440\u0443\u0437\u043E\u0432\u0438\u043A", 130, 15500, 5, 7, 13, "\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0430\u044F \u043D\u0430 \u043A\u043E\u043B\u0451\u0441\u0430\u0445. \u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u043F\u043E\u043B\u0435\u0437\u043D\u043E\u0439 \u0434\u043E\u0431\u044B\u0447\u0438."],
+        ["bastion", "\u0411\u0430\u0441\u0442\u0438\u043E\u043D", "\u0411\u0440\u043E\u043D\u0435\u0442\u0440\u0430\u043D\u0441\u043F\u043E\u0440\u0442\u0451\u0440", 200, 21e3, 10, 14, 3, "\u0428\u0435\u0441\u0442\u044C \u043A\u043E\u043B\u0451\u0441 \u0438 \u0442\u044F\u0436\u0451\u043B\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0434\u043B\u044F \u043F\u0435\u0440\u0435\u0434\u043E\u0432\u043E\u0439."],
+        ["command", "\u041A\u043E\u043C\u0435\u043D\u0434\u0430\u043D\u0442", "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0430\u0432\u0442\u043E\u0431\u0443\u0441", 300, 28e3, 12, 10, 10, "\u041F\u043E\u0434\u0432\u0438\u0436\u043D\u044B\u0439 \u0448\u0442\u0430\u0431 \u0434\u043B\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0438\u0440\u0430 \u0443\u0431\u0435\u0436\u0438\u0449\u0430."],
+        ["ark", "\u041A\u043E\u0432\u0447\u0435\u0433", "\u042D\u043A\u0441\u043F\u0435\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0433\u0440\u0443\u0437\u043E\u0432\u0438\u043A", 450, 38e3, 10, 15, 15, "\u0414\u0430\u043B\u044C\u043D\u0438\u0435 \u043C\u0430\u0440\u0448\u0440\u0443\u0442\u044B \u0438 \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0430\u0441 \u043F\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u0438."]
+      ].map(([id, name, type, level, cost, damage, hp, loot2, description], art2) => ({ id, name, type, level, cost, damage, hp, loot: loot2, description, art: art2 }));
+      for (const [id, name, type, base, votes] of [
+        ["silver", "\u0421\u0435\u0440\u0435\u0431\u0440\u044F\u043D\u044B\u0439 \u0441\u043B\u0435\u0434", "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u043A\u0443\u043F\u0435", 6, 25],
+        ["crimson", "\u0411\u0430\u0433\u0440\u043E\u0432\u044B\u0439 \u0437\u0430\u043A\u0430\u0442", "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u043C\u0430\u0441\u043B\u043A\u0430\u0440", 4, 20],
+        ["phantom", "\u0424\u0430\u043D\u0442\u043E\u043C", "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0440\u0430\u043B\u043B\u0438-\u043A\u0430\u0440", 8, 35],
+        ["arctic", "\u041F\u043E\u043B\u044F\u0440\u043D\u0438\u043A", "\u0410\u0440\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0439 \u0433\u0440\u0443\u0437\u043E\u0432\u0438\u043A", 10, 45],
+        ["sovereign", "\u0421\u0443\u0432\u0435\u0440\u0435\u043D", "\u0411\u0440\u043E\u043D\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0439 \u043B\u0438\u043C\u0443\u0437\u0438\u043D", 11, 55],
+        ["horizon", "\u0413\u043E\u0440\u0438\u0437\u043E\u043D\u0442", "\u041C\u043E\u0431\u0438\u043B\u044C\u043D\u0430\u044F \u043B\u0430\u0431\u043E\u0440\u0430\u0442\u043E\u0440\u0438\u044F", 13, 65]
+      ]) {
+        const v = VEHICLES[base];
+        VEHICLES.push({ ...v, id, name, type, cost: 0, votes, base, art: VEHICLES.length, description: "\u041E\u0441\u043E\u0431\u044B\u0439 \u043A\u0443\u0437\u043E\u0432. \u0411\u043E\u043D\u0443\u0441\u044B \u043A\u0430\u043A \u0443 \xAB" + v.name + "\xBB, \u0431\u0435\u0437 \u043F\u0440\u0435\u0438\u043C\u0443\u0449\u0435\u0441\u0442\u0432\u0430 \u0437\u0430 \u043E\u043F\u043B\u0430\u0442\u0443." });
+      }
+      vehicleFor = (s) => VEHICLES.find((v) => v.id === s.vehicle) || VEHICLES[0];
+    }
+  });
+
+  // garage-ui.js
+  function garageUI(root, save2, level, upgrades, buy, rerender) {
+    const current = vehicleFor(save2), owned = save2.ownedVehicles || ["nomad"];
+    const options = [["all", "\u0412\u0441\u0435 \xB7 20"], ["scrap", "\u0417\u0430 \u0434\u0435\u0442\u0430\u043B\u0438 \xB7 13"], ["votes", "\u0417\u0430 \u0433\u043E\u043B\u043E\u0441\u0430 \xB7 6"], ["owned", "\u041C\u043E\u0438 \xB7 " + owned.length]];
+    const list = VEHICLES.filter((v) => filter === "all" || filter === "scrap" && v.cost > 0 || filter === "votes" && v.votes || filter === "owned" && owned.includes(v.id));
+    root.innerHTML = `<div class="garage-showroom"><div class="garage-platform">${art(current)}<span class="garage-stamp">\u041C\u041E\u0411\u0418\u041B\u042C\u041D\u0410\u042F \u0411\u0410\u0417\u0410 / ${String(current.art + 1).padStart(2, "0")}</span></div><div class="garage-summary"><span class="eyebrow orange">\u0410\u041A\u0422\u0418\u0412\u041D\u042B\u0419 \u0410\u0412\u0422\u041E\u041C\u041E\u0411\u0418\u041B\u042C</span><h2>\xAB${current.name}\xBB</h2><p>${current.description}</p><div class="vehicle-bonuses">${bonus(current)}</div><small>\u0411\u043E\u043D\u0443\u0441\u044B \u043A\u0443\u0437\u043E\u0432\u0430 \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u044E\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u0443 \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0439 \u043C\u0430\u0448\u0438\u043D\u044B. \u0423\u043B\u0443\u0447\u0448\u0435\u043D\u0438\u044F \u043C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u043E\u0439 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043F\u0440\u0438 \u0441\u043C\u0435\u043D\u0435 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u044F.</small></div></div><div class="section-title"><h3>\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0430\u044F</h3><span>\u041E\u0411\u0429\u0418\u0415 \u041C\u041E\u0414\u0423\u041B\u0418 \u0410\u0412\u0422\u041E\u041F\u0410\u0420\u041A\u0410</span></div><div class="item-grid">${upgrades}</div><div class="section-title"><h3>\u0410\u0432\u0442\u043E\u043F\u0430\u0440\u043A \u0443\u0431\u0435\u0436\u0438\u0449\u0430</h3><span>${owned.length} / 20 \u0412 \u041A\u041E\u041B\u041B\u0415\u041A\u0426\u0418\u0418</span></div><div class="vehicle-filters" role="group" aria-label="\u0424\u0438\u043B\u044C\u0442\u0440 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u0435\u0439">${options.map(([id, label2]) => `<button class="secondary ${filter === id ? "selected" : ""}" data-vehicle-filter="${id}" aria-pressed="${filter === id}">${label2}</button>`).join("")}</div><p class="page-intro">\u041F\u043E\u043A\u0443\u043F\u043A\u0430 \u0437\u0430 \u0434\u0435\u0442\u0430\u043B\u0438 \u043D\u0430\u0432\u0441\u0435\u0433\u0434\u0430. \u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0435 \u043A\u0443\u0437\u043E\u0432\u0430 \u0437\u0430 \u0433\u043E\u043B\u043E\u0441\u0430 \u0438\u043C\u0435\u044E\u0442 \u0445\u0430\u0440\u0430\u043A\u0442\u0435\u0440\u0438\u0441\u0442\u0438\u043A\u0438 \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u044B\u0445 \u0430\u043D\u0430\u043B\u043E\u0433\u043E\u0432 \u0438 \u0442\u0435 \u0436\u0435 \u0442\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u044F \u043A \u0443\u0440\u043E\u0432\u043D\u044E. \u041E\u043F\u043B\u0430\u0442\u0430 \u0433\u043E\u043B\u043E\u0441\u0430\u043C\u0438 \u043F\u043E\u043A\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 \u2014 \u0443\u043A\u0430\u0437\u0430\u043D\u044B \u043F\u043B\u0430\u043D\u0438\u0440\u0443\u0435\u043C\u044B\u0435 \u0446\u0435\u043D\u044B.</p><div class="vehicle-grid">${list.map((v) => {
+      const have = owned.includes(v.id), active = current.id === v.id, locked = level < v.level, disabled = active || locked || !have && (!!v.votes || save2.scrap < v.cost);
+      const label2 = active ? "\u0412\u042B\u0411\u0420\u0410\u041D" : locked ? "\u041D\u0423\u0416\u0415\u041D \u0423\u0420\u041E\u0412\u0415\u041D\u042C " + v.level : have ? "\u0412\u042B\u0411\u0420\u0410\u0422\u042C" : v.votes ? "\u0421\u041A\u041E\u0420\u041E \xB7 " + v.votes + " \u0413\u041E\u041B\u041E\u0421\u041E\u0412" : save2.scrap < v.cost ? "\u041D\u0415 \u0425\u0412\u0410\u0422\u0410\u0415\u0422 \u0414\u0415\u0422\u0410\u041B\u0415\u0419" : "\u041A\u0423\u041F\u0418\u0422\u042C \xB7 " + v.cost.toLocaleString("ru-RU");
+      return `<article class="vehicle-card ${active ? "equipped" : ""} ${v.votes ? "collectible" : ""}"><div class="vehicle-picture">${art(v)}<span class="vehicle-number">${String(v.art + 1).padStart(2, "0")}</span><span class="vehicle-tag">${v.votes ? "\u041A\u041E\u041B\u041B\u0415\u041A\u0426\u0418\u041E\u041D\u041D\u042B\u0419" : have ? "\u0412 \u0413\u0410\u0420\u0410\u0416\u0415" : "\u0417\u0410 \u0414\u0415\u0422\u0410\u041B\u0418"}</span></div><div class="vehicle-info"><small>${v.type} \xB7 \u0423\u0420. ${v.level}</small><h3>${v.name}</h3><p>${v.description}</p><div class="vehicle-bonuses">${bonus(v)}</div><div class="vehicle-price">${v.votes ? v.votes + " \u0433\u043E\u043B\u043E\u0441\u043E\u0432" : v.cost ? v.cost.toLocaleString("ru-RU") + " \u0434\u0435\u0442\u0430\u043B\u0435\u0439" : "\u0421\u0442\u0430\u0440\u0442\u043E\u0432\u044B\u0439 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u044C"}</div><button class="${active ? "secondary" : "primary"}" data-vehicle="${v.id}" ${disabled ? "disabled" : ""}>${label2}</button></div></article>`;
+    }).join("")}</div>`;
+    root.querySelectorAll("[data-vehicle-filter]").forEach((b) => b.onclick = () => {
+      filter = b.dataset.vehicleFilter;
+      rerender();
+    });
+    root.querySelectorAll("[data-vehicle]").forEach((b) => b.onclick = () => buy(b.dataset.vehicle));
+  }
+  var filter, art, bonus;
+  var init_garage_ui = __esm({
+    "garage-ui.js"() {
+      init_vehicles();
+      filter = "all";
+      art = (v) => `<div class="vehicle-art" role="img" aria-label="${v.type} ${v.name}" style="--vx:${v.art % 4 * 100 / 3}%;--vy:${Math.floor(v.art / 4) * 25}%"></div>`;
+      bonus = (v) => `<span>+${v.damage}% \u0443\u0440\u043E\u043D</span><span>+${v.hp}% \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435</span><span>+${v.loot}% \u0434\u0435\u0442\u0430\u043B\u0438</span>`;
+    }
+  });
+
   // onboarding.js
   function onboarding(navigate2, force = false) {
     if (document.querySelector("#onboarding")) return;
@@ -572,6 +633,7 @@
   var MAPS, WEAPONS, MAX_LEVEL, weaponUnlocked, expeditionRank, ENERGY_MAX, raidProfile, ENERGY_INTERVAL, RAID_COST, BOSS_COST, freshSave, bossUnlocked, xpForLevel, playerLevel, levelProgress, stats, upgradeCost, unlocked, enemyStats, ARMOR, armorUnlocked;
   var init_balance = __esm({
     "balance.js"() {
+      init_vehicles();
       MAPS = [
         { name: "\u0422\u0438\u0445\u0438\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", desc: "\u0412 \u043E\u043A\u043D\u0430\u0445 \u0435\u0449\u0451 \u0433\u043E\u0440\u0438\u0442 \u0441\u0432\u0435\u0442. \u041D\u0430 \u0443\u043B\u0438\u0446\u0430\u0445 \u0443\u0436\u0435 \u043D\u0438\u043A\u043E\u0433\u043E \u0436\u0438\u0432\u043E\u0433\u043E.", goal: "\u0417\u0430\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u0436\u0438\u043B\u043E\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", boss: "\u0421\u043C\u043E\u0442\u0440\u0438\u0442\u0435\u043B\u044C", level: 1, palette: ["#6c7660", "#485340", "#8b8870", "#a4a080"], reward: 85, kind: "town" },
         { name: "\u0410\u0417\u0421 \xAB\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F\xBB", desc: "\u0417\u0430\u043F\u0430\u0445 \u0431\u0435\u043D\u0437\u0438\u043D\u0430. \u041F\u0443\u0441\u0442\u044B\u0435 \u0431\u0430\u043A\u0438. \u0418 \u043A\u0442\u043E-\u0442\u043E \u0437\u0430 \u043A\u043E\u043B\u043E\u043D\u043A\u043E\u0439.", goal: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0437\u0430\u043F\u0430\u0441 \u0442\u043E\u043F\u043B\u0438\u0432\u0430", boss: "\u041F\u043E\u0434\u0436\u0438\u0433\u0430\u0442\u0435\u043B\u044C", level: 2, palette: ["#786953", "#514b3a", "#a38d65", "#c5a271"], reward: 110, kind: "gas" },
@@ -600,7 +662,7 @@
       ENERGY_INTERVAL = 5 * 60 * 1e3;
       RAID_COST = 8;
       BOSS_COST = 12;
-      freshSave = () => ({ version: 1, armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: Array(MAPS.length).fill(0), energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
+      freshSave = () => ({ version: 1, vehicle: "nomad", ownedVehicles: ["nomad"], armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: Array(MAPS.length).fill(0), energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
       bossUnlocked = (s, i) => {
         var _a2;
         return unlocked(s, i) && (((_a2 = s.districtRuns) == null ? void 0 : _a2[i]) || 0) >= 3 && playerLevel(s) >= MAPS[i].level;
@@ -619,7 +681,7 @@
       };
       stats = (s) => {
         var _a2;
-        return { hp: Math.round((110 + s.armor * 8 + (((_a2 = ARMOR[s.armorTier || 0]) == null ? void 0 : _a2.hp) || 0)) * (1 + s.body * 0.04)), damage: WEAPONS[s.weapon].damage * (1 + s.weaponLevel * 0.08) * (1 + s.engine * 0.04), loot: 1 + s.trunk * 0.05, speed: 148 };
+        return { hp: Math.round((110 + s.armor * 8 + (((_a2 = ARMOR[s.armorTier || 0]) == null ? void 0 : _a2.hp) || 0)) * (1 + s.body * 0.04) * (1 + vehicleFor(s).hp / 100)), damage: WEAPONS[s.weapon].damage * (1 + s.weaponLevel * 0.08) * (1 + s.engine * 0.04) * (1 + vehicleFor(s).damage / 100), loot: (1 + s.trunk * 0.05) * (1 + vehicleFor(s).loot / 100), speed: 148 };
       };
       upgradeCost = (level) => Math.round(80 * Math.pow(1.42, level));
       unlocked = (s, i) => i === 0 || s.cleared.includes(i - 1);
@@ -783,46 +845,48 @@
   });
 
   // client-api.js
-  function configured() {
-    return !API_BASE.includes("PASTE-YOUR-WORKER-URL-HERE");
+  function requestAPI(path, body) {
+    if (body === void 0 && reads.has(path)) return reads.get(path);
+    const promise = performRequest(path, body);
+    if (body === void 0) {
+      reads.set(path, promise);
+      promise.then(() => reads.delete(path), () => reads.delete(path));
+    }
+    return promise;
   }
-  async function requestAPI(path, body) {
-    var _a2;
-    if (!configured()) throw new Error("API \u0435\u0449\u0451 \u043D\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043D. \u0412 config.js \u0443\u043A\u0430\u0436\u0438 \u0430\u0434\u0440\u0435\u0441 Cloudflare Worker.");
+  async function performRequest(path, body) {
+    var _a2, _b2;
+    if (API_BASE.includes("PASTE-YOUR-WORKER-URL-HERE")) throw new Error("\u0418\u0433\u0440\u043E\u0432\u043E\u0439 \u0441\u0435\u0440\u0432\u0435\u0440 \u0435\u0449\u0451 \u043D\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043D.");
     const headers = {};
     if (body !== void 0) headers["Content-Type"] = "application/json";
     if (tokenMode && token) headers["X-Obitel-Session"] = token;
-    const controller = new AbortController();
+    const controller = new AbortController(), started = performance.now();
     const timeout = setTimeout(() => controller.abort(), 15e3);
-    let response;
     try {
-      response = await fetch(new URL(path, API_BASE), {
-        method: body === void 0 ? "GET" : "POST",
-        headers,
-        credentials: crossOrigin ? "omit" : "same-origin",
-        body: body === void 0 ? void 0 : JSON.stringify(body),
-        signal: controller.signal
-      });
+      const response = await fetch(new URL(path, API_BASE), { method: body === void 0 ? "GET" : "POST", headers, credentials: crossOrigin ? "omit" : "same-origin", body: body === void 0 ? void 0 : JSON.stringify(body), signal: controller.signal });
+      if (!((_a2 = response.headers.get("content-type")) == null ? void 0 : _a2.includes("application/json"))) throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0435\u0440\u043D\u0443\u043B \u043D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u043E\u0442\u0432\u0435\u0442. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0437\u0436\u0435.");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D");
+      const issued = response.headers.get("X-Obitel-Session");
+      if (tokenMode && issued && /^[a-f0-9]{32}$/.test(issued)) {
+        token = issued;
+        try {
+          localStorage.setItem(tokenKey, issued);
+        } catch (e) {
+        }
+      }
+      const ms = Math.round(performance.now() - started);
+      (_b2 = document.querySelector(".connection")) == null ? void 0 : _b2.setAttribute("title", "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0437\u0430\u043F\u0440\u043E\u0441: " + ms + " \u043C\u0441");
+      return data;
     } catch (error) {
-      if ((error == null ? void 0 : error.name) === "AbortError") throw new Error("\u0418\u0433\u0440\u043E\u0432\u043E\u0439 \u0441\u0435\u0440\u0432\u0435\u0440 \u043E\u0442\u0432\u0435\u0447\u0430\u0435\u0442 \u0441\u043B\u0438\u0448\u043A\u043E\u043C \u0434\u043E\u043B\u0433\u043E. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u043F\u044B\u0442\u043A\u0443.");
-      throw new Error("\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u0432\u044F\u0437\u0430\u0442\u044C\u0441\u044F \u0441 \u0441\u0435\u0440\u0432\u0435\u0440\u043E\u043C. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0438\u043D\u0442\u0435\u0440\u043D\u0435\u0442 \u0438 \u0430\u0434\u0440\u0435\u0441 API.");
+      if ((error == null ? void 0 : error.name) === "AbortError") throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u043E\u0442\u0432\u0435\u0447\u0430\u0435\u0442 \u0434\u043E\u043B\u044C\u0448\u0435 15 \u0441\u0435\u043A\u0443\u043D\u0434. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0441\u0432\u044F\u0437\u044C \u0438 \u043F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u043F\u044B\u0442\u043A\u0443.");
+      if (error instanceof TypeError) throw new Error("\u041D\u0435\u0442 \u0441\u0432\u044F\u0437\u0438 \u0441 \u0441\u0435\u0440\u0432\u0435\u0440\u043E\u043C. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0438\u043D\u0442\u0435\u0440\u043D\u0435\u0442.");
+      throw error;
     } finally {
       clearTimeout(timeout);
     }
-    if (!((_a2 = response.headers.get("content-type")) == null ? void 0 : _a2.includes("application/json"))) throw new Error("\u0418\u0433\u0440\u043E\u0432\u043E\u0439 \u0441\u0435\u0440\u0432\u0435\u0440 \u0432\u0435\u0440\u043D\u0443\u043B \u043D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u043E\u0442\u0432\u0435\u0442. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0430\u0434\u0440\u0435\u0441 API.");
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D");
-    const issued = response.headers.get("X-Obitel-Session");
-    if (tokenMode && issued && /^[a-f0-9]{32}$/.test(issued)) {
-      token = issued;
-      try {
-        localStorage.setItem(tokenKey, issued);
-      } catch (e) {
-      }
-    }
-    return data;
   }
-  var tokenKey, crossOrigin, tokenMode, token;
+  var tokenKey, crossOrigin, tokenMode, token, reads;
   var init_client_api = __esm({
     "client-api.js"() {
       init_config();
@@ -834,6 +898,7 @@
         token = localStorage.getItem(tokenKey) || "";
       } catch (e) {
       }
+      reads = /* @__PURE__ */ new Map();
     }
   });
 
@@ -1449,11 +1514,7 @@
       document.querySelectorAll("[data-item]").forEach((c) => drawItem(c, Number(c.dataset.item)));
       document.querySelectorAll("[data-armor]").forEach((b) => b.onclick = () => action(() => api("armor", { armor: Number(b.dataset.armor) })));
     }
-    if (page === "garage") {
-      $("#garage-page").innerHTML = `<p class="page-intro">\xAB\u041A\u043E\u0447\u0435\u0432\u043D\u0438\u043A\xBB \u2014 \u0442\u0432\u043E\u044F \u043C\u043E\u0431\u0438\u043B\u044C\u043D\u0430\u044F \u0431\u0430\u0437\u0430. \u0414\u0432\u0438\u0433\u0430\u0442\u0435\u043B\u044C \u043F\u0438\u0442\u0430\u0435\u0442 \u043E\u0440\u0443\u0436\u0435\u0439\u043D\u044B\u0439 \u043C\u043E\u0434\u0443\u043B\u044C, \u0431\u0440\u043E\u043D\u0435\u043A\u043E\u0440\u043F\u0443\u0441 \u0443\u0441\u0438\u043B\u0438\u0432\u0430\u0435\u0442 \u0437\u0430\u0449\u0438\u0442\u0443, \u0431\u0430\u0433\u0430\u0436\u043D\u0438\u043A \u0432\u043C\u0435\u0449\u0430\u0435\u0442 \u0431\u043E\u043B\u044C\u0448\u0435 \u0434\u043E\u0431\u044B\u0447\u0438.</p><canvas class="wide-art" width="960" height="320"></canvas><div class="item-grid">${upgrade("engine", "\u0413\u0435\u043D\u0435\u0440\u0430\u0442\u043E\u0440", `+4% \u0443\u0440\u043E\u043D\u0430 \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.engine * 4}%.`)}${upgrade("body", "\u0411\u0440\u043E\u043D\u0435\u043A\u043E\u0440\u043F\u0443\u0441", `+4% \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.body * 4}%.`)}${upgrade("trunk", "\u0413\u0440\u0443\u0437\u043E\u0432\u043E\u0439 \u043E\u0442\u0441\u0435\u043A", `+5% \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u0437\u0430 \u0432\u044B\u043B\u0430\u0437\u043A\u0443 \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.trunk * 5}%.`)}</div>`;
-      let c = $("#garage-page canvas");
-      scene(c, 0, -1);
-    }
+    if (page === "garage") garageUI($("#garage-page"), save, playerLevel(save), [upgrade("engine", "\u0413\u0435\u043D\u0435\u0440\u0430\u0442\u043E\u0440", `+4% \u0443\u0440\u043E\u043D\u0430 \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.engine * 4}%.`), upgrade("body", "\u0411\u0440\u043E\u043D\u0435\u043A\u043E\u0440\u043F\u0443\u0441", `+4% \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.body * 4}%.`), upgrade("trunk", "\u0413\u0440\u0443\u0437\u043E\u0432\u043E\u0439 \u043E\u0442\u0441\u0435\u043A", `+5% \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u0437\u0430 \u0432\u044B\u043B\u0430\u0437\u043A\u0443 \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.trunk * 5}%.`)].join(""), (id) => action(() => api("vehicle", { vehicle: id })), renderPage);
     if (page === "daily") {
       $("#daily-page").innerHTML = adCard() + `<p class="page-intro">\u041E\u0434\u043D\u0430 \u043F\u043E\u043D\u044F\u0442\u043D\u0430\u044F \u0446\u0435\u043B\u044C \u043D\u0430 \u0434\u0435\u043D\u044C. \u041A\u043E\u043D\u0442\u0440\u0430\u043A\u0442 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u0432 00:00 \u043F\u043E \u041C\u043E\u0441\u043A\u0432\u0435. \u041F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043D\u044B\u0439 \u0434\u0435\u043D\u044C \u043D\u0435 \u043E\u0442\u043D\u0438\u043C\u0430\u0435\u0442 \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435.</p><div class="item-grid">${item("\u25A4", "\u0413\u043E\u0440\u043E\u0434 \u0434\u043E\u043B\u0436\u0435\u043D \u0441\u0442\u0430\u0442\u044C \u0442\u0438\u0448\u0435", `\u0421\u0415\u0413\u041E\u0414\u041D\u042F \xB7 ${Math.min(save.daily.kills, 20)} / 20`, `\u0423\u0441\u0442\u0440\u0430\u043D\u0438 20 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445 \u0432 \u043B\u044E\u0431\u044B\u0445 \u0440\u0430\u0439\u043E\u043D\u0430\u0445. \u041D\u0430\u0433\u0440\u0430\u0434\u0430: 120 \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u0438 1 \u044F\u0434\u0440\u043E.`, `<button class="primary" id="claim" ${save.daily.claimed || save.daily.kills < 20 ? "disabled" : ""}>${save.daily.claimed ? "\u041D\u0410\u0413\u0420\u0410\u0414\u0410 \u041F\u041E\u041B\u0423\u0427\u0415\u041D\u0410" : save.daily.kills < 20 ? "\u041A\u041E\u041D\u0422\u0420\u0410\u041A\u0422 \u0412 \u041F\u0420\u041E\u0426\u0415\u0421\u0421\u0415" : "\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423"}</button>`)}${item("\u25C7", "\u0422\u0440\u043E\u0444\u0435\u0438 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0439 \u0437\u043E\u043D\u044B", `${save.cores} \u042F\u0414\u0415\u0420`, `\u042F\u0434\u0440\u043E \u0432\u044B\u0434\u0430\u0451\u0442\u0441\u044F \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443 \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u043E\u043C. \u041F\u043E\u0442\u0440\u0430\u0442\u044C \u044F\u0434\u0440\u0430 \u043D\u0430 \u0441\u043E\u0437\u0434\u0430\u043D\u0438\u0435 \u0440\u0435\u0434\u043A\u043E\u0439 \u0431\u0440\u043E\u043D\u0438.`, "")}</div>`;
     }
@@ -1558,7 +1619,7 @@
   }
   function joystick(e) {
     if (e.pointerId !== pointer) return;
-    let b = joy.getBoundingClientRect(), x = (e.clientX - b.left - b.width / 2) / 40, y = (e.clientY - b.top - b.height / 2) / 40, l = Math.max(1, Math.hypot(x, y));
+    let b = joy.getBoundingClientRect(), x = (e.clientX - b.left - b.width / 2) / (b.width * 0.36), y = (e.clientY - b.top - b.height / 2) / (b.height * 0.36), l = Math.max(1, Math.hypot(x, y));
     stick = { x: x / l, y: y / l };
     joy.firstElementChild.style.transform = `translate(${stick.x * 30}px,${stick.y * 30}px)`;
   }
@@ -1829,10 +1890,18 @@
     requestAnimationFrame(frame);
   }
   async function pollRaid() {
+    if (raidPolling || document.hidden) return;
+    raidPolling = true;
+    const expected = raid.id;
     try {
-      raid = (await api("raids/" + raid.id)).raid;
-      if (page === "raids") renderRaids();
+      const updated = (await api("raids/" + expected)).raid;
+      if ((raid == null ? void 0 : raid.id) === expected) {
+        raid = updated;
+        if (page === "raids") renderRaids();
+      }
     } catch (e) {
+    } finally {
+      raidPolling = false;
     }
   }
   function renderRaids() {
@@ -1904,7 +1973,7 @@
     await connect();
     setInterval(() => {
       if (networkReady) energyHud();
-      if (page === "raids" && raid && !busy) pollRaid();
+      if (!document.hidden && page === "raids" && raid && !busy) pollRaid();
     }, 4e3);
     const invited = launchValue("raid");
     if (invited && /^[a-f0-9]{12}$/.test(invited)) {
@@ -1918,9 +1987,10 @@
     if (launchValue("friend")) navigate("friends");
     else if (!invited) onboarding(navigate);
   }
-  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy;
+  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy, raidPolling;
   var init_game = __esm({
     "game.js"() {
+      init_garage_ui();
       init_onboarding();
       init_ads_ui();
       init_conflict_ui();
@@ -2013,16 +2083,20 @@
       pointer = null;
       joy = $("#joystick");
       joy.onpointerdown = (e) => {
+        if (pointer !== null) return;
+        e.preventDefault();
         pointer = e.pointerId;
         joy.setPointerCapture(pointer);
         joystick(e);
       };
       joy.onpointermove = joystick;
-      joy.onpointerup = joy.onpointercancel = joy.onlostpointercapture = () => {
+      joy.onpointerup = joy.onpointercancel = joy.onlostpointercapture = (e) => {
+        if (e.pointerId !== pointer) return;
         pointer = null;
         stick = { x: 0, y: 0 };
         joy.firstElementChild.style.transform = "";
       };
+      raidPolling = false;
       initializeGame().catch(() => {
         var _a2;
         return (_a2 = window.obitelStartupFailure) == null ? void 0 : _a2.call(window, "GAME_START");

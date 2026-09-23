@@ -1,3 +1,4 @@
+import {vehicleFor,migrateVehicles} from './vehicles.js';
 export const MAPS=[
  {name:'Тихий квартал',desc:'В окнах ещё горит свет. На улицах уже никого живого.',goal:'Зачистить жилой квартал',boss:'Смотритель',level:1,palette:['#6c7660','#485340','#8b8870','#a4a080'],reward:85,kind:'town'},
  {name:'АЗС «Последняя»',desc:'Запах бензина. Пустые баки. И кто-то за колонкой.',goal:'Вернуть запас топлива',boss:'Поджигатель',level:2,palette:['#786953','#514b3a','#a38d65','#c5a271'],reward:110,kind:'gas'},
@@ -26,7 +27,7 @@ export const raidProfile=map=>map===5?{hp:3900,cooldown:35000,armor:.1,trait:'Б
 export const ENERGY_INTERVAL=5*60*1000;
 export const RAID_COST=8;
 export const BOSS_COST=12;
-export const freshSave=()=>({version:1,armorTier:0,ownedArmor:[0],bossKills:0,cloth:0,scrap:180,cores:0,xp:0,cleared:[],districtRuns:Array(MAPS.length).fill(0),energy:60,energyAt:Date.now(),weapon:0,owned:[0],weaponLevel:0,armor:0,engine:0,body:0,trunk:0,kills:0,daily:{date:'',kills:0,claimed:false}});
+export const freshSave=()=>({version:1,vehicle:'nomad',ownedVehicles:['nomad'],armorTier:0,ownedArmor:[0],bossKills:0,cloth:0,scrap:180,cores:0,xp:0,cleared:[],districtRuns:Array(MAPS.length).fill(0),energy:60,energyAt:Date.now(),weapon:0,owned:[0],weaponLevel:0,armor:0,engine:0,body:0,trunk:0,kills:0,daily:{date:'',kills:0,claimed:false}});
 export function restoreEnergy(s,now=Date.now()){s.energy=Math.min(ENERGY_MAX,Math.max(0,s.energy??ENERGY_MAX));s.energyAt=Math.min(now,s.energyAt??now);if(s.energy>=ENERGY_MAX){s.energyAt=now;return s.energy}const recovered=Math.floor((now-s.energyAt)/ENERGY_INTERVAL);s.energy=Math.min(ENERGY_MAX,s.energy+recovered);if(s.energy===ENERGY_MAX)s.energyAt=now;else s.energyAt+=recovered*ENERGY_INTERVAL;return s.energy}
 export function spendEnergy(s,amount,now=Date.now()){restoreEnergy(s,now);if(s.energy<amount)return false;if(s.energy===ENERGY_MAX)s.energyAt=now;s.energy-=amount;return true}
 export const bossUnlocked=(s,i)=>unlocked(s,i)&&(s.districtRuns?.[i]||0)>=3&&playerLevel(s)>=MAPS[i].level;
@@ -36,7 +37,7 @@ export const levelProgress=s=>{const level=playerLevel(s);if(level===MAX_LEVEL)r
 export const runXP=(kills,win,map=0,level=1)=>Math.round((Math.floor(kills*1.5)+(win?24+map*8:0))*(1+Math.floor((Math.min(MAX_LEVEL,level)-1)/25)*.5));
 export const raidDamage=s=>Math.round(stats(s).damage*(WEAPONS[s.weapon].pellets||1)/WEAPONS[s.weapon].rate*5*(WEAPONS[s.weapon].pellets?.72:1));
 export function sprintStep(stamina,exhausted,wantsRun,moving,dt){if(exhausted&&stamina>=30)exhausted=false;const running=wantsRun&&moving&&!exhausted&&stamina>0;stamina=Math.max(0,Math.min(100,stamina+(running?-24:17)*dt));if(stamina===0)exhausted=true;return {stamina,exhausted,running:running&&stamina>0,multiplier:running?1.65:1}}
-export const stats=s=>({hp:Math.round((110+s.armor*8+(ARMOR[s.armorTier||0]?.hp||0))*(1+s.body*.04)),damage:WEAPONS[s.weapon].damage*(1+s.weaponLevel*.08)*(1+s.engine*.04),loot:1+s.trunk*.05,speed:148});
+export const stats=s=>({hp:Math.round((110+s.armor*8+(ARMOR[s.armorTier||0]?.hp||0))*(1+s.body*.04)*(1+vehicleFor(s).hp/100)),damage:WEAPONS[s.weapon].damage*(1+s.weaponLevel*.08)*(1+s.engine*.04)*(1+vehicleFor(s).damage/100),loot:(1+s.trunk*.05)*(1+vehicleFor(s).loot/100),speed:148});
 export const upgradeCost=(level)=>Math.round(80*Math.pow(1.42,level));
 export const unlocked=(s,i)=>i===0||s.cleared.includes(i-1);
 export const enemyStats=(map,wave,type,rank=0)=>({hp:(type==='boss'?230:type==='tank'?86:type==='runner'?28:40)*(1+map*.32)*(1+(wave-1)*.15)*(1+rank*.1),speed:type==='boss'?34:type==='runner'?95:type==='tank'?28:47,damage:(type==='boss'?23:type==='tank'?17:10)*(1+map*.16)*(1+rank*.06)});
@@ -55,4 +56,4 @@ ARMOR.push(
  {name:'«Легенда: Янтарь»',hp:300,level:400,bosses:0,cost:0,cloth:0,cores:0,icon:5,pose:3,votes:45,sku:'armor_amber',description:'Коллекционная броня. Защита обычной «Легенды».'}
 );
 export const armorUnlocked=(s,i)=>playerLevel(s)>=ARMOR[i].level||(s.bossKills||0)>=ARMOR[i].bosses&&ARMOR[i].bosses>0||i===0;
-export function migrateSave(s){s.districtRuns=Array.from({length:MAPS.length},(_,i)=>Math.max(0,Number(s.districtRuns?.[i])||0));s.armorTier??=s.armor>0?1:0;s.ownedArmor??=s.armor>0?[0,1]:[0];s.bossKills??=s.cleared.length;s.cloth??=0;return s}
+export function migrateSave(s){migrateVehicles(s);s.districtRuns=Array.from({length:MAPS.length},(_,i)=>Math.max(0,Number(s.districtRuns?.[i])||0));s.armorTier??=s.armor>0?1:0;s.ownedArmor??=s.armor>0?[0,1]:[0];s.bossKills??=s.cleared.length;s.cloth??=0;return s}

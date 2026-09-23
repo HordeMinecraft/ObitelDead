@@ -20,6 +20,7 @@ function corsFor(request,env,url){
  const headers=new Headers({
   'Vary':'Origin',
   'Access-Control-Allow-Methods':'GET, POST, OPTIONS',
+  'Access-Control-Max-Age':'600',
   'Access-Control-Allow-Headers':'Content-Type, X-Obitel-Session',
   'Access-Control-Expose-Headers':'X-Obitel-Session',
   'Cache-Control':'no-store',

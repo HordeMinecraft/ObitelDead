@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+function setup(fetch){const context=vm.createContext({URL,Map,AbortController,setTimeout,clearTimeout,performance,fetch,location:{origin:'https://client.example'},window:{},localStorage:{getItem(){return null},setItem(){}},document:{querySelector(){return null}}});const source=readFileSync(new URL('../client-api.js',import.meta.url),'utf8').replace("import {API_BASE} from './config.js';","const API_BASE='https://api.example/api/';").replace('export function requestAPI','function requestAPI');vm.runInContext(source,context);return context.requestAPI;}
+test('duplicate GET requests share one fetch; POST mutations are never replayed',async()=>{let calls=0,release;const request=setup(async()=>{calls++;await new Promise(r=>release=r);return new Response('{"ok":true}',{headers:{'Content-Type':'application/json'}})});const a=request('profile'),b=request('profile');assert.equal(a,b);assert.equal(calls,1);release();assert.equal((await a).ok,true);const c=request('upgrade',{});assert.equal(calls,2);release();await c;});
+test('failed GET leaves no cached rejection and permits retry',async()=>{let calls=0;const request=setup(async()=>{calls++;return new Response('{"error":"busy"}',{status:calls===1?503:200,headers:{'Content-Type':'application/json'}})});await assert.rejects(request('profile'),/busy/);await request('profile');assert.equal(calls,2);});

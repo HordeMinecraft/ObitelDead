@@ -1,3 +1,4 @@
+import {purchaseVehicle} from './vehicles.js';
 import {adAction} from './ads-domain.js';
 import {conflictAction} from './conflict-domain.js';
 import {clanAction} from './clans-domain.js';
@@ -70,6 +71,7 @@ export function createHandler(db,commit,id){
    else if(path.startsWith('/api/conflict'))result=conflictAction(db,session,path,req.method,b);
    else if(path.startsWith('/api/clans'))result=clanAction(db,session,path,req.method,b,id);
    else if(path.startsWith('/api/friends'))result=socialAction(db,session,path,req.method,b,id,{onlineWindow:ONLINE_WINDOW});
+   else if(req.method==='POST'&&path==='/api/vehicle')result=purchaseVehicle(s,b.vehicle,playerLevel(s));
    else if(req.method==='POST'&&path==='/api/upgrade'){
     const f=b.field;if(!['weaponLevel','armor','engine','body','trunk'].includes(f))err('Нет такого улучшения');
     const price=upgradeCost(s[f]);if(s[f]>=10||s.scrap<price)err('Не хватает деталей');s.scrap-=price;s[f]++;

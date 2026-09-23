@@ -3,28 +3,31 @@ const tokenKey='obitel-session:'+API_BASE;
 const crossOrigin=new URL(API_BASE).origin!==location.origin;
 const tokenMode=crossOrigin||window.parent!==window;
 let token='';try{token=localStorage.getItem(tokenKey)||''}catch{}
-
-function configured(){return !API_BASE.includes('PASTE-YOUR-WORKER-URL-HERE')}
-
-export async function requestAPI(path,body){
- if(!configured())throw new Error('API ещё не настроен. В config.js укажи адрес Cloudflare Worker.');
+const reads=new Map();
+export function requestAPI(path,body){
+ if(body===undefined&&reads.has(path))return reads.get(path);
+ const promise=performRequest(path,body);
+ if(body===undefined){reads.set(path,promise);promise.then(()=>reads.delete(path),()=>reads.delete(path));}
+ return promise;
+}
+async function performRequest(path,body){
+ if(API_BASE.includes('PASTE-YOUR-WORKER-URL-HERE'))throw new Error('Игровой сервер ещё не настроен.');
  const headers={};if(body!==undefined)headers['Content-Type']='application/json';
  if(tokenMode&&token)headers['X-Obitel-Session']=token;
- const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),15000);
- let response;
+ const controller=new AbortController(),started=performance.now();
+ const timeout=setTimeout(()=>controller.abort(),15000);
  try{
-  response=await fetch(new URL(path,API_BASE),{
-   method:body===undefined?'GET':'POST',headers,
-   credentials:crossOrigin?'omit':'same-origin',
-   body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal
-  });
+  const response=await fetch(new URL(path,API_BASE),{method:body===undefined?'GET':'POST',headers,credentials:crossOrigin?'omit':'same-origin',body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});
+  if(!response.headers.get('content-type')?.includes('application/json'))throw new Error('Сервер вернул неверный ответ. Повтори позже.');
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||'Сервер временно недоступен');
+  const issued=response.headers.get('X-Obitel-Session');
+  if(tokenMode&&issued&&/^[a-f0-9]{32}$/.test(issued)){token=issued;try{localStorage.setItem(tokenKey,issued)}catch{}}
+  const ms=Math.round(performance.now()-started);document.querySelector('.connection')?.setAttribute('title','Последний запрос: '+ms+' мс');
+  return data;
  }catch(error){
-  if(error?.name==='AbortError')throw new Error('Игровой сервер отвечает слишком долго. Повтори попытку.');
-  throw new Error('Не удалось связаться с сервером. Проверь интернет и адрес API.');
+  if(error?.name==='AbortError')throw new Error('Сервер отвечает дольше 15 секунд. Проверь связь и повтори попытку.');
+  if(error instanceof TypeError)throw new Error('Нет связи с сервером. Проверь интернет.');
+  throw error;
  }finally{clearTimeout(timeout)}
- if(!response.headers.get('content-type')?.includes('application/json'))throw new Error('Игровой сервер вернул неверный ответ. Проверь адрес API.');
- const data=await response.json();if(!response.ok)throw new Error(data.error||'Сервер временно недоступен');
- const issued=response.headers.get('X-Obitel-Session');
- if(tokenMode&&issued&&/^[a-f0-9]{32}$/.test(issued)){token=issued;try{localStorage.setItem(tokenKey,issued)}catch{}}
- return data;
 }
