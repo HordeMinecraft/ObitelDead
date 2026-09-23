@@ -1,3 +1,12 @@
+// ads-bridge.js
+async function playRewardedAd(bridge) {
+  const available = await bridge.send("VKWebAppCheckNativeAds", { ad_format: "reward" });
+  if (available?.result !== true) throw new Error("\u0421\u0435\u0439\u0447\u0430\u0441 \u043D\u0435\u0442 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E\u0439 \u0440\u0435\u043A\u043B\u0430\u043C\u044B. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439 \u043F\u043E\u0437\u0436\u0435.");
+  const shown = await bridge.send("VKWebAppShowNativeAds", { ad_format: "reward" });
+  if (shown?.result !== true) throw new Error("\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D. \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043D\u0435 \u0432\u044B\u0434\u0430\u043D\u0430.");
+  return true;
+}
+
 // ../обитель/node_modules/.pnpm/@vkontakte+vk-bridge@3.0.2/node_modules/@vkontakte/vk-bridge/dist/index.js
 function createCounter() {
   return {
@@ -325,6 +334,10 @@ function launchValue(key) {
   const hash = new URLSearchParams(location.hash.slice(1)), request = new URLSearchParams(launch.get("request_key") || "");
   return launch.get(key) || hash.get(key) || request.get(key);
 }
+async function showRewardedAd() {
+  if (!inVK) throw new Error("\u0420\u0435\u043A\u043B\u0430\u043C\u0430 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 \u0442\u043E\u043B\u044C\u043A\u043E \u0432\u043D\u0443\u0442\u0440\u0438 VK");
+  return playRewardedAd(dist_default);
+}
 export {
   VK_APP_ID,
   currentVKUser,
@@ -332,5 +345,6 @@ export {
   inviteLink,
   inviteVK,
   inviteVKFriends,
-  launchValue
+  launchValue,
+  showRewardedAd
 };

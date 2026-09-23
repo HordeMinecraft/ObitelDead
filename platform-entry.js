@@ -1,3 +1,4 @@
+import {playRewardedAd} from './ads-bridge.js';
 import bridge from '@vkontakte/vk-bridge';
 export const VK_APP_ID=54626490;
 const launch=new URLSearchParams(location.search);
@@ -50,3 +51,5 @@ export async function inviteVKFriends(code){
 
 export function inviteLink(kind,code){const value=kind+'='+encodeURIComponent(code);return inVK?'https://vk.ru/app'+VK_APP_ID+'#'+value:location.origin+location.pathname+'?'+value}
 export function launchValue(key){const hash=new URLSearchParams(location.hash.slice(1)),request=new URLSearchParams(launch.get('request_key')||'');return launch.get(key)||hash.get(key)||request.get(key)}
+
+export async function showRewardedAd(){if(!inVK)throw new Error("Реклама доступна только внутри VK");return playRewardedAd(bridge);}

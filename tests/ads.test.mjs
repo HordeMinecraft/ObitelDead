@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {adAction} from '../ads-domain.js';
+import {playRewardedAd} from '../ads-bridge.js';
+const now=1800000000000;
+const user=()=>({save:{energy:30}});
+let seq=0;const id=()=>String(++seq);
+test('reward requires ticket; claims are idempotent and capped at three per Moscow day',()=>{const p=user();assert.throws(()=>adAction(p,'claim',{completed:true},id,now));for(let i=0;i<3;i++){p.save.energy=30;const t=now+i*300001;const {ticket}=adAction(p,'start',{},id,t);assert.throws(()=>adAction(p,'claim',{ticket,completed:false},id,t));adAction(p,'claim',{ticket,completed:true},id,t);assert.equal(p.save.energy,38);adAction(p,'claim',{ticket,completed:true},id,t);assert.equal(p.save.energy,38);if(i<2)assert.throws(()=>adAction(p,'start',{},id,t+1));}assert.throws(()=>adAction(p,'start',{},id,now+1000000));assert.equal(adAction(p,'status',{},id,now+86400000).remaining,3);});
+test('cancel, expiry, full energy and mismatched tickets never pay',()=>{const p=user();let {ticket}=adAction(p,'start',{},id,now);assert.throws(()=>adAction(p,'claim',{ticket:'wrong',completed:true},id,now));adAction(p,'cancel',{ticket},id,now);assert.throws(()=>adAction(p,'claim',{ticket,completed:true},id,now));ticket=adAction(p,'start',{},id,now).ticket;assert.throws(()=>adAction(p,'claim',{ticket,completed:true},id,now+600001));assert.equal(p.save.energy,30);p.save.energy=60;assert.throws(()=>adAction(p,'start',{},id,now+700000));});
+test('VK ad is shown once only after availability and requires a positive completion response',async()=>{let calls=[];const bridge={send:async(method,params)=>{calls.push([method,params]);return {result:true}}};assert.equal(await playRewardedAd(bridge),true);assert.deepEqual(calls.map(c=>c[0]),['VKWebAppCheckNativeAds','VKWebAppShowNativeAds']);assert.ok(calls.every(c=>c[1].ad_format==='reward'));calls=[];await assert.rejects(playRewardedAd({send:async method=>{calls.push(method);return {result:false}}}));assert.equal(calls.length,1);await assert.rejects(playRewardedAd({send:async method=>({result:method==='VKWebAppCheckNativeAds'})}));});

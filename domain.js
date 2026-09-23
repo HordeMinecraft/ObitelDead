@@ -1,3 +1,4 @@
+import {adAction} from './ads-domain.js';
 import {conflictAction} from './conflict-domain.js';
 import {clanAction} from './clans-domain.js';
 import {socialAction,ensureSocial} from './friends-domain.js';
@@ -65,6 +66,7 @@ export function createHandler(db,commit,id){
    else if(req.method==='GET'&&path==='/api/online')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='POST'&&path==='/api/online/ping')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='GET'&&path==='/api/leaderboard')result=leaderboard(session);
+   else if(req.method==='POST'&&/^\/api\/ads\/(start|claim|cancel|status)$/.test(path))result=adAction(p,path.split('/').pop(),b,id);
    else if(path.startsWith('/api/conflict'))result=conflictAction(db,session,path,req.method,b);
    else if(path.startsWith('/api/clans'))result=clanAction(db,session,path,req.method,b,id);
    else if(path.startsWith('/api/friends'))result=socialAction(db,session,path,req.method,b,id,{onlineWindow:ONLINE_WINDOW});

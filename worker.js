@@ -3,6 +3,7 @@ import {createHandler} from './domain.js';
 const DEFAULT_ORIGINS=[
  'https://hordeminecraft.github.io',
  'https://obitel.sourcecraft.site',
+ 'https://obitel.pages.dev',
  'http://127.0.0.1:4173',
  'http://localhost:4173'
 ];
