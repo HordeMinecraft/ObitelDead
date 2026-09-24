@@ -27,7 +27,7 @@ async function performRequest(path,body){
   return data;
  }catch(error){
   if(error?.name==='AbortError')throw new Error('Сервер отвечает дольше 15 секунд. Проверь связь и повтори попытку.');
-  if(error instanceof TypeError)throw new Error('Нет связи с сервером. Проверь интернет.');
+  if(error instanceof TypeError)throw new Error('Не удалось связаться с игровым сервером ('+new URL(API_BASE).hostname+'). Код NETWORK_FETCH. Возможна недоступность адреса или блокировка запроса в браузере.');
   throw error;
  }finally{clearTimeout(timeout)}
 }

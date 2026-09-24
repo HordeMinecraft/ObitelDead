@@ -1,4 +1,4 @@
-const query='(orientation: landscape) and (max-width: 1100px) and (max-height: 550px)';
+const query='(orientation: landscape) and (max-height: 550px)';
 export function initLandscape(){
  const header=document.querySelector('header'),aside=document.querySelector('aside'),main=document.querySelector('main'),resources=document.querySelector('.resources');
  const marker=document.createComment('resource-position');resources.before(marker);

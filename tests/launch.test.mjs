@@ -22,7 +22,7 @@ test('iframe receives VK initialization only once; standalone sends nothing',()=
 });
 test('shipped game is a classic script without module syntax',()=>{
  const html=readFileSync('dist/client/index.html','utf8');
- assert.match(html,/<script defer src="game-boot.js"><\/script>/);
+ assert.match(html,/<script defer src="game-boot\.js(?:\?v=[a-zA-Z0-9_-]+)?"><\/script>/);
  assert.doesNotMatch(html,/<script type="module"/);
  new vm.Script(readFileSync('dist/client/game-boot.js','utf8'));
 });
