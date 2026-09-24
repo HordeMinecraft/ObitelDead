@@ -26,3 +26,15 @@ test('invalid, expired and foreign signatures never bind an account; missing sec
 test('simultaneous first logins resolve to one account without duplicated rewards',async()=>{
  const DB=database();const responses=await Promise.all([login(DB,'',launch('789')),login(DB,'',launch('789'))]);assert.ok(responses.every(r=>r.status===200));assert.equal(responses[0].headers.get('x-obitel-session'),responses[1].headers.get('x-obitel-session'));const world=JSON.parse(DB.sqlite.prepare('SELECT data FROM game_world').get().data);assert.equal(Object.keys(world.players).length,1);DB.sqlite.close();
 });
+
+test('safelisted VK login preserves the guest profile and rejects foreign origins',async()=>{
+ const DB=database(),guest='c'.repeat(32);
+ DB.sqlite.prepare('INSERT INTO game_world VALUES (?,?,0)').run('beta',JSON.stringify({players:{[guest]:{name:'Гость',save:{...freshSave(),xp:700}}},raids:{}}));
+ const req=origin=>new Request('https://beta.example/api/auth/vk',{method:'POST',headers:{Origin:origin,'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({launch:launch('987'),session:guest})});
+ const env={DB,VK_APP_SECRET:secret};
+ assert.equal((await api(req('https://evil.example'),env)).status,403);
+ const result=await api(req('https://hordeminecraft.github.io'),env);
+ assert.equal(result.status,200);assert.equal(result.headers.get('x-obitel-session'),guest);
+ assert.equal(result.headers.get('access-control-allow-origin'),'https://hordeminecraft.github.io');
+ const profile=await(await api(request(guest,'profile'),env)).json();assert.equal(profile.save.xp,700);assert.equal(profile.account,'vk');DB.sqlite.close();
+});

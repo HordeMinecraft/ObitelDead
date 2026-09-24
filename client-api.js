@@ -12,12 +12,14 @@ export function requestAPI(path,body){
 }
 async function performRequest(path,body){
  if(API_BASE.includes('PASTE-YOUR-WORKER-URL-HERE'))throw new Error('Игровой сервер ещё не настроен.');
- const headers={};if(body!==undefined)headers['Content-Type']='application/json';
- if(tokenMode&&token)headers['X-Obitel-Session']=token;
+ const authRequest=path==='auth/vk';
+ const payload=authRequest?{...body,session:tokenMode?token:''}:body;
+ const headers={};if(body!==undefined)headers['Content-Type']=authRequest?'text/plain;charset=UTF-8':'application/json';
+ if(tokenMode&&token&&!authRequest)headers['X-Obitel-Session']=token;
  const controller=new AbortController(),started=performance.now();
  const timeout=setTimeout(()=>controller.abort(),15000);
  try{
-  const response=await fetch(new URL(path,API_BASE),{method:body===undefined?'GET':'POST',headers,credentials:crossOrigin?'omit':'same-origin',body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});
+  const response=await fetch(new URL(path,API_BASE),{method:body===undefined?'GET':'POST',headers,credentials:crossOrigin?'omit':'same-origin',body:body===undefined?undefined:JSON.stringify(payload),signal:controller.signal});
   if(!response.headers.get('content-type')?.includes('application/json'))throw new Error('Сервер вернул неверный ответ. Повтори позже.');
   const data=await response.json();
   if(!response.ok)throw Object.assign(new Error(data.error||'Сервер временно недоступен'),{status:response.status});

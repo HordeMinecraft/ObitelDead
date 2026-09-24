@@ -1042,13 +1042,15 @@
   async function performRequest(path, body) {
     var _a2, _b2;
     if (API_BASE.includes("PASTE-YOUR-WORKER-URL-HERE")) throw new Error("\u0418\u0433\u0440\u043E\u0432\u043E\u0439 \u0441\u0435\u0440\u0432\u0435\u0440 \u0435\u0449\u0451 \u043D\u0435 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043D.");
+    const authRequest = path === "auth/vk";
+    const payload = authRequest ? { ...body, session: tokenMode ? token : "" } : body;
     const headers = {};
-    if (body !== void 0) headers["Content-Type"] = "application/json";
-    if (tokenMode && token) headers["X-Obitel-Session"] = token;
+    if (body !== void 0) headers["Content-Type"] = authRequest ? "text/plain;charset=UTF-8" : "application/json";
+    if (tokenMode && token && !authRequest) headers["X-Obitel-Session"] = token;
     const controller = new AbortController(), started = performance.now();
     const timeout = setTimeout(() => controller.abort(), 15e3);
     try {
-      const response = await fetch(new URL(path, API_BASE), { method: body === void 0 ? "GET" : "POST", headers, credentials: crossOrigin ? "omit" : "same-origin", body: body === void 0 ? void 0 : JSON.stringify(body), signal: controller.signal });
+      const response = await fetch(new URL(path, API_BASE), { method: body === void 0 ? "GET" : "POST", headers, credentials: crossOrigin ? "omit" : "same-origin", body: body === void 0 ? void 0 : JSON.stringify(payload), signal: controller.signal });
       if (!((_a2 = response.headers.get("content-type")) == null ? void 0 : _a2.includes("application/json"))) throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0435\u0440\u043D\u0443\u043B \u043D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u043E\u0442\u0432\u0435\u0442. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0437\u0436\u0435.");
       const data = await response.json();
       if (!response.ok) throw Object.assign(new Error(data.error || "\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D"), { status: response.status });

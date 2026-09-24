@@ -49,10 +49,10 @@ export async function api(request,env){
  }
  if(Number(request.headers.get('content-length')||0)>8192)return new Response(null,{status:413,headers:cors});
  const raw=await request.text();if(raw.length>8192)return new Response(null,{status:413,headers:cors});
- let vkUser=null;
+ let vkUser=null,authSession=null;
  if(url.pathname==='/api/auth/vk'){
   if(request.method!=='POST')return json({error:'Метод не поддерживается'},405,cors);
-  try{vkUser=await verifyVKLaunch(JSON.parse(raw).launch,env.VK_APP_SECRET);}
+  try{const input=JSON.parse(raw);vkUser=await verifyVKLaunch(input.launch,env.VK_APP_SECRET);authSession=typeof input.session==='string'&&/^[a-f0-9]{32}$/.test(input.session)?input.session:null;}
   catch(e){return json({error:e.status?e.message:'Неверный запрос VK'},e.status||400,cors);}
  }
  for(let attempt=0;attempt<8;attempt++){
@@ -67,7 +67,7 @@ export async function api(request,env){
   db.players??={};db.raids??={};db.version=2;
   const headers=new Headers(cors);let status=200,body='';
   const inbound=Object.fromEntries(request.headers);delete inbound.origin;
-  const session=request.headers.get('x-obitel-session');
+  const session=request.headers.get('x-obitel-session')||authSession;
   if(session&&/^[a-f0-9]{32}$/.test(session))inbound.cookie='obitel_session='+session;
   if(vkUser){
    const guest=(inbound.cookie||'').match(/(?:^|;\s*)obitel_session=([a-f0-9]{32})(?:;|$)/)?.[1];
