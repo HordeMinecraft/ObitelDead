@@ -1,3 +1,5 @@
+/* Compact landscape shell applies to touch devices only. Desktop keeps its normal scrolling layout. */
+@media (pointer:coarse){
 /* Landscape-first shell for phones, tablets and short VK webviews. */
 @media (orientation:landscape) and (max-height:650px), (orientation:landscape) and (max-width:1180px){
  html,body{height:100%;overflow:hidden}.app{height:100dvh;max-width:none}
@@ -25,3 +27,5 @@
 }
 @media(orientation:landscape) and (max-height:450px){.boss-stage{min-height:210px}.boss-character{height:210px;padding-top:30px;padding-bottom:20px}.boss-brief{padding:10px 14px}.boss-brief>.eyebrow{font-size:9px}.boss-brief h2{font-size:27px;margin:4px 0 9px}.boss-brief .raid-health{margin:6px 0 10px}.boss-facts>div{padding:6px 5px;gap:3px}.boss-action{margin-top:8px;min-height:44px}.boss-access{font-size:11px;margin:8px 0}#raids-page .raid-tabs button{min-height:44px}.boss-stage-caption{font-size:10px}}
 @media(orientation:landscape) and (max-height:450px){body:not(.in-battle) main{padding-top:8px}.topline{margin-bottom:6px}#raids-page .raid-tabs button{padding:10px 12px;min-height:44px}.boss-action{padding:10px 12px;min-height:44px}}
+
+}
