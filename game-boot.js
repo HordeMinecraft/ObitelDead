@@ -494,10 +494,11 @@
   });
 
   // rare-raids.js
-  var RARE_RAIDS, raidAllowed, raidHit;
+  var RAID_CAPACITY, RARE_RAIDS, raidAllowed, raidHit;
   var init_rare_raids = __esm({
     "rare-raids.js"() {
       init_balance();
+      RAID_CAPACITY = 300;
       RARE_RAIDS = [
         [1e6, 20, 500, 1e4, 15e3],
         [5e6, 40, 700, 17500, 28e3],
@@ -510,6 +511,89 @@
       ].map(([hp, level, hits, scrap, xp], map) => ({ map, hp, level, hits, multiplier: hp / (hits * 1e3), pool: { scrap, xp, cores: hits, cloth: hits * 2 } }));
       raidAllowed = (s, map, rare = false) => bossUnlocked(s, map) && (!rare || s.cleared.includes(map) && playerLevel(s) >= RARE_RAIDS[map].level);
       raidHit = (s, map, rare = false) => Math.max(1, Math.round(raidDamage(s) * (rare ? RARE_RAIDS[map].multiplier : 1 - raidProfile(map).armor)));
+    }
+  });
+
+  // raid-view.js
+  function tickRaid(root, raid2, save2, offset) {
+    const button = root.querySelector("#raid-attack");
+    if (!button || !raid2) return;
+    const seconds = Math.max(0, Math.ceil((raid2.nextAttack - Date.now() - offset) / 1e3));
+    button.disabled = !raid2.joined || !raidAllowed(save2, raid2.map, raid2.rare) || raid2.hp <= 0 || seconds > 0 || save2.energy < BOSS_COST;
+    button.textContent = raid2.hp <= 0 ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : seconds ? "\u041F\u041E\u0412\u0422\u041E\u0420 \u0427\u0415\u0420\u0415\u0417 " + seconds + " \u0421\u0415\u041A" : save2.energy < BOSS_COST ? "\u041D\u0423\u0416\u041D\u041E 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418" : "\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C \xB7 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418";
+  }
+  function renderRaidView(root, { raid: raid2, save: save2, selected: selected2, rareMode: rareMode2, offset, onMode, onMap, onCreate, onAttack, onJoin, onClaim, onClose, onCopy }) {
+    var _a2, _b2, _c, _d;
+    const map = raid2 ? raid2.map : selected2, rare = raid2 ? !!raid2.rare : rareMode2, m = MAPS[map], profile = RARE_RAIDS[map], allowed = raidAllowed(save2, map, rare), mine = raid2 == null ? void 0 : raid2.members.find((p) => p.me);
+    const reward = (raid2 == null ? void 0 : raid2.reward) || { scrap: m.reward * 2, xp: 45, cores: 3, cloth: 6 };
+    const capacity = (raid2 == null ? void 0 : raid2.capacity) || RAID_CAPACITY;
+    const hit = (_a2 = raid2 == null ? void 0 : raid2.estimatedDamage) != null ? _a2 : raidHit(save2, map, rare);
+    const hp = (_b2 = raid2 == null ? void 0 : raid2.hp) != null ? _b2 : rare ? profile.hp : raidProfile(map).hp, maxHp = (_c = raid2 == null ? void 0 : raid2.maxHp) != null ? _c : hp;
+    const party = (raid2 == null ? void 0 : raid2.members) || [];
+    const oldDetails = (_d = root.querySelector(".raid-rules")) == null ? void 0 : _d.open, oldPage = Number(root.dataset.partyPage || 0);
+    const same = root.dataset.encounter === ((raid2 == null ? void 0 : raid2.id) || "catalog");
+    root.dataset.encounter = (raid2 == null ? void 0 : raid2.id) || "catalog";
+    root.dataset.partyPage = String(same ? oldPage : 0);
+    root.innerHTML = `<div class="raid-tabs" role="group" aria-label="\u0422\u0438\u043F \u0431\u043E\u0441\u0441\u0430"><button class="secondary" data-mode="normal" aria-pressed="${!rare}">\u041E\u0431\u044B\u0447\u043D\u044B\u0435</button><button class="secondary" data-mode="rare" aria-pressed="${rare}">\u0420\u0435\u0434\u043A\u0438\u0435</button></div>
+ ${!raid2 ? `<label class="raid-select" for="raid-map">\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430</label><select id="raid-map" class="boss-select">${MAPS.map((v, i) => `<option value="${i}" ${map === i ? "selected" : ""}>${v.boss}${rare ? " \xB7 \u0443\u0440. " + RARE_RAIDS[i].level : ""}</option>`).join("")}</select>` : ""}
+ <article class="boss-encounter ${rare ? "is-rare" : ""}">
+ <div class="boss-stage" style="--boss-scene:url('assets/district-${map}.png')"><span class="boss-rarity">${rare ? "\u0420\u0415\u0414\u041A\u0418\u0419" : "\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410"} \xB7 ${escape(m.name)}</span><img class="boss-character" src="assets/boss-${BOSS_ART[map]}.png" alt="${escape(m.boss)} \u2014 ${roles[map]}" width="512" height="512" decoding="async"><span class="boss-stage-caption">${roles[map]}</span></div>
+ <div class="boss-brief"><span class="eyebrow">${raid2 ? "\u041E\u0411\u0429\u0418\u0419 \u0420\u0415\u0419\u0414" : "\u0414\u041E\u0421\u042C\u0415 \u041F\u0420\u041E\u0422\u0418\u0412\u041D\u0418\u041A\u0410"}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt(hp)}</b><span>/ ${fmt(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt(hp)} \u0438\u0437 ${fmt(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div>
+ <div class="boss-facts"><div><span>\u0422\u0432\u043E\u044F \u0430\u0442\u0430\u043A\u0430</span><b>${fmt(hit)}</b></div><div><span>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438</span><b>${party.length} / ${capacity}</b></div><div><span>\u041F\u043E\u0432\u0442\u043E\u0440</span><b>${raidProfile(map).cooldown / 1e3} \u0441\u0435\u043A</b></div></div>
+ ${!raid2 ? `<p class="boss-access">\u0423\u0440\u043E\u0432\u0435\u043D\u044C ${rare ? profile.level : m.level} \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438${rare ? " \xB7 \u043F\u043E\u0431\u0435\u0434\u0430 \u043D\u0430\u0434 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \u0432\u0435\u0440\u0441\u0438\u0435\u0439" : ""}<br><span>${allowed ? "\u0414\u043E\u0441\u0442\u0443\u043F \u043E\u0442\u043A\u0440\u044B\u0442" : "\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u0435\u0449\u0451 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u044B"}</span></p><button class="primary boss-action" id="create-raid" ${!allowed ? "disabled" : ""}>\u0421\u041E\u0417\u0414\u0410\u0422\u042C \u0420\u0415\u0419\u0414</button>` : `<button class="primary boss-action" id="raid-attack">\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C</button>${!raid2.joined && hp > 0 ? `<button class="secondary boss-action" id="join-raid" ${!allowed || party.length >= capacity ? "disabled" : ""}>${!allowed ? "\u041D\u0423\u0416\u0415\u041D \u041F\u0420\u041E\u0413\u0420\u0415\u0421\u0421" : party.length >= capacity ? "\u041E\u0422\u0420\u042F\u0414 \u0417\u0410\u041F\u041E\u041B\u041D\u0415\u041D" : "\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F"}</button>` : ""}`}
+ </div></article>
+ <section class="raid-loot"><div class="section-title"><h3>${raid2 ? "\u0422\u0432\u043E\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B" : rare ? "\u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434 \u0440\u0435\u0439\u0434\u0430" : "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443"}</h3></div><div class="raid-rewards">${rewards(raid2 ? reward : rare ? profile.pool : reward)}</div>${rare ? "<p>\u0424\u043E\u043D\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u043D\u0430\u043D\u0435\u0441\u0451\u043D\u043D\u043E\u043C\u0443 \u0443\u0440\u043E\u043D\u0443. \u0411\u0435\u0437 \u0443\u0447\u0430\u0441\u0442\u0438\u044F \u0432 \u0430\u0442\u0430\u043A\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u044B \u043D\u0435\u0442.</p>" : ""}${raid2 && hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423</button>' : ""}</section>
+ <details class="raid-rules" ${oldDetails && same ? "open" : ""}><summary>\u041F\u0440\u0430\u0432\u0438\u043B\u0430 \u0438 \u0443\u0441\u043B\u043E\u0432\u0438\u044F \u0440\u0435\u0439\u0434\u0430</summary><p>\u0410\u0442\u0430\u043A\u0438 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F, \u043E\u0431\u0449\u0435\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F. \u0426\u0435\u043D\u0430 \u2014 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438. ${rare ? "\u041E\u0441\u0430\u0434\u043D\u043E\u0435 \u0443\u0441\u0438\u043B\u0435\u043D\u0438\u0435 \xD7" + profile.multiplier.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + ". \u041E\u043D\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u043D\u0430 \u0440\u0435\u0434\u043A\u0438\u0445 \u0431\u043E\u0441\u0441\u043E\u0432. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u043E\u043A\u0440\u0443\u0433\u043B\u044F\u044E\u0442\u0441\u044F \u0432\u043D\u0438\u0437 \u0438 \u0432\u044B\u0434\u0430\u044E\u0442\u0441\u044F \u043E\u0434\u0438\u043D \u0440\u0430\u0437 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B. \u0420\u0435\u0439\u0434 \u0431\u0435\u0437 \u0441\u0440\u043E\u043A\u0430 \u0438\u0441\u0442\u0435\u0447\u0435\u043D\u0438\u044F." : raidProfile(map).trait}</p><p>\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435. \u0413\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443; \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 VK \u043D\u0435 \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0451\u043D.</p></details>
+ ${raid2 ? '<div class="raid-controls"><button class="secondary" id="copy-raid">\u041F\u0420\u0418\u0413\u041B\u0410\u0421\u0418\u0422\u042C \u041F\u041E \u0421\u0421\u042B\u041B\u041A\u0415</button><button class="secondary" id="close-raid">\u041A \u0421\u041F\u0418\u0421\u041A\u0423 \u0411\u041E\u0421\u0421\u041E\u0412</button></div><section class="raid-party"><h3>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438 \xB7 ' + party.length + '</h3><div class="party-list"></div><div class="party-pagination"></div></section>' : ""}`;
+    root.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => onMode(b.dataset.mode === "rare"));
+    const bind = (id, fn) => {
+      const el = root.querySelector("#" + id);
+      if (el) el.onclick = fn;
+    };
+    const select = root.querySelector("#raid-map");
+    if (select) select.onchange = (e) => onMap(Number(e.target.value));
+    bind("create-raid", onCreate);
+    bind("raid-attack", onAttack);
+    bind("join-raid", onJoin);
+    bind("raid-claim", onClaim);
+    bind("close-raid", onClose);
+    bind("copy-raid", onCopy);
+    if (raid2) {
+      const sorted = [...party].sort((a, b) => Number(b.me) - Number(a.me) || b.damage - a.damage), pages = Math.ceil(sorted.length / 20);
+      const paint = () => {
+        const page2 = Math.min(Number(root.dataset.partyPage), Math.max(0, pages - 1));
+        root.dataset.partyPage = page2;
+        root.querySelector(".party-list").innerHTML = sorted.slice(page2 * 20, page2 * 20 + 20).map((p) => `<div><span>${escape(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</span><b>${fmt(p.damage)} \u0443\u0440\u043E\u043D\u0430</b>${p.claimed ? "<small>\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</small>" : ""}</div>`).join("");
+        const nav = root.querySelector(".party-pagination");
+        nav.innerHTML = pages > 1 ? `<button class="secondary" ${page2 === 0 ? "disabled" : ""}>\u2190</button><span>${page2 + 1} / ${pages}</span><button class="secondary" ${page2 === pages - 1 ? "disabled" : ""}>\u2192</button>` : "";
+        const buttons = nav.querySelectorAll("button");
+        if (buttons.length) {
+          buttons[0].ariaLabel = "\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438";
+          buttons[1].ariaLabel = "\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438";
+          buttons[0].onclick = () => {
+            root.dataset.partyPage = page2 - 1;
+            paint();
+          };
+          buttons[1].onclick = () => {
+            root.dataset.partyPage = page2 + 1;
+            paint();
+          };
+        }
+      };
+      paint();
+      tickRaid(root, raid2, save2, offset);
+    }
+  }
+  var BOSS_ART, roles, fmt, escape, rewards;
+  var init_raid_view = __esm({
+    "raid-view.js"() {
+      init_balance();
+      init_rare_raids();
+      BOSS_ART = ["watcher", "arsonist", "crane", "doctor", "root", "driver", "smelter", "admiral"];
+      roles = ["\u0425\u0440\u0430\u043D\u0438\u0442\u0435\u043B\u044C \u043F\u0443\u0441\u0442\u044B\u0445 \u0434\u043E\u043C\u043E\u0432", "\u041E\u0433\u043E\u043D\u044C \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u0439 \u0437\u0430\u043F\u0440\u0430\u0432\u043A\u0438", "\u0425\u043E\u0437\u044F\u0438\u043D \u0433\u0440\u0443\u0437\u043E\u0432\u043E\u0433\u043E \u0434\u0432\u043E\u0440\u0430", "\u041A\u0430\u0440\u0430\u043D\u0442\u0438\u043D \u043D\u0435 \u043E\u043A\u043E\u043D\u0447\u0435\u043D", "\u0421\u0435\u0440\u0434\u0446\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0433\u043E \u043B\u0435\u0441\u0430", "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0440\u0435\u0439\u0441", "\u0416\u0430\u0440 \u043C\u0451\u0440\u0442\u0432\u044B\u0445 \u043F\u0435\u0447\u0435\u0439", "\u041A\u043E\u043C\u0430\u043D\u0434\u0438\u0440 \u0437\u0430\u0442\u043E\u043D\u0443\u0432\u0448\u0435\u0433\u043E \u0444\u043B\u043E\u0442\u0430"];
+      fmt = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
+      escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      rewards = (r) => Object.entries({ scrap: "\u0414\u0435\u0442\u0430\u043B\u0438", xp: "\u041E\u043F\u044B\u0442", cores: "\u042F\u0434\u0440\u0430", cloth: "\u0422\u043A\u0430\u043D\u044C" }).map(([k, name]) => "<div><strong>" + fmt(r[k]) + "</strong><span>" + name + "</span></div>").join("");
     }
   });
 
@@ -780,14 +864,14 @@
      <h2>\u0412\u044B\u0436\u0438\u0432\u0430\u0442\u044C \u0432\u043C\u0435\u0441\u0442\u0435.</h2>
      <p>\u0414\u043E\u0431\u0430\u0432\u043B\u044F\u0439 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 \u043F\u043E \u043A\u043E\u0434\u0443 \u0438\u043B\u0438 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u0439 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u0447\u0435\u0440\u0435\u0437 \u0412\u041A. \u041A\u043E\u0433\u0434\u0430 \u0434\u0440\u0443\u0433 \u043F\u0440\u0438\u043C\u0435\u0442 \u0437\u0430\u044F\u0432\u043A\u0443, \u0437\u0434\u0435\u0441\u044C \u0431\u0443\u0434\u0435\u0442 \u0432\u0438\u0434\u0435\u043D \u0435\u0433\u043E \u0441\u0442\u0430\u0442\u0443\u0441 \u0438 \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u0440\u0435\u0439\u0434.</p>
      <div class="friend-code"><span>\u0422\u0412\u041E\u0419 \u041A\u041E\u0414</span><strong>${data.code}</strong><button class="secondary" id="friend-copy">\u0421\u0421\u042B\u041B\u041A\u0410 \u041F\u0420\u0418\u0413\u041B\u0410\u0428\u0415\u041D\u0418\u042F</button>${inVK ? '<button class="primary" id="vk-friends">\u0412\u042B\u0411\u0420\u0410\u0422\u042C \u0414\u0420\u0423\u0417\u0415\u0419 \u0412\u041A</button><button class="secondary" id="vk-invite">\u041F\u041E\u0414\u0415\u041B\u0418\u0422\u042C\u0421\u042F \u0421\u0421\u042B\u041B\u041A\u041E\u0419</button>' : ""}</div>
-     <form id="friend-form"><label for="friend-code-input">\u041A\u043E\u0434 \u0434\u0440\u0443\u0433\u0430</label><div class="friend-form"><input id="friend-code-input" maxlength="12" required pattern="[a-fA-F0-9]{12}" autocomplete="off" placeholder="12 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432" value="${escape(invited)}"><button class="primary">\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F</button></div></form>
+     <form id="friend-form"><label for="friend-code-input">\u041A\u043E\u0434 \u0434\u0440\u0443\u0433\u0430</label><div class="friend-form"><input id="friend-code-input" maxlength="12" required pattern="[a-fA-F0-9]{12}" autocomplete="off" placeholder="12 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432" value="${escape2(invited)}"><button class="primary">\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F</button></div></form>
     </div>
     <div class="section-title"><h3>\u0412\u0445\u043E\u0434\u044F\u0449\u0438\u0435 \u0437\u0430\u044F\u0432\u043A\u0438</h3><span>${data.requests.length}</span></div>
-    <div class="party-list">${data.requests.map((p) => `<div><span><b>${escape(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${p.level || 1}</small></span><button class="primary" data-accept="${p.code}">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-decline="${p.code}">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button></div>`).join("") || '<p class="page-intro">\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043F\u043E\u043A\u0430 \u043D\u0435\u0442.</p>'}</div>
+    <div class="party-list">${data.requests.map((p) => `<div><span><b>${escape2(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${p.level || 1}</small></span><button class="primary" data-accept="${p.code}">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-decline="${p.code}">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button></div>`).join("") || '<p class="page-intro">\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043F\u043E\u043A\u0430 \u043D\u0435\u0442.</p>'}</div>
     <div class="section-title"><h3>\u0422\u0432\u043E\u0439 \u043E\u0442\u0440\u044F\u0434</h3><button class="secondary" id="friends-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div>
-    <div class="party-list">${data.friends.map((p) => `<div><span><b>${escape(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${p.level || 1}${p.raid ? " \xB7 \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u0440\u0435\u0439\u0434 " + p.raid.hp + " HP" : ""}</small></span>${p.raid ? `<button class="primary" data-friend-raid="${p.raid.id}">\u041A \u0411\u041E\u0421\u0421\u0423 \u2192</button>` : ""}<button class="secondary" data-remove="${p.code}">\u0423\u0414\u0410\u041B\u0418\u0422\u042C</button></div>`).join("") || '<p class="page-intro">\u041E\u0442\u043F\u0440\u0430\u0432\u044C \u0434\u0440\u0443\u0433\u0443 \u0441\u0441\u044B\u043B\u043A\u0443. \u041F\u043E\u0441\u043B\u0435 \u043F\u0440\u0438\u043D\u044F\u0442\u0438\u044F \u0437\u0430\u044F\u0432\u043A\u0438 \u043E\u043D \u043F\u043E\u044F\u0432\u0438\u0442\u0441\u044F \u0437\u0434\u0435\u0441\u044C.</p>'}</div>
+    <div class="party-list">${data.friends.map((p) => `<div><span><b>${escape2(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${p.level || 1}${p.raid ? " \xB7 \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u0440\u0435\u0439\u0434 " + p.raid.hp + " HP" : ""}</small></span>${p.raid ? `<button class="primary" data-friend-raid="${p.raid.id}">\u041A \u0411\u041E\u0421\u0421\u0423 \u2192</button>` : ""}<button class="secondary" data-remove="${p.code}">\u0423\u0414\u0410\u041B\u0418\u0422\u042C</button></div>`).join("") || '<p class="page-intro">\u041E\u0442\u043F\u0440\u0430\u0432\u044C \u0434\u0440\u0443\u0433\u0443 \u0441\u0441\u044B\u043B\u043A\u0443. \u041F\u043E\u0441\u043B\u0435 \u043F\u0440\u0438\u043D\u044F\u0442\u0438\u044F \u0437\u0430\u044F\u0432\u043A\u0438 \u043E\u043D \u043F\u043E\u044F\u0432\u0438\u0442\u0441\u044F \u0437\u0434\u0435\u0441\u044C.</p>'}</div>
     <div class="section-title"><h3>\u0422\u043E\u043F \u0432\u044B\u0436\u0438\u0432\u0448\u0438\u0445</h3><span>\u0422\u0412\u041E\u0401 \u041C\u0415\u0421\u0422\u041E: ${leaderData.meRank || "\u2014"}</span></div>
-    <div class="party-list leaderboard-list">${leaderboard.map((p) => `<div><strong>#${p.rank}</strong><span><b>${escape(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418 \xB7 " : ""}\u0443\u0440. ${p.level} \xB7 ${p.xp} XP \xB7 \u0431\u043E\u0441\u0441\u044B ${p.bossKills}</small></span></div>`).join("") || '<p class="page-intro">\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E\u043A\u0430 \u043F\u0443\u0441\u0442.</p>'}</div>`;
+    <div class="party-list leaderboard-list">${leaderboard.map((p) => `<div><strong>#${p.rank}</strong><span><b>${escape2(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418 \xB7 " : ""}\u0443\u0440. ${p.level} \xB7 ${p.xp} XP \xB7 \u0431\u043E\u0441\u0441\u044B ${p.bossKills}</small></span></div>`).join("") || '<p class="page-intro">\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E\u043A\u0430 \u043F\u0443\u0441\u0442.</p>'}</div>`;
         root.querySelector("#friends-refresh").onclick = render;
         const mutate = async (path, code) => {
           try {
@@ -837,7 +921,7 @@
           }
         }
       } catch (e) {
-        root.innerHTML = '<div class="settings-card"><p>' + escape(e.message) + '</p><button class="secondary" id="friends-retry">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
+        root.innerHTML = '<div class="settings-card"><p>' + escape2(e.message) + '</p><button class="secondary" id="friends-retry">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
         root.querySelector("button").onclick = render;
       } finally {
         loading = false;
@@ -845,11 +929,11 @@
     }
     render();
   }
-  var escape;
+  var escape2;
   var init_friends_ui = __esm({
     "friends-ui.js"() {
       init_platform_entry();
-      escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      escape2 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
     }
   });
 
@@ -887,9 +971,15 @@
       const response = await fetch(new URL(path, API_BASE), { method: body === void 0 ? "GET" : "POST", headers, credentials: crossOrigin ? "omit" : "same-origin", body: body === void 0 ? void 0 : JSON.stringify(body), signal: controller.signal });
       if (!((_a2 = response.headers.get("content-type")) == null ? void 0 : _a2.includes("application/json"))) throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0435\u0440\u043D\u0443\u043B \u043D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u043E\u0442\u0432\u0435\u0442. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0437\u0436\u0435.");
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D");
+      if (!response.ok) throw Object.assign(new Error(data.error || "\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D"), { status: response.status });
       const issued = response.headers.get("X-Obitel-Session");
       if (tokenMode && issued && /^[a-f0-9]{32}$/.test(issued)) {
+        if (path === "auth/vk" && token && token !== issued) {
+          try {
+            localStorage.setItem(tokenKey + ":previous", token);
+          } catch (e) {
+          }
+        }
         token = issued;
         try {
           localStorage.setItem(tokenKey, issued);
@@ -1324,37 +1414,6 @@
     g2.fillStyle = shade;
     g2.fillRect(0, 0, 960, 600);
   }
-  function bossPortrait(g2, map) {
-    g2.save();
-    g2.translate(650, 390);
-    const color = ["#ccb378", "#d9824e", "#9bb4b2", "#b8cc93", "#7d9c65", "#71b8c2", "#ec9c57", "#8eafd4"][map];
-    g2.strokeStyle = color;
-    g2.lineWidth = 3;
-    g2.beginPath();
-    g2.ellipse(0, -75, 100, 135, 0, 0, Math.PI * 2);
-    g2.stroke();
-    g2.globalAlpha = 0.18;
-    g2.fillStyle = color;
-    g2.fill();
-    g2.globalAlpha = 1;
-    g2.filter = "hue-rotate(" + map * 21 + "deg)";
-    person(g2, 0, 0, map === 6 ? "tank" : "boss", 3.2, 0, -1);
-    g2.filter = "none";
-    if (map === 5) {
-      rect(g2, -65, -202, 100, 14, "#324b59");
-      rect(g2, -43, -226, 61, 25, "#4a6472");
-      rect(g2, -17, -216, 13, 9, color);
-    }
-    if (map === 6) {
-      rect(g2, -56, -194, 77, 22, "#b0793f");
-      rect(g2, -39, -185, 40, 13, "#ebc27b");
-    }
-    if (map === 7) {
-      poly(g2, [[-67, -204], [-26, -249], [22, -204]], "#293e55");
-      rect(g2, -56, -204, 74, 10, color);
-    }
-    g2.restore();
-  }
   var environments, spriteAtlas, equipmentAtlas, armorAtlas, itemAtlas, weaponAtlas, expandedAtlas, appearance, palettes;
   var init_art = __esm({
     "art.js"() {
@@ -1397,9 +1456,18 @@
     const status = $(".connection");
     status.textContent = "\u041F\u041E\u0414\u041A\u041B\u042E\u0427\u0415\u041D\u0418\u0415\u2026";
     try {
-      await api("profile");
+      const params = new URLSearchParams(location.search);
+      if (params.has("sign")) {
+        try {
+          await requestAPI("auth/vk", { launch: new URLSearchParams([...params].filter(([k]) => k.startsWith("vk_") || k === "sign")).toString() });
+        } catch (e) {
+          if (e.status !== 503 && e.status !== 404) throw e;
+        }
+      }
+      const profile = await api("profile");
       networkReady = true;
-      status.innerHTML = "<i></i> \u0421\u0415\u0420\u0412\u0415\u0420 \u041D\u0410 \u0421\u0412\u042F\u0417\u0418";
+      status.innerHTML = profile.account === "vk" ? "<i></i> \u041F\u0420\u041E\u0424\u0418\u041B\u042C VK" : "<i></i> \u0413\u041E\u0421\u0422\u0415\u0412\u041E\u0419 \u041F\u0420\u041E\u0424\u0418\u041B\u042C";
+      playerProfile.account = profile.account || "guest";
       $("#connection-error").hidden = true;
     } catch (e) {
       networkReady = false;
@@ -1917,8 +1985,9 @@
     try {
       const updated = (await api("raids/" + expected)).raid;
       if ((raid == null ? void 0 : raid.id) === expected) {
+        const changed = JSON.stringify(raid) !== JSON.stringify(updated);
         raid = updated;
-        if (page === "raids") renderRaids();
+        if (page === "raids" && changed) renderRaids();
       }
     } catch (e) {
     } finally {
@@ -1926,84 +1995,70 @@
     }
   }
   function renderRaids() {
-    var _a2;
-    let root = $("#raids-page");
-    let m = raid ? raid.map : selected;
-    const rare = raid ? raid.rare : rareMode, profile = RARE_RAIDS[m];
-    let available = raidAllowed(save, m, rare);
-    let mine = raid == null ? void 0 : raid.members.find((p) => p.me);
-    let cooldown = raid ? Math.max(0, Math.ceil((raid.nextAttack - Date.now() - serverOffset) / 1e3)) : 0;
-    root.innerHTML = '<div class="raid-tabs" role="group" aria-label="\u0422\u0438\u043F \u0431\u043E\u0441\u0441\u0430"><button class="secondary" id="normal-raids" aria-pressed="' + !rare + '">\u041E\u0431\u044B\u0447\u043D\u044B\u0435</button><button class="secondary" id="rare-raids" aria-pressed="' + !!rare + '">\u0420\u0435\u0434\u043A\u0438\u0435</button></div>' + (!raid ? '<label class="raid-select">\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430<select id="raid-map">' + MAPS.map((v, i) => '<option value="' + i + '" ' + (m === i ? "selected" : "") + ">" + v.boss + (rare ? " \xB7 " + raidNumber(RARE_RAIDS[i].hp) + " HP" : "") + "</option>").join("") + "</select></label>" : "") + '<p class="page-intro">\u0414\u0440\u0443\u0437\u044C\u044F \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F. \u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435 \u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0437\u0430\u0447\u0438\u0441\u0442\u0438 \u0440\u0430\u0439\u043E\u043D \u0442\u0440\u0438\u0436\u0434\u044B, \u0437\u0430\u0442\u0435\u043C \u0441\u043E\u0431\u0435\u0440\u0438 \u043E\u0442\u0440\u044F\u0434 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435.</p>' + (!raid ? '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">' + (rare ? "\u0420\u0415\u0414\u041A\u0418\u0419 \u0411\u041E\u0421\u0421" : "\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410") + " \xB7 " + MAPS[m].name + "</span><h2>" + MAPS[m].boss + "</h2><p>\u0414\u043E\u0441\u0442\u0443\u043F: 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0438 \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + (rare ? profile.level : MAPS[m].level) + (rare ? " \xB7 \u043F\u043E\u0431\u0435\u0434\u0430 \u043D\u0430\u0434 \u043E\u0431\u044B\u0447\u043D\u044B\u043C \u0431\u043E\u0441\u0441\u043E\u043C" : "") + ".<br>\u0421\u0435\u0439\u0447\u0430\u0441 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A: " + save.districtRuns[m] + ' / 3.</p><button class="primary" id="create-raid" ' + (!available ? "disabled" : "") + ">\u0421\u041E\u0417\u0414\u0410\u0422\u042C \u0420\u0415\u0419\u0414</button></div></div>" : '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0410\u0421\u0418\u041D\u0425\u0420\u041E\u041D\u041D\u042B\u0419 \u0420\u0415\u0419\u0414 \xB7 ' + raid.id + "</span><h2>" + MAPS[m].boss + '</h2><div class="raid-health"><i style="width:' + raid.hp / raid.maxHp * 100 + '%"></i></div><p>' + raidNumber(raid.hp) + " / " + raidNumber(raid.maxHp) + " HP \xB7 " + raid.members.length + " / " + (raid.capacity || 10) + ' \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432</p><button class="primary" id="raid-attack" ' + (!raid.joined || !available || raid.hp <= 0 || cooldown || save.energy < BOSS_COST ? "disabled" : "") + ">" + (raid.hp <= 0 ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : cooldown ? "\u0412\u041E\u0417\u0412\u0420\u0410\u0429\u0415\u041D\u0418\u0415 \xB7 " + cooldown + " \u0421\u0415\u041A" : "\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C \xB7 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418") + "</button><small>\u0423\u0440\u043E\u043D \u0430\u0442\u0430\u043A\u0438: " + raidNumber((_a2 = raid.estimatedDamage) != null ? _a2 : raidHit(save, m, rare)) + " \xB7 \u043F\u043E\u0432\u0442\u043E\u0440 \u0447\u0435\u0440\u0435\u0437 " + raidProfile(m).cooldown / 1e3 + ' \u0441\u0435\u043A.</small></div></div><div class="raid-controls">' + (!raid.joined && raid.hp > 0 ? '<button class="primary" id="join-raid">\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F</button>' : "") + '<button class="secondary" id="copy-raid">\u0421\u041A\u041E\u041F\u0418\u0420\u041E\u0412\u0410\u0422\u042C \u0421\u0421\u042B\u041B\u041A\u0423 \u0414\u041B\u042F \u0414\u0420\u0423\u0417\u0415\u0419</button>' + (raid.hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0410\u0411\u0420\u0410\u0422\u042C: ' + rewardText(raid.reward) + "</button>" : "") + '<button class="secondary" id="close-raid">\u0414\u0420\u0423\u0413\u041E\u0419 \u0420\u0415\u0419\u0414</button></div><div class="party-list">' + raid.members.map((p) => "<div><span>" + String(p.name).replace(/[&<>"']/g, (c2) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c2]) + (p.me ? " \xB7 \u0422\u042B" : "") + "</span><b>" + raidNumber(p.damage) + " \u0443\u0440\u043E\u043D\u0430</b><small>" + (p.claimed ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430" : "") + "</small></div>").join("") + "</div>") + '<div class="network-note">\u0411\u0435\u0442\u0430 \xB7 \u0433\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u044D\u0442\u043E\u043C\u0443 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443. \u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0430\u0439 \u0434\u0440\u0443\u0437\u0435\u0439 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435: \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435. \u0412\u0445\u043E\u0434 \u0438 \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u0441\u044F \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E.</div>';
-    const trait = document.createElement("p");
-    trait.className = "page-intro";
-    trait.textContent = rare ? "\u0420\u0415\u0414\u041A\u0418\u0419 \xB7 " + raidNumber(profile.hp) + " HP \xB7 \u0434\u043E 300 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432. \u041E\u0441\u0430\u0434\u043D\u043E\u0435 \u0443\u0441\u0438\u043B\u0435\u043D\u0438\u0435 \xD7" + profile.multiplier.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + ". \u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434: " + rewardText(profile.pool) + ". \u0414\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u0440\u043E\u043F\u043E\u0440\u0446\u0438\u043E\u043D\u0430\u043B\u044C\u043D\u043E \u0443\u0440\u043E\u043D\u0443, \u0441 \u043E\u043A\u0440\u0443\u0433\u043B\u0435\u043D\u0438\u0435\u043C \u0432\u043D\u0438\u0437. \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0442\u043E\u043B\u044C\u043A\u043E \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B. \u0420\u0435\u0439\u0434 \u0431\u0435\u0437 \u0441\u0440\u043E\u043A\u0430 \u0438\u0441\u0442\u0435\u0447\u0435\u043D\u0438\u044F." : raidProfile(m).trait;
-    root.querySelector(".raid-tabs").after(trait);
-    if (rare && raid) {
-      const preview = document.createElement("p");
-      preview.className = "page-intro";
-      preview.textContent = "\u0422\u0432\u043E\u044F \u043D\u0430\u043A\u043E\u043F\u043B\u0435\u043D\u043D\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B: " + rewardText(raid.reward);
-      trait.after(preview);
-    }
-    $("#normal-raids").onclick = () => {
-      rareMode = false;
-      raid = null;
-      renderRaids();
-    };
-    $("#rare-raids").onclick = () => {
-      rareMode = true;
-      raid = null;
-      renderRaids();
-    };
-    if ($("#raid-map")) $("#raid-map").onchange = (e) => {
-      selected = Number(e.target.value);
-      renderRaids();
-    };
-    let c = root.querySelector("canvas");
-    scene(c, m, -1);
-    let cg = c.getContext("2d");
-    bossPortrait(cg, m);
-    if ($("#create-raid")) $("#create-raid").onclick = () => action(async () => {
-      const created = (await api("raids", { map: selected, rare: rareMode })).raid;
-      if (rareMode && !created.rare) throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0435\u0449\u0451 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u0441\u043E\u0437\u0434\u0430\u043D\u0438\u0435 \u0440\u0435\u0434\u043A\u043E\u0433\u043E \u0440\u0435\u0439\u0434\u0430 \u043F\u043E\u0437\u0436\u0435.");
-      raid = created;
-    });
-    if ($("#raid-attack")) $("#raid-attack").onclick = () => action(async () => {
-      let result = await api("raids/" + raid.id + "/attack", {});
-      raid = result.raid;
-      toast("\u041E\u0442\u0440\u044F\u0434 \u043D\u0430\u043D\u0451\u0441 " + result.damage + " \u0443\u0440\u043E\u043D\u0430. \u041E\u0431\u0449\u0435\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u043E.");
-    });
-    if ($("#join-raid")) $("#join-raid").onclick = () => action(async () => {
-      raid = (await api("raids/" + raid.id + "/join", {})).raid;
-    });
-    if ($("#raid-claim")) $("#raid-claim").onclick = () => action(async () => {
-      raid = (await api("raids/" + raid.id + "/claim", {})).raid;
-      toast(raid.rare ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0440\u0435\u0434\u043A\u043E\u0433\u043E \u0440\u0435\u0439\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430." : "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430. \u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0440\u0430\u0439\u043E\u043D \u043E\u0442\u043A\u0440\u044B\u0442.");
-    });
-    if ($("#close-raid")) $("#close-raid").onclick = () => {
-      rareMode = !!raid.rare;
-      selected = raid.map;
-      raid = null;
-      renderRaids();
-    };
-    if ($("#copy-raid")) $("#copy-raid").onclick = async () => {
-      const link = inviteLink("raid", raid.id);
-      try {
-        await navigator.clipboard.writeText(link);
-        toast("\u0421\u0441\u044B\u043B\u043A\u0430 \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u0430");
-      } catch (e) {
-        let input = document.createElement("input");
-        input.value = link;
-        input.readOnly = true;
-        root.append(input);
-        input.select();
+    const root = $("#raids-page");
+    renderRaidView(root, {
+      raid,
+      save,
+      selected,
+      rareMode,
+      offset: serverOffset,
+      onMode: (value) => {
+        rareMode = value;
+        raid = null;
+        renderRaids();
+      },
+      onMap: (value) => {
+        selected = value;
+        renderRaids();
+      },
+      onCreate: () => action(async () => {
+        const created = (await api("raids", { map: selected, rare: rareMode })).raid;
+        if (rareMode && !created.rare) throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0435\u0449\u0451 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0437\u0436\u0435.");
+        raid = created;
+      }),
+      onAttack: () => action(async () => {
+        const result = await api("raids/" + raid.id + "/attack", {});
+        raid = result.raid;
+        toast("\u0423\u0440\u043E\u043D: " + raidNumber(result.damage));
+      }),
+      onJoin: () => action(async () => {
+        raid = (await api("raids/" + raid.id + "/join", {})).raid;
+      }),
+      onClaim: () => action(async () => {
+        raid = (await api("raids/" + raid.id + "/claim", {})).raid;
+        toast("\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430");
+      }),
+      onClose: () => {
+        rareMode = !!raid.rare;
+        selected = raid.map;
+        raid = null;
+        renderRaids();
+      },
+      onCopy: async () => {
+        const link = inviteLink("raid", raid.id);
+        try {
+          await navigator.clipboard.writeText(link);
+          toast("\u0421\u0441\u044B\u043B\u043A\u0430 \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u0430");
+        } catch (e) {
+          const input = document.createElement("input");
+          input.value = link;
+          input.readOnly = true;
+          input.setAttribute("aria-label", "\u0421\u0441\u044B\u043B\u043A\u0430 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F");
+          root.querySelector(".raid-controls").append(input);
+          input.select();
+        }
       }
-    };
+    });
   }
   function renderSettings() {
     const el = $("#settings-page");
     el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043B\u0435\u0432\u0430, \u0431\u0435\u0433 \u0441\u043F\u0440\u0430\u0432\u0430. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.6</span></div></div>';
     el.insertAdjacentHTML("beforeend", '<button class="secondary" id="repeat-tutorial">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C \u041E\u0411\u0423\u0427\u0415\u041D\u0418\u0415</button>');
     el.querySelector("#repeat-tutorial").onclick = () => onboarding(navigate, true);
+    const account = document.createElement("p");
+    account.className = "account-notice";
+    account.textContent = playerProfile.account === "vk" ? "\u041F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A VK. \u041D\u0430 \u0434\u0440\u0443\u0433\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435 \u043E\u0442\u043A\u0440\u043E\u0439 \u0438\u0433\u0440\u0443 \u0438\u0437 \u0442\u043E\u0433\u043E \u0436\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442\u0430 VK." : "\u0413\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C: \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u044D\u0442\u043E\u043C\u0443 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443. \u0421\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0430\u0446\u0438\u044F \u043C\u0435\u0436\u0434\u0443 \u041F\u041A \u0438 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u043E\u043C \u043F\u043E\u043A\u0430 \u043D\u0435 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430.";
+    el.prepend(account);
     profileEditor(el, playerProfile, api, toast, showProfile);
     el.querySelectorAll("[data-setting]").forEach((input) => input.onchange = () => {
       prefs[input.dataset.setting] = input.checked;
@@ -2018,6 +2073,9 @@
     loadArt().then(refresh).catch(() => toast("\u0427\u0430\u0441\u0442\u044C \u0433\u0440\u0430\u0444\u0438\u043A\u0438 \u043D\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u043B\u0430\u0441\u044C. \u041C\u043E\u0436\u043D\u043E \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0438\u0433\u0440\u0443."));
     requestAnimationFrame(frame);
     await connect();
+    setInterval(() => {
+      if (!document.hidden && page === "raids") tickRaid($("#raids-page"), raid, save, serverOffset);
+    }, 1e3);
     setInterval(() => {
       if (networkReady) energyHud();
       if (!document.hidden && page === "raids" && raid && !busy) pollRaid();
@@ -2034,10 +2092,10 @@
     if (launchValue("friend")) navigate("friends");
     else if (!invited) onboarding(navigate);
   }
-  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber, rewardText;
+  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
-      init_rare_raids();
+      init_raid_view();
       init_garage_ui();
       init_onboarding();
       init_ads_ui();
@@ -2147,7 +2205,6 @@
       raidPolling = false;
       rareMode = false;
       raidNumber = (n) => Math.floor(n).toLocaleString("ru-RU");
-      rewardText = (r = { scrap: 0, xp: 0, cores: 0, cloth: 0 }) => raidNumber(r.scrap) + " \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \xB7 " + raidNumber(r.xp) + " XP \xB7 " + r.cores + " \u044F\u0434\u0435\u0440 \xB7 " + r.cloth + " \u0442\u043A\u0430\u043D\u0438";
       initializeGame().catch(() => {
         var _a2;
         return (_a2 = window.obitelStartupFailure) == null ? void 0 : _a2.call(window, "GAME_START");

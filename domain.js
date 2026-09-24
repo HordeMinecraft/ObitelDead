@@ -57,7 +57,7 @@ export function createHandler(db,commit,id){
     try{b=raw?JSON.parse(raw):{}}catch{err('Некорректный JSON')}
    }
    let result={};const path=url.pathname;
-   if(req.method==='GET'&&path==='/api/profile')result={name:p.name,avatar:p.avatar||0,code:p.publicId,online:true};
+   if(req.method==='GET'&&path==='/api/profile')result={name:p.name,avatar:p.avatar||0,code:p.publicId,online:true,account:p.vkUserId?'vk':'guest'};
    else if(req.method==='POST'&&path==='/api/profile'){
     const name=String(b.name||'').replace(/\s+/g,' ').trim();
     if(b.name!==undefined&&(name.length<2||name.length>MAX_NAME||/[<>\x00-\x1f]/.test(name)))err('Ник: 2–32 символа, без угловых скобок');

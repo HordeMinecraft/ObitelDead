@@ -20,9 +20,9 @@ async function performRequest(path,body){
   const response=await fetch(new URL(path,API_BASE),{method:body===undefined?'GET':'POST',headers,credentials:crossOrigin?'omit':'same-origin',body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});
   if(!response.headers.get('content-type')?.includes('application/json'))throw new Error('Сервер вернул неверный ответ. Повтори позже.');
   const data=await response.json();
-  if(!response.ok)throw new Error(data.error||'Сервер временно недоступен');
+  if(!response.ok)throw Object.assign(new Error(data.error||'Сервер временно недоступен'),{status:response.status});
   const issued=response.headers.get('X-Obitel-Session');
-  if(tokenMode&&issued&&/^[a-f0-9]{32}$/.test(issued)){token=issued;try{localStorage.setItem(tokenKey,issued)}catch{}}
+  if(tokenMode&&issued&&/^[a-f0-9]{32}$/.test(issued)){if(path==='auth/vk'&&token&&token!==issued){try{localStorage.setItem(tokenKey+':previous',token)}catch{}}token=issued;try{localStorage.setItem(tokenKey,issued)}catch{}}
   const ms=Math.round(performance.now()-started);document.querySelector('.connection')?.setAttribute('title','Последний запрос: '+ms+' мс');
   return data;
  }catch(error){

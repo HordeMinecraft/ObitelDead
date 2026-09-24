@@ -1,4 +1,5 @@
 import {createHandler} from './domain.js';
+import {verifyVKLaunch,bindVKAccount} from './vk-auth.js';
 
 const DEFAULT_ORIGINS=[
  'https://hordeminecraft.github.io',
@@ -48,6 +49,12 @@ export async function api(request,env){
  }
  if(Number(request.headers.get('content-length')||0)>8192)return new Response(null,{status:413,headers:cors});
  const raw=await request.text();if(raw.length>8192)return new Response(null,{status:413,headers:cors});
+ let vkUser=null;
+ if(url.pathname==='/api/auth/vk'){
+  if(request.method!=='POST')return json({error:'Метод не поддерживается'},405,cors);
+  try{vkUser=await verifyVKLaunch(JSON.parse(raw).launch,env.VK_APP_SECRET);}
+  catch(e){return json({error:e.status?e.message:'Неверный запрос VK'},e.status||400,cors);}
+ }
  for(let attempt=0;attempt<8;attempt++){
   const row=await env.DB.prepare('SELECT data, revision FROM game_world WHERE id = ?').bind('beta').first();
   if(!row){
@@ -62,6 +69,20 @@ export async function api(request,env){
   const inbound=Object.fromEntries(request.headers);delete inbound.origin;
   const session=request.headers.get('x-obitel-session');
   if(session&&/^[a-f0-9]{32}$/.test(session))inbound.cookie='obitel_session='+session;
+  if(vkUser){
+   const guest=(inbound.cookie||'').match(/(?:^|;\s*)obitel_session=([a-f0-9]{32})(?:;|$)/)?.[1];
+   const account=bindVKAccount(db,vkUser,guest,()=>crypto.randomUUID().replaceAll('-',''));
+   const committed=await env.DB.prepare('UPDATE game_world SET data = ?, revision = revision + 1 WHERE id = ? AND revision = ?').bind(JSON.stringify(db),'beta',row.revision).run();
+   if(committed.meta.changes!==1)continue;
+   headers.set('X-Obitel-Session',account);
+   headers.set('Set-Cookie',`obitel_session=${account}; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=31536000`);
+   return json({authenticated:true,provider:'vk'},200,headers);
+  }
+  const existingId=(inbound.cookie||'').match(/(?:^|;\s*)obitel_session=([a-f0-9]{32})(?:;|$)/)?.[1];
+  const existingPlayer=db.players[existingId];
+  // Raid polling reads the snapshot; persist presence at most once per 30 seconds.
+  const readOnlyRaid=request.method==='GET'&&/^\/api\/raids\/[a-f0-9]{12}$/.test(url.pathname)
+   &&existingPlayer?.publicId&&Number(existingPlayer.lastSeen||0)>Date.now()-30000;
   const req={method:request.method,headers:inbound,async *[Symbol.asyncIterator](){if(raw)yield raw}};
   const res={
    setHeader(k,v){
@@ -79,6 +100,7 @@ export async function api(request,env){
   };
   await createHandler(db,()=>{},()=>crypto.randomUUID().replaceAll('-',''))(req,res,url);
   if(status>=400)return new Response(body,{status,headers});
+  if(readOnlyRaid)return new Response(body,{status,headers});
   const committed=await env.DB.prepare('UPDATE game_world SET data = ?, revision = revision + 1 WHERE id = ? AND revision = ?').bind(JSON.stringify(db),'beta',row.revision).run();
   if(committed.meta.changes===1)return new Response(body,{status,headers});
  }
