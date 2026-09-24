@@ -397,6 +397,122 @@
     }
   });
 
+  // balance.js
+  function restoreEnergy(s, now = Date.now()) {
+    var _a2, _b2;
+    s.energy = Math.min(ENERGY_MAX, Math.max(0, (_a2 = s.energy) != null ? _a2 : ENERGY_MAX));
+    s.energyAt = Math.min(now, (_b2 = s.energyAt) != null ? _b2 : now);
+    if (s.energy >= ENERGY_MAX) {
+      s.energyAt = now;
+      return s.energy;
+    }
+    const recovered = Math.floor((now - s.energyAt) / ENERGY_INTERVAL);
+    s.energy = Math.min(ENERGY_MAX, s.energy + recovered);
+    if (s.energy === ENERGY_MAX) s.energyAt = now;
+    else s.energyAt += recovered * ENERGY_INTERVAL;
+    return s.energy;
+  }
+  function sprintStep(stamina, exhausted, wantsRun, moving, dt) {
+    if (exhausted && stamina >= 30) exhausted = false;
+    const running = wantsRun && moving && !exhausted && stamina > 0;
+    stamina = Math.max(0, Math.min(100, stamina + (running ? -24 : 17) * dt));
+    if (stamina === 0) exhausted = true;
+    return { stamina, exhausted, running: running && stamina > 0, multiplier: running ? 1.65 : 1 };
+  }
+  var MAPS, WEAPONS, MAX_LEVEL, weaponUnlocked, expeditionRank, ENERGY_MAX, raidProfile, ENERGY_INTERVAL, RAID_COST, BOSS_COST, freshSave, bossUnlocked, xpForLevel, playerLevel, levelProgress, raidDamage, stats, upgradeCost, unlocked, enemyStats, ARMOR, armorUnlocked;
+  var init_balance = __esm({
+    "balance.js"() {
+      init_vehicles();
+      MAPS = [
+        { name: "\u0422\u0438\u0445\u0438\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", desc: "\u0412 \u043E\u043A\u043D\u0430\u0445 \u0435\u0449\u0451 \u0433\u043E\u0440\u0438\u0442 \u0441\u0432\u0435\u0442. \u041D\u0430 \u0443\u043B\u0438\u0446\u0430\u0445 \u0443\u0436\u0435 \u043D\u0438\u043A\u043E\u0433\u043E \u0436\u0438\u0432\u043E\u0433\u043E.", goal: "\u0417\u0430\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u0436\u0438\u043B\u043E\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", boss: "\u0421\u043C\u043E\u0442\u0440\u0438\u0442\u0435\u043B\u044C", level: 1, palette: ["#6c7660", "#485340", "#8b8870", "#a4a080"], reward: 85, kind: "town" },
+        { name: "\u0410\u0417\u0421 \xAB\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F\xBB", desc: "\u0417\u0430\u043F\u0430\u0445 \u0431\u0435\u043D\u0437\u0438\u043D\u0430. \u041F\u0443\u0441\u0442\u044B\u0435 \u0431\u0430\u043A\u0438. \u0418 \u043A\u0442\u043E-\u0442\u043E \u0437\u0430 \u043A\u043E\u043B\u043E\u043D\u043A\u043E\u0439.", goal: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0437\u0430\u043F\u0430\u0441 \u0442\u043E\u043F\u043B\u0438\u0432\u0430", boss: "\u041F\u043E\u0434\u0436\u0438\u0433\u0430\u0442\u0435\u043B\u044C", level: 2, palette: ["#786953", "#514b3a", "#a38d65", "#c5a271"], reward: 110, kind: "gas" },
+        { name: "\u0413\u0440\u0443\u0437\u043E\u0432\u043E\u0439 \u0434\u0432\u043E\u0440", desc: "\u041A\u043E\u043D\u0442\u0435\u0439\u043D\u0435\u0440\u044B \u0437\u0430\u043F\u0435\u0440\u0442\u044B \u0438\u0437\u043D\u0443\u0442\u0440\u0438. \u0421\u0442\u0443\u043A \u043D\u0435 \u043F\u0440\u0435\u043A\u0440\u0430\u0449\u0430\u0435\u0442\u0441\u044F.", goal: "\u0412\u0441\u043A\u0440\u044B\u0442\u044C \u0441\u043A\u043B\u0430\u0434 \u0441\u043D\u0430\u0431\u0436\u0435\u043D\u0438\u044F", boss: "\u041A\u0440\u0430\u043D\u043E\u0432\u0449\u0438\u043A", level: 3, palette: ["#627272", "#3e5150", "#738886", "#98a5a0"], reward: 140, kind: "yard" },
+        { name: "\u0411\u043E\u043B\u044C\u043D\u0438\u0446\u0430 \u2116 6", desc: "\u041A\u0430\u0440\u0430\u043D\u0442\u0438\u043D \u0441\u043D\u044F\u0442. \u041F\u0430\u0446\u0438\u0435\u043D\u0442\u044B \u043E\u0441\u0442\u0430\u043B\u0438\u0441\u044C.", goal: "\u041D\u0430\u0439\u0442\u0438 \u043C\u0435\u0434\u0438\u0446\u0438\u043D\u0441\u043A\u0438\u0439 \u043C\u043E\u0434\u0443\u043B\u044C", boss: "\u0413\u043B\u0430\u0432\u0432\u0440\u0430\u0447", level: 4, palette: ["#687468", "#465b4f", "#8c9a84", "#b0b49b"], reward: 175, kind: "hospital" },
+        { name: "\u0427\u0451\u0440\u043D\u044B\u0439 \u043B\u0435\u0441", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B \u043F\u0440\u0438\u0448\u0451\u043B \u043E\u0442\u0441\u044E\u0434\u0430. \u0414\u0430\u043B\u044C\u0448\u0435 \u2014 \u0442\u0438\u0448\u0438\u043D\u0430.", goal: "\u041D\u0430\u0439\u0442\u0438 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0441\u0438\u0433\u043D\u0430\u043B\u0430", boss: "\u041A\u043E\u0440\u043D\u0435\u0432\u043E\u0439", level: 5, palette: ["#525f4a", "#354736", "#71825b", "#94a071"], reward: 220, kind: "forest" },
+        { name: "\u0417\u0430\u0442\u043E\u043F\u043B\u0435\u043D\u043D\u043E\u0435 \u043C\u0435\u0442\u0440\u043E", desc: "\u0412\u043E\u0434\u0430 \u0441\u043A\u0440\u044B\u0432\u0430\u0435\u0442 \u0440\u0435\u043B\u044C\u0441\u044B. \u0412 \u0442\u043E\u043D\u043D\u0435\u043B\u0435 \u0441\u043B\u044B\u0448\u0435\u043D \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043F\u043E\u0435\u0437\u0434.", goal: "\u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C \u0430\u0432\u0430\u0440\u0438\u0439\u043D\u044B\u0435 \u043D\u0430\u0441\u043E\u0441\u044B", boss: "\u041C\u0430\u0448\u0438\u043D\u0438\u0441\u0442", level: 6, palette: ["#334c50", "#23373c", "#75908b", "#b4bca2"], reward: 260, kind: "metro" },
+        { name: "\u041F\u0440\u043E\u043C\u0437\u043E\u043D\u0430 \xAB\u041F\u0435\u043F\u0435\u043B\xBB", desc: "\u041F\u0435\u0447\u0438 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u044E\u0442 \u0440\u0430\u0431\u043E\u0442\u0430\u0442\u044C \u0431\u0435\u0437 \u043B\u044E\u0434\u0435\u0439.", goal: "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0432\u0435\u0439\u0435\u0440", boss: "\u041F\u043B\u0430\u0432\u0438\u043B\u044C\u0449\u0438\u043A", level: 7, palette: ["#624535", "#382c26", "#a7794f", "#d9b47e"], reward: 305, kind: "factory" },
+        { name: "\u041F\u043E\u0440\u0442 \xAB\u0421\u0435\u0432\u0435\u0440\u043D\u044B\u0439\xBB", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043A\u043E\u0440\u0430\u0431\u043B\u044C \u043D\u0435 \u043F\u043E\u043A\u0438\u043D\u0443\u043B \u043F\u0440\u0438\u0447\u0430\u043B.", goal: "\u0417\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u044C \u0443\u0437\u0435\u043B \u0434\u0430\u043B\u044C\u043D\u0435\u0439 \u0441\u0432\u044F\u0437\u0438", boss: "\u0410\u0434\u043C\u0438\u0440\u0430\u043B", level: 8, palette: ["#354a5c", "#253647", "#728b9b", "#b2c2c3"], reward: 355, kind: "port" }
+      ];
+      WEAPONS = [{ name: "\u041F\u0438\u0441\u0442\u043E\u043B\u0435\u0442 \xAB\u0421\u0438\u0433\u043D\u0430\u043B\xBB", damage: 22, rate: 0.48, range: 370, cost: 0, description: "\u0422\u043E\u0447\u043D\u044B\u0439 \u0438 \u043D\u0430\u0434\u0451\u0436\u043D\u044B\u0439. \u0425\u043E\u0440\u043E\u0448 \u0434\u043B\u044F \u043F\u0435\u0440\u0432\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A." }, { name: "\u041A\u0430\u0440\u0430\u0431\u0438\u043D \xAB\u0420\u0443\u0431\u0435\u0436\xBB", damage: 15, rate: 0.28, range: 430, cost: 360, description: "\u0412\u044B\u0441\u043E\u043A\u0430\u044F \u0441\u043A\u043E\u0440\u043E\u0441\u0442\u0440\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C. \u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E." }, { name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A \xAB\u0413\u0440\u043E\u043C\xBB", damage: 13, rate: 0.82, range: 240, pellets: 5, cost: 440, description: "\u041F\u044F\u0442\u044C \u0434\u0440\u043E\u0431\u0438\u043D. \u041F\u043E\u0434\u043F\u0443\u0441\u043A\u0430\u0439 \u0431\u043B\u0438\u0436\u0435 \u0438 \u043E\u0442\u0445\u043E\u0434\u0438 \u0431\u0435\u0433\u043E\u043C." }];
+      WEAPONS.push(
+        { name: "\u0420\u0435\u0432\u043E\u043B\u044C\u0432\u0435\u0440 \xAB\u0421\u0443\u0434\u044C\u044F\xBB", damage: 42, rate: 0.72, range: 400, cost: 850, level: 4, art: 0, pose: 0, description: "\u041C\u043E\u0449\u043D\u044B\u0439 \u0442\u043E\u0447\u043D\u044B\u0439 \u0432\u044B\u0441\u0442\u0440\u0435\u043B, \u043C\u0435\u0434\u043B\u0435\u043D\u043D\u044B\u0439 \u0442\u0435\u043C\u043F." },
+        { name: "\u041F\u041F \xAB\u0428\u043E\u0440\u043E\u0445\xBB", damage: 12, rate: 0.18, range: 300, cost: 1500, level: 10, art: 1, pose: 1, description: "\u041A\u043E\u0440\u043E\u0442\u043A\u0438\u0435 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 \u0434\u043B\u044F \u0431\u043B\u0438\u0436\u043D\u0435\u0439 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u0438." },
+        { name: "\u0412\u0438\u043D\u0442\u043E\u0432\u043A\u0430 \xAB\u0412\u043E\u0440\u043E\u043D\xBB", damage: 84, rate: 1.15, range: 530, cost: 2800, level: 25, art: 2, pose: 1, description: "\u0414\u0430\u043B\u044C\u043D\u0438\u0439 \u0431\u043E\u0439. \u0414\u0435\u0440\u0436\u0438 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445 \u043D\u0430 \u0440\u0430\u0441\u0441\u0442\u043E\u044F\u043D\u0438\u0438." },
+        { name: "\u041F\u0443\u043B\u0435\u043C\u0451\u0442 \xAB\u041E\u043F\u043B\u043E\u0442\xBB", damage: 19, rate: 0.23, range: 390, cost: 5200, level: 60, art: 3, pose: 1, description: "\u041F\u043B\u043E\u0442\u043D\u044B\u0439 \u043E\u0433\u043E\u043D\u044C \u0434\u043B\u044F \u0437\u0430\u0442\u044F\u0436\u043D\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A." },
+        { name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A \xAB\u0420\u0430\u0437\u043B\u043E\u043C\xBB", damage: 18, rate: 0.95, range: 265, pellets: 5, cost: 9e3, level: 120, art: 4, pose: 2, description: "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u044B\u0439 \u0437\u0430\u0440\u044F\u0434. \u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0443\u0440\u043E\u043D\u0430 \u0432\u0431\u043B\u0438\u0437\u0438." },
+        { name: "\u0410\u0432\u0442\u043E\u043C\u0430\u0442 \xAB\u0412\u0435\u043A\u0442\u043E\u0440\xBB", damage: 24, rate: 0.24, range: 450, cost: 16e3, level: 250, art: 5, pose: 1, description: "\u0422\u043E\u0447\u043D\u043E\u0435 \u043E\u0440\u0443\u0436\u0438\u0435 \u0432\u0435\u0442\u0435\u0440\u0430\u043D\u0430." },
+        { name: "\xAB\u0412\u0435\u043A\u0442\u043E\u0440: \u041E\u0431\u0441\u0438\u0434\u0438\u0430\u043D\xBB", damage: 24, rate: 0.24, range: 450, cost: 0, level: 250, art: 5, pose: 1, votes: 35, sku: "weapon_obsidian", tint: 155, description: "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u043E\u0435 \u043E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u0435. \u0425\u0430\u0440\u0430\u043A\u0442\u0435\u0440\u0438\u0441\u0442\u0438\u043A\u0438 \u043E\u0431\u044B\u0447\u043D\u043E\u0433\u043E \xAB\u0412\u0435\u043A\u0442\u043E\u0440\u0430\xBB." }
+      );
+      MAX_LEVEL = 500;
+      weaponUnlocked = (s, i) => !!WEAPONS[i] && playerLevel(s) >= (WEAPONS[i].level || 1);
+      expeditionRank = (s) => Math.floor((playerLevel(s) - 1) / 25);
+      ENERGY_MAX = 60;
+      raidProfile = (map) => map === 5 ? { hp: 3900, cooldown: 35e3, armor: 0.1, trait: "\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0440\u0438\u0442\u043C: \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 35 \u0441\u0435\u043A\u0443\u043D\u0434. \u0411\u0440\u043E\u043D\u044F \u0441\u043D\u0438\u0436\u0430\u0435\u0442 \u0443\u0440\u043E\u043D \u043D\u0430 10%." } : map === 6 ? { hp: 4700, cooldown: 45e3, armor: 0.2, trait: "\u0421\u0442\u0430\u043B\u044C\u043D\u0430\u044F \u043A\u043E\u0436\u0430: \u0432\u0445\u043E\u0434\u044F\u0449\u0438\u0439 \u0443\u0440\u043E\u043D \u0441\u043D\u0438\u0436\u0435\u043D \u043D\u0430 20%." } : map === 7 ? { hp: 6200, cooldown: 5e4, armor: 0.05, trait: "\u041E\u0441\u0430\u0434\u0430: \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0430\u0441 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 50 \u0441\u0435\u043A\u0443\u043D\u0434." } : { hp: 750 * (1 + map * 0.7), cooldown: 45e3, armor: 0, trait: "\u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434." };
+      ENERGY_INTERVAL = 5 * 60 * 1e3;
+      RAID_COST = 8;
+      BOSS_COST = 12;
+      freshSave = () => ({ version: 1, vehicle: "nomad", ownedVehicles: ["nomad"], armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: Array(MAPS.length).fill(0), energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
+      bossUnlocked = (s, i) => {
+        var _a2;
+        return unlocked(s, i) && (((_a2 = s.districtRuns) == null ? void 0 : _a2[i]) || 0) >= 3 && playerLevel(s) >= MAPS[i].level;
+      };
+      xpForLevel = (level) => level <= 20 ? Math.round(240 * (level - 1) + 90 * (level - 1) * (level - 2)) : xpForLevel(20) + 3660 * (level - 20) + 12 * (level - 20) * (level - 21);
+      playerLevel = (s) => {
+        let level = 1;
+        while (level < MAX_LEVEL && s.xp >= xpForLevel(level + 1)) level++;
+        return level;
+      };
+      levelProgress = (s) => {
+        const level = playerLevel(s);
+        if (level === MAX_LEVEL) return { level, current: 0, required: 0, percent: 100, max: true };
+        const start2 = xpForLevel(level), next = xpForLevel(level + 1);
+        return { level, current: Math.max(0, s.xp - start2), required: next - start2, percent: Math.min(100, (s.xp - start2) / (next - start2) * 100) };
+      };
+      raidDamage = (s) => Math.round(stats(s).damage * (WEAPONS[s.weapon].pellets || 1) / WEAPONS[s.weapon].rate * 5 * (WEAPONS[s.weapon].pellets ? 0.72 : 1));
+      stats = (s) => {
+        var _a2;
+        return { hp: Math.round((110 + s.armor * 8 + (((_a2 = ARMOR[s.armorTier || 0]) == null ? void 0 : _a2.hp) || 0)) * (1 + s.body * 0.04) * (1 + vehicleFor(s).hp / 100)), damage: WEAPONS[s.weapon].damage * (1 + s.weaponLevel * 0.08) * (1 + s.engine * 0.04) * (1 + vehicleFor(s).damage / 100), loot: (1 + s.trunk * 0.05) * (1 + vehicleFor(s).loot / 100), speed: 148 };
+      };
+      upgradeCost = (level) => Math.round(80 * Math.pow(1.42, level));
+      unlocked = (s, i) => i === 0 || s.cleared.includes(i - 1);
+      enemyStats = (map, wave, type, rank = 0) => ({ hp: (type === "boss" ? 230 : type === "tank" ? 86 : type === "runner" ? 28 : 40) * (1 + map * 0.32) * (1 + (wave - 1) * 0.15) * (1 + rank * 0.1), speed: type === "boss" ? 34 : type === "runner" ? 95 : type === "tank" ? 28 : 47, damage: (type === "boss" ? 23 : type === "tank" ? 17 : 10) * (1 + map * 0.16) * (1 + rank * 0.06) });
+      ARMOR = [
+        { name: "\u041E\u0434\u0435\u0436\u0434\u0430 \u0432\u044B\u0436\u0438\u0432\u0448\u0435\u0433\u043E", hp: 0, level: 1, bosses: 0, cost: 0, cloth: 0, cores: 0, icon: 3, description: "\u0422\u0432\u043E\u044F \u043F\u0440\u0438\u0432\u044B\u0447\u043D\u0430\u044F \u0444\u0443\u0442\u0431\u043E\u043B\u043A\u0430 \u0438 \u0431\u0440\u044E\u043A\u0438. \u0421\u0432\u043E\u0431\u043E\u0434\u0430 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F." },
+        { name: "\u0416\u0438\u043B\u0435\u0442 \xAB\u0411\u0430\u0440\u044C\u0435\u0440\xBB", hp: 28, level: 2, bosses: 1, cost: 320, cloth: 8, cores: 0, icon: 4, description: "\u041F\u043B\u0438\u0442\u044B, \u0440\u0435\u043C\u043D\u0438 \u0438 \u043F\u043E\u0434\u0441\u0443\u043C\u043A\u0438. \u041F\u0435\u0440\u0432\u0430\u044F \u0441\u0435\u0440\u044C\u0451\u0437\u043D\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430." },
+        { name: "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442 \xAB\u0414\u043E\u0437\u043E\u0440\xBB", hp: 60, level: 4, bosses: 3, cost: 780, cloth: 24, cores: 3, icon: 4, description: "\u041F\u043E\u043B\u0435\u0432\u0430\u044F \u043A\u0443\u0440\u0442\u043A\u0430, \u0443\u0441\u0438\u043B\u0435\u043D\u043D\u044B\u0439 \u0436\u0438\u043B\u0435\u0442 \u0438 \u0437\u0430\u0449\u0438\u0442\u0430 \u043F\u043B\u0435\u0447." },
+        { name: "\u0411\u0440\u043E\u043D\u044F \xAB\u0426\u0438\u0442\u0430\u0434\u0435\u043B\u044C\xBB", hp: 100, level: 6, bosses: 6, cost: 1600, cloth: 48, cores: 9, icon: 5, description: "\u0422\u044F\u0436\u0451\u043B\u044B\u0435 \u043F\u043B\u0430\u0441\u0442\u0438\u043D\u044B. \u041E\u0442\u043A\u0440\u044B\u0442\u043E\u0435 \u043B\u0438\u0446\u043E, \u0437\u043D\u0430\u043A\u043E\u043C\u044B\u0439 \u0441\u0438\u043B\u0443\u044D\u0442." }
+      ];
+      ARMOR.push(
+        { name: "\u0420\u0430\u0437\u0432\u0435\u0434\u0447\u0438\u043A \xAB\u0422\u0443\u043C\u0430\u043D\xBB", hp: 135, level: 25, bosses: 0, cost: 3e3, cloth: 70, cores: 12, icon: 4, pose: 2, description: "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u0430\u044F \u043F\u043E\u043B\u0435\u0432\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0440\u0430\u0437\u0432\u0435\u0434\u0447\u0438\u043A\u0430." },
+        { name: "\u042D\u043A\u0437\u043E\u043A\u0430\u0440\u043A\u0430\u0441 \xAB\u0411\u0430\u0441\u0442\u0438\u043E\u043D\xBB", hp: 180, level: 75, bosses: 0, cost: 6e3, cloth: 110, cores: 22, icon: 5, pose: 3, description: "\u0411\u0440\u043E\u043D\u0435\u043A\u0430\u0440\u043A\u0430\u0441 \u0434\u043B\u044F \u043E\u043F\u0430\u0441\u043D\u044B\u0445 \u0441\u0435\u043A\u0442\u043E\u0440\u043E\u0432." },
+        { name: "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442 \xAB\u0421\u0442\u0440\u0430\u0436\xBB", hp: 235, level: 200, bosses: 0, cost: 11e3, cloth: 180, cores: 40, icon: 5, pose: 3, description: "\u0417\u0430\u0449\u0438\u0442\u0430 \u043E\u043F\u044B\u0442\u043D\u043E\u0433\u043E \u043A\u043E\u043C\u0430\u043D\u0434\u0438\u0440\u0430." },
+        { name: "\u0414\u043E\u0441\u043F\u0435\u0445 \xAB\u041B\u0435\u0433\u0435\u043D\u0434\u0430\xBB", hp: 300, level: 400, bosses: 0, cost: 2e4, cloth: 260, cores: 65, icon: 5, pose: 3, description: "\u0412\u044B\u0441\u0448\u0438\u0439 \u043A\u043B\u0430\u0441\u0441 \u0437\u0430\u0449\u0438\u0442\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430." },
+        { name: "\xAB\u041B\u0435\u0433\u0435\u043D\u0434\u0430: \u042F\u043D\u0442\u0430\u0440\u044C\xBB", hp: 300, level: 400, bosses: 0, cost: 0, cloth: 0, cores: 0, icon: 5, pose: 3, votes: 45, sku: "armor_amber", description: "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u0430\u044F \u0431\u0440\u043E\u043D\u044F. \u0417\u0430\u0449\u0438\u0442\u0430 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \xAB\u041B\u0435\u0433\u0435\u043D\u0434\u044B\xBB." }
+      );
+      armorUnlocked = (s, i) => playerLevel(s) >= ARMOR[i].level || (s.bossKills || 0) >= ARMOR[i].bosses && ARMOR[i].bosses > 0 || i === 0;
+    }
+  });
+
+  // rare-raids.js
+  var RARE_RAIDS, raidAllowed, raidHit;
+  var init_rare_raids = __esm({
+    "rare-raids.js"() {
+      init_balance();
+      RARE_RAIDS = [
+        [1e6, 20, 500, 1e4, 15e3],
+        [5e6, 40, 700, 17500, 28e3],
+        [2e7, 75, 1e3, 3e4, 6e4],
+        [1e8, 120, 1400, 49e3, 112e3],
+        [5e8, 180, 1900, 76e3, 228e3],
+        [1e9, 250, 2500, 112500, 4e5],
+        [5e9, 350, 3200, 152e3, 704e3],
+        [1e10, 450, 4e3, 2e5, 12e5]
+      ].map(([hp, level, hits, scrap, xp], map) => ({ map, hp, level, hits, multiplier: hp / (hits * 1e3), pool: { scrap, xp, cores: hits, cloth: hits * 2 } }));
+      raidAllowed = (s, map, rare = false) => bossUnlocked(s, map) && (!rare || s.cleared.includes(map) && playerLevel(s) >= RARE_RAIDS[map].level);
+      raidHit = (s, map, rare = false) => Math.max(1, Math.round(raidDamage(s) * (rare ? RARE_RAIDS[map].multiplier : 1 - raidProfile(map).armor)));
+    }
+  });
+
   // garage-ui.js
   function garageUI(root, save2, level, upgrades, buy, rerender) {
     const current = vehicleFor(save2), owned = save2.ownedVehicles || ["nomad"];
@@ -605,101 +721,6 @@
   var init_profile_ui = __esm({
     "profile-ui.js"() {
       AVATARS = ["\u271A", "\u25C8", "\u265C", "\u26A1", "\u2620", "\u2605"];
-    }
-  });
-
-  // balance.js
-  function restoreEnergy(s, now = Date.now()) {
-    var _a2, _b2;
-    s.energy = Math.min(ENERGY_MAX, Math.max(0, (_a2 = s.energy) != null ? _a2 : ENERGY_MAX));
-    s.energyAt = Math.min(now, (_b2 = s.energyAt) != null ? _b2 : now);
-    if (s.energy >= ENERGY_MAX) {
-      s.energyAt = now;
-      return s.energy;
-    }
-    const recovered = Math.floor((now - s.energyAt) / ENERGY_INTERVAL);
-    s.energy = Math.min(ENERGY_MAX, s.energy + recovered);
-    if (s.energy === ENERGY_MAX) s.energyAt = now;
-    else s.energyAt += recovered * ENERGY_INTERVAL;
-    return s.energy;
-  }
-  function sprintStep(stamina, exhausted, wantsRun, moving, dt) {
-    if (exhausted && stamina >= 30) exhausted = false;
-    const running = wantsRun && moving && !exhausted && stamina > 0;
-    stamina = Math.max(0, Math.min(100, stamina + (running ? -24 : 17) * dt));
-    if (stamina === 0) exhausted = true;
-    return { stamina, exhausted, running: running && stamina > 0, multiplier: running ? 1.65 : 1 };
-  }
-  var MAPS, WEAPONS, MAX_LEVEL, weaponUnlocked, expeditionRank, ENERGY_MAX, raidProfile, ENERGY_INTERVAL, RAID_COST, BOSS_COST, freshSave, bossUnlocked, xpForLevel, playerLevel, levelProgress, stats, upgradeCost, unlocked, enemyStats, ARMOR, armorUnlocked;
-  var init_balance = __esm({
-    "balance.js"() {
-      init_vehicles();
-      MAPS = [
-        { name: "\u0422\u0438\u0445\u0438\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", desc: "\u0412 \u043E\u043A\u043D\u0430\u0445 \u0435\u0449\u0451 \u0433\u043E\u0440\u0438\u0442 \u0441\u0432\u0435\u0442. \u041D\u0430 \u0443\u043B\u0438\u0446\u0430\u0445 \u0443\u0436\u0435 \u043D\u0438\u043A\u043E\u0433\u043E \u0436\u0438\u0432\u043E\u0433\u043E.", goal: "\u0417\u0430\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u0436\u0438\u043B\u043E\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", boss: "\u0421\u043C\u043E\u0442\u0440\u0438\u0442\u0435\u043B\u044C", level: 1, palette: ["#6c7660", "#485340", "#8b8870", "#a4a080"], reward: 85, kind: "town" },
-        { name: "\u0410\u0417\u0421 \xAB\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F\xBB", desc: "\u0417\u0430\u043F\u0430\u0445 \u0431\u0435\u043D\u0437\u0438\u043D\u0430. \u041F\u0443\u0441\u0442\u044B\u0435 \u0431\u0430\u043A\u0438. \u0418 \u043A\u0442\u043E-\u0442\u043E \u0437\u0430 \u043A\u043E\u043B\u043E\u043D\u043A\u043E\u0439.", goal: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0437\u0430\u043F\u0430\u0441 \u0442\u043E\u043F\u043B\u0438\u0432\u0430", boss: "\u041F\u043E\u0434\u0436\u0438\u0433\u0430\u0442\u0435\u043B\u044C", level: 2, palette: ["#786953", "#514b3a", "#a38d65", "#c5a271"], reward: 110, kind: "gas" },
-        { name: "\u0413\u0440\u0443\u0437\u043E\u0432\u043E\u0439 \u0434\u0432\u043E\u0440", desc: "\u041A\u043E\u043D\u0442\u0435\u0439\u043D\u0435\u0440\u044B \u0437\u0430\u043F\u0435\u0440\u0442\u044B \u0438\u0437\u043D\u0443\u0442\u0440\u0438. \u0421\u0442\u0443\u043A \u043D\u0435 \u043F\u0440\u0435\u043A\u0440\u0430\u0449\u0430\u0435\u0442\u0441\u044F.", goal: "\u0412\u0441\u043A\u0440\u044B\u0442\u044C \u0441\u043A\u043B\u0430\u0434 \u0441\u043D\u0430\u0431\u0436\u0435\u043D\u0438\u044F", boss: "\u041A\u0440\u0430\u043D\u043E\u0432\u0449\u0438\u043A", level: 3, palette: ["#627272", "#3e5150", "#738886", "#98a5a0"], reward: 140, kind: "yard" },
-        { name: "\u0411\u043E\u043B\u044C\u043D\u0438\u0446\u0430 \u2116 6", desc: "\u041A\u0430\u0440\u0430\u043D\u0442\u0438\u043D \u0441\u043D\u044F\u0442. \u041F\u0430\u0446\u0438\u0435\u043D\u0442\u044B \u043E\u0441\u0442\u0430\u043B\u0438\u0441\u044C.", goal: "\u041D\u0430\u0439\u0442\u0438 \u043C\u0435\u0434\u0438\u0446\u0438\u043D\u0441\u043A\u0438\u0439 \u043C\u043E\u0434\u0443\u043B\u044C", boss: "\u0413\u043B\u0430\u0432\u0432\u0440\u0430\u0447", level: 4, palette: ["#687468", "#465b4f", "#8c9a84", "#b0b49b"], reward: 175, kind: "hospital" },
-        { name: "\u0427\u0451\u0440\u043D\u044B\u0439 \u043B\u0435\u0441", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B \u043F\u0440\u0438\u0448\u0451\u043B \u043E\u0442\u0441\u044E\u0434\u0430. \u0414\u0430\u043B\u044C\u0448\u0435 \u2014 \u0442\u0438\u0448\u0438\u043D\u0430.", goal: "\u041D\u0430\u0439\u0442\u0438 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0441\u0438\u0433\u043D\u0430\u043B\u0430", boss: "\u041A\u043E\u0440\u043D\u0435\u0432\u043E\u0439", level: 5, palette: ["#525f4a", "#354736", "#71825b", "#94a071"], reward: 220, kind: "forest" },
-        { name: "\u0417\u0430\u0442\u043E\u043F\u043B\u0435\u043D\u043D\u043E\u0435 \u043C\u0435\u0442\u0440\u043E", desc: "\u0412\u043E\u0434\u0430 \u0441\u043A\u0440\u044B\u0432\u0430\u0435\u0442 \u0440\u0435\u043B\u044C\u0441\u044B. \u0412 \u0442\u043E\u043D\u043D\u0435\u043B\u0435 \u0441\u043B\u044B\u0448\u0435\u043D \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043F\u043E\u0435\u0437\u0434.", goal: "\u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C \u0430\u0432\u0430\u0440\u0438\u0439\u043D\u044B\u0435 \u043D\u0430\u0441\u043E\u0441\u044B", boss: "\u041C\u0430\u0448\u0438\u043D\u0438\u0441\u0442", level: 6, palette: ["#334c50", "#23373c", "#75908b", "#b4bca2"], reward: 260, kind: "metro" },
-        { name: "\u041F\u0440\u043E\u043C\u0437\u043E\u043D\u0430 \xAB\u041F\u0435\u043F\u0435\u043B\xBB", desc: "\u041F\u0435\u0447\u0438 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u044E\u0442 \u0440\u0430\u0431\u043E\u0442\u0430\u0442\u044C \u0431\u0435\u0437 \u043B\u044E\u0434\u0435\u0439.", goal: "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0432\u0435\u0439\u0435\u0440", boss: "\u041F\u043B\u0430\u0432\u0438\u043B\u044C\u0449\u0438\u043A", level: 7, palette: ["#624535", "#382c26", "#a7794f", "#d9b47e"], reward: 305, kind: "factory" },
-        { name: "\u041F\u043E\u0440\u0442 \xAB\u0421\u0435\u0432\u0435\u0440\u043D\u044B\u0439\xBB", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043A\u043E\u0440\u0430\u0431\u043B\u044C \u043D\u0435 \u043F\u043E\u043A\u0438\u043D\u0443\u043B \u043F\u0440\u0438\u0447\u0430\u043B.", goal: "\u0417\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u044C \u0443\u0437\u0435\u043B \u0434\u0430\u043B\u044C\u043D\u0435\u0439 \u0441\u0432\u044F\u0437\u0438", boss: "\u0410\u0434\u043C\u0438\u0440\u0430\u043B", level: 8, palette: ["#354a5c", "#253647", "#728b9b", "#b2c2c3"], reward: 355, kind: "port" }
-      ];
-      WEAPONS = [{ name: "\u041F\u0438\u0441\u0442\u043E\u043B\u0435\u0442 \xAB\u0421\u0438\u0433\u043D\u0430\u043B\xBB", damage: 22, rate: 0.48, range: 370, cost: 0, description: "\u0422\u043E\u0447\u043D\u044B\u0439 \u0438 \u043D\u0430\u0434\u0451\u0436\u043D\u044B\u0439. \u0425\u043E\u0440\u043E\u0448 \u0434\u043B\u044F \u043F\u0435\u0440\u0432\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A." }, { name: "\u041A\u0430\u0440\u0430\u0431\u0438\u043D \xAB\u0420\u0443\u0431\u0435\u0436\xBB", damage: 15, rate: 0.28, range: 430, cost: 360, description: "\u0412\u044B\u0441\u043E\u043A\u0430\u044F \u0441\u043A\u043E\u0440\u043E\u0441\u0442\u0440\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C. \u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E." }, { name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A \xAB\u0413\u0440\u043E\u043C\xBB", damage: 13, rate: 0.82, range: 240, pellets: 5, cost: 440, description: "\u041F\u044F\u0442\u044C \u0434\u0440\u043E\u0431\u0438\u043D. \u041F\u043E\u0434\u043F\u0443\u0441\u043A\u0430\u0439 \u0431\u043B\u0438\u0436\u0435 \u0438 \u043E\u0442\u0445\u043E\u0434\u0438 \u0431\u0435\u0433\u043E\u043C." }];
-      WEAPONS.push(
-        { name: "\u0420\u0435\u0432\u043E\u043B\u044C\u0432\u0435\u0440 \xAB\u0421\u0443\u0434\u044C\u044F\xBB", damage: 42, rate: 0.72, range: 400, cost: 850, level: 4, art: 0, pose: 0, description: "\u041C\u043E\u0449\u043D\u044B\u0439 \u0442\u043E\u0447\u043D\u044B\u0439 \u0432\u044B\u0441\u0442\u0440\u0435\u043B, \u043C\u0435\u0434\u043B\u0435\u043D\u043D\u044B\u0439 \u0442\u0435\u043C\u043F." },
-        { name: "\u041F\u041F \xAB\u0428\u043E\u0440\u043E\u0445\xBB", damage: 12, rate: 0.18, range: 300, cost: 1500, level: 10, art: 1, pose: 1, description: "\u041A\u043E\u0440\u043E\u0442\u043A\u0438\u0435 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 \u0434\u043B\u044F \u0431\u043B\u0438\u0436\u043D\u0435\u0439 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u0438." },
-        { name: "\u0412\u0438\u043D\u0442\u043E\u0432\u043A\u0430 \xAB\u0412\u043E\u0440\u043E\u043D\xBB", damage: 84, rate: 1.15, range: 530, cost: 2800, level: 25, art: 2, pose: 1, description: "\u0414\u0430\u043B\u044C\u043D\u0438\u0439 \u0431\u043E\u0439. \u0414\u0435\u0440\u0436\u0438 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445 \u043D\u0430 \u0440\u0430\u0441\u0441\u0442\u043E\u044F\u043D\u0438\u0438." },
-        { name: "\u041F\u0443\u043B\u0435\u043C\u0451\u0442 \xAB\u041E\u043F\u043B\u043E\u0442\xBB", damage: 19, rate: 0.23, range: 390, cost: 5200, level: 60, art: 3, pose: 1, description: "\u041F\u043B\u043E\u0442\u043D\u044B\u0439 \u043E\u0433\u043E\u043D\u044C \u0434\u043B\u044F \u0437\u0430\u0442\u044F\u0436\u043D\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A." },
-        { name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A \xAB\u0420\u0430\u0437\u043B\u043E\u043C\xBB", damage: 18, rate: 0.95, range: 265, pellets: 5, cost: 9e3, level: 120, art: 4, pose: 2, description: "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u044B\u0439 \u0437\u0430\u0440\u044F\u0434. \u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0443\u0440\u043E\u043D\u0430 \u0432\u0431\u043B\u0438\u0437\u0438." },
-        { name: "\u0410\u0432\u0442\u043E\u043C\u0430\u0442 \xAB\u0412\u0435\u043A\u0442\u043E\u0440\xBB", damage: 24, rate: 0.24, range: 450, cost: 16e3, level: 250, art: 5, pose: 1, description: "\u0422\u043E\u0447\u043D\u043E\u0435 \u043E\u0440\u0443\u0436\u0438\u0435 \u0432\u0435\u0442\u0435\u0440\u0430\u043D\u0430." },
-        { name: "\xAB\u0412\u0435\u043A\u0442\u043E\u0440: \u041E\u0431\u0441\u0438\u0434\u0438\u0430\u043D\xBB", damage: 24, rate: 0.24, range: 450, cost: 0, level: 250, art: 5, pose: 1, votes: 35, sku: "weapon_obsidian", tint: 155, description: "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u043E\u0435 \u043E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u0435. \u0425\u0430\u0440\u0430\u043A\u0442\u0435\u0440\u0438\u0441\u0442\u0438\u043A\u0438 \u043E\u0431\u044B\u0447\u043D\u043E\u0433\u043E \xAB\u0412\u0435\u043A\u0442\u043E\u0440\u0430\xBB." }
-      );
-      MAX_LEVEL = 500;
-      weaponUnlocked = (s, i) => !!WEAPONS[i] && playerLevel(s) >= (WEAPONS[i].level || 1);
-      expeditionRank = (s) => Math.floor((playerLevel(s) - 1) / 25);
-      ENERGY_MAX = 60;
-      raidProfile = (map) => map === 5 ? { hp: 3900, cooldown: 35e3, armor: 0.1, trait: "\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0440\u0438\u0442\u043C: \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 35 \u0441\u0435\u043A\u0443\u043D\u0434. \u0411\u0440\u043E\u043D\u044F \u0441\u043D\u0438\u0436\u0430\u0435\u0442 \u0443\u0440\u043E\u043D \u043D\u0430 10%." } : map === 6 ? { hp: 4700, cooldown: 45e3, armor: 0.2, trait: "\u0421\u0442\u0430\u043B\u044C\u043D\u0430\u044F \u043A\u043E\u0436\u0430: \u0432\u0445\u043E\u0434\u044F\u0449\u0438\u0439 \u0443\u0440\u043E\u043D \u0441\u043D\u0438\u0436\u0435\u043D \u043D\u0430 20%." } : map === 7 ? { hp: 6200, cooldown: 5e4, armor: 0.05, trait: "\u041E\u0441\u0430\u0434\u0430: \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0430\u0441 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 50 \u0441\u0435\u043A\u0443\u043D\u0434." } : { hp: 750 * (1 + map * 0.7), cooldown: 45e3, armor: 0, trait: "\u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434." };
-      ENERGY_INTERVAL = 5 * 60 * 1e3;
-      RAID_COST = 8;
-      BOSS_COST = 12;
-      freshSave = () => ({ version: 1, vehicle: "nomad", ownedVehicles: ["nomad"], armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: Array(MAPS.length).fill(0), energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
-      bossUnlocked = (s, i) => {
-        var _a2;
-        return unlocked(s, i) && (((_a2 = s.districtRuns) == null ? void 0 : _a2[i]) || 0) >= 3 && playerLevel(s) >= MAPS[i].level;
-      };
-      xpForLevel = (level) => level <= 20 ? Math.round(240 * (level - 1) + 90 * (level - 1) * (level - 2)) : xpForLevel(20) + 3660 * (level - 20) + 12 * (level - 20) * (level - 21);
-      playerLevel = (s) => {
-        let level = 1;
-        while (level < MAX_LEVEL && s.xp >= xpForLevel(level + 1)) level++;
-        return level;
-      };
-      levelProgress = (s) => {
-        const level = playerLevel(s);
-        if (level === MAX_LEVEL) return { level, current: 0, required: 0, percent: 100, max: true };
-        const start2 = xpForLevel(level), next = xpForLevel(level + 1);
-        return { level, current: Math.max(0, s.xp - start2), required: next - start2, percent: Math.min(100, (s.xp - start2) / (next - start2) * 100) };
-      };
-      stats = (s) => {
-        var _a2;
-        return { hp: Math.round((110 + s.armor * 8 + (((_a2 = ARMOR[s.armorTier || 0]) == null ? void 0 : _a2.hp) || 0)) * (1 + s.body * 0.04) * (1 + vehicleFor(s).hp / 100)), damage: WEAPONS[s.weapon].damage * (1 + s.weaponLevel * 0.08) * (1 + s.engine * 0.04) * (1 + vehicleFor(s).damage / 100), loot: (1 + s.trunk * 0.05) * (1 + vehicleFor(s).loot / 100), speed: 148 };
-      };
-      upgradeCost = (level) => Math.round(80 * Math.pow(1.42, level));
-      unlocked = (s, i) => i === 0 || s.cleared.includes(i - 1);
-      enemyStats = (map, wave, type, rank = 0) => ({ hp: (type === "boss" ? 230 : type === "tank" ? 86 : type === "runner" ? 28 : 40) * (1 + map * 0.32) * (1 + (wave - 1) * 0.15) * (1 + rank * 0.1), speed: type === "boss" ? 34 : type === "runner" ? 95 : type === "tank" ? 28 : 47, damage: (type === "boss" ? 23 : type === "tank" ? 17 : 10) * (1 + map * 0.16) * (1 + rank * 0.06) });
-      ARMOR = [
-        { name: "\u041E\u0434\u0435\u0436\u0434\u0430 \u0432\u044B\u0436\u0438\u0432\u0448\u0435\u0433\u043E", hp: 0, level: 1, bosses: 0, cost: 0, cloth: 0, cores: 0, icon: 3, description: "\u0422\u0432\u043E\u044F \u043F\u0440\u0438\u0432\u044B\u0447\u043D\u0430\u044F \u0444\u0443\u0442\u0431\u043E\u043B\u043A\u0430 \u0438 \u0431\u0440\u044E\u043A\u0438. \u0421\u0432\u043E\u0431\u043E\u0434\u0430 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F." },
-        { name: "\u0416\u0438\u043B\u0435\u0442 \xAB\u0411\u0430\u0440\u044C\u0435\u0440\xBB", hp: 28, level: 2, bosses: 1, cost: 320, cloth: 8, cores: 0, icon: 4, description: "\u041F\u043B\u0438\u0442\u044B, \u0440\u0435\u043C\u043D\u0438 \u0438 \u043F\u043E\u0434\u0441\u0443\u043C\u043A\u0438. \u041F\u0435\u0440\u0432\u0430\u044F \u0441\u0435\u0440\u044C\u0451\u0437\u043D\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430." },
-        { name: "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442 \xAB\u0414\u043E\u0437\u043E\u0440\xBB", hp: 60, level: 4, bosses: 3, cost: 780, cloth: 24, cores: 3, icon: 4, description: "\u041F\u043E\u043B\u0435\u0432\u0430\u044F \u043A\u0443\u0440\u0442\u043A\u0430, \u0443\u0441\u0438\u043B\u0435\u043D\u043D\u044B\u0439 \u0436\u0438\u043B\u0435\u0442 \u0438 \u0437\u0430\u0449\u0438\u0442\u0430 \u043F\u043B\u0435\u0447." },
-        { name: "\u0411\u0440\u043E\u043D\u044F \xAB\u0426\u0438\u0442\u0430\u0434\u0435\u043B\u044C\xBB", hp: 100, level: 6, bosses: 6, cost: 1600, cloth: 48, cores: 9, icon: 5, description: "\u0422\u044F\u0436\u0451\u043B\u044B\u0435 \u043F\u043B\u0430\u0441\u0442\u0438\u043D\u044B. \u041E\u0442\u043A\u0440\u044B\u0442\u043E\u0435 \u043B\u0438\u0446\u043E, \u0437\u043D\u0430\u043A\u043E\u043C\u044B\u0439 \u0441\u0438\u043B\u0443\u044D\u0442." }
-      ];
-      ARMOR.push(
-        { name: "\u0420\u0430\u0437\u0432\u0435\u0434\u0447\u0438\u043A \xAB\u0422\u0443\u043C\u0430\u043D\xBB", hp: 135, level: 25, bosses: 0, cost: 3e3, cloth: 70, cores: 12, icon: 4, pose: 2, description: "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u0430\u044F \u043F\u043E\u043B\u0435\u0432\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0440\u0430\u0437\u0432\u0435\u0434\u0447\u0438\u043A\u0430." },
-        { name: "\u042D\u043A\u0437\u043E\u043A\u0430\u0440\u043A\u0430\u0441 \xAB\u0411\u0430\u0441\u0442\u0438\u043E\u043D\xBB", hp: 180, level: 75, bosses: 0, cost: 6e3, cloth: 110, cores: 22, icon: 5, pose: 3, description: "\u0411\u0440\u043E\u043D\u0435\u043A\u0430\u0440\u043A\u0430\u0441 \u0434\u043B\u044F \u043E\u043F\u0430\u0441\u043D\u044B\u0445 \u0441\u0435\u043A\u0442\u043E\u0440\u043E\u0432." },
-        { name: "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442 \xAB\u0421\u0442\u0440\u0430\u0436\xBB", hp: 235, level: 200, bosses: 0, cost: 11e3, cloth: 180, cores: 40, icon: 5, pose: 3, description: "\u0417\u0430\u0449\u0438\u0442\u0430 \u043E\u043F\u044B\u0442\u043D\u043E\u0433\u043E \u043A\u043E\u043C\u0430\u043D\u0434\u0438\u0440\u0430." },
-        { name: "\u0414\u043E\u0441\u043F\u0435\u0445 \xAB\u041B\u0435\u0433\u0435\u043D\u0434\u0430\xBB", hp: 300, level: 400, bosses: 0, cost: 2e4, cloth: 260, cores: 65, icon: 5, pose: 3, description: "\u0412\u044B\u0441\u0448\u0438\u0439 \u043A\u043B\u0430\u0441\u0441 \u0437\u0430\u0449\u0438\u0442\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430." },
-        { name: "\xAB\u041B\u0435\u0433\u0435\u043D\u0434\u0430: \u042F\u043D\u0442\u0430\u0440\u044C\xBB", hp: 300, level: 400, bosses: 0, cost: 0, cloth: 0, cores: 0, icon: 5, pose: 3, votes: 45, sku: "armor_amber", description: "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u0430\u044F \u0431\u0440\u043E\u043D\u044F. \u0417\u0430\u0449\u0438\u0442\u0430 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \xAB\u041B\u0435\u0433\u0435\u043D\u0434\u044B\xBB." }
-      );
-      armorUnlocked = (s, i) => playerLevel(s) >= ARMOR[i].level || (s.bossKills || 0) >= ARMOR[i].bosses && ARMOR[i].bosses > 0 || i === 0;
     }
   });
 
@@ -1905,22 +1926,46 @@
     }
   }
   function renderRaids() {
+    var _a2;
     let root = $("#raids-page");
     let m = raid ? raid.map : selected;
-    let available = bossUnlocked(save, m);
+    const rare = raid ? raid.rare : rareMode, profile = RARE_RAIDS[m];
+    let available = raidAllowed(save, m, rare);
     let mine = raid == null ? void 0 : raid.members.find((p) => p.me);
     let cooldown = raid ? Math.max(0, Math.ceil((raid.nextAttack - Date.now() - serverOffset) / 1e3)) : 0;
-    root.innerHTML = '<p class="page-intro">\u0414\u0440\u0443\u0437\u044C\u044F \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F. \u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435 \u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0437\u0430\u0447\u0438\u0441\u0442\u0438 \u0440\u0430\u0439\u043E\u043D \u0442\u0440\u0438\u0436\u0434\u044B, \u0437\u0430\u0442\u0435\u043C \u0441\u043E\u0431\u0435\u0440\u0438 \u043E\u0442\u0440\u044F\u0434 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435.</p>' + (!raid ? '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410 \xB7 ' + MAPS[m].name + "</span><h2>" + MAPS[m].boss + "</h2><p>\u0414\u043E\u0441\u0442\u0443\u043F: 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0438 \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + MAPS[m].level + ".<br>\u0421\u0435\u0439\u0447\u0430\u0441 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A: " + save.districtRuns[m] + ' / 3.</p><button class="primary" id="create-raid" ' + (!available ? "disabled" : "") + ">\u0421\u041E\u0417\u0414\u0410\u0422\u042C \u0420\u0415\u0419\u0414</button></div></div>" : '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0410\u0421\u0418\u041D\u0425\u0420\u041E\u041D\u041D\u042B\u0419 \u0420\u0415\u0419\u0414 \xB7 ' + raid.id + "</span><h2>" + MAPS[m].boss + '</h2><div class="raid-health"><i style="width:' + raid.hp / raid.maxHp * 100 + '%"></i></div><p>' + raid.hp + " / " + raid.maxHp + " HP \xB7 " + raid.members.length + ' / 10 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432</p><button class="primary" id="raid-attack" ' + (!raid.joined || !available || raid.hp <= 0 || cooldown || save.energy < BOSS_COST ? "disabled" : "") + ">" + (raid.hp <= 0 ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : cooldown ? "\u0412\u041E\u0417\u0412\u0420\u0410\u0429\u0415\u041D\u0418\u0415 \xB7 " + cooldown + " \u0421\u0415\u041A" : "\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C \xB7 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418") + '</button><small>\u0423\u0440\u043E\u043D \u0440\u0430\u0441\u0441\u0447\u0438\u0442\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u043F\u043E \u044D\u043A\u0438\u043F\u0438\u0440\u043E\u0432\u043A\u0435. \u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434.</small></div></div><div class="raid-controls">' + (!raid.joined && raid.hp > 0 ? '<button class="primary" id="join-raid">\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F</button>' : "") + '<button class="secondary" id="copy-raid">\u0421\u041A\u041E\u041F\u0418\u0420\u041E\u0412\u0410\u0422\u042C \u0421\u0421\u042B\u041B\u041A\u0423 \u0414\u041B\u042F \u0414\u0420\u0423\u0417\u0415\u0419</button>' + (raid.hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423 \xB7 ' + MAPS[m].reward * 2 + " \u0414\u0415\u0422. + 3 \u042F\u0414\u0420\u0410</button>" : "") + '<button class="secondary" id="close-raid">\u0414\u0420\u0423\u0413\u041E\u0419 \u0420\u0415\u0419\u0414</button></div><div class="party-list">' + raid.members.map((p) => "<div><span>" + String(p.name).replace(/[&<>"']/g, (c2) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c2]) + (p.me ? " \xB7 \u0422\u042B" : "") + "</span><b>" + p.damage + " \u0443\u0440\u043E\u043D\u0430</b><small>" + (p.claimed ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430" : "") + "</small></div>").join("") + "</div>") + '<div class="network-note">\u0411\u0435\u0442\u0430 \xB7 \u0433\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u044D\u0442\u043E\u043C\u0443 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443. \u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0430\u0439 \u0434\u0440\u0443\u0437\u0435\u0439 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435: \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435. \u0412\u0445\u043E\u0434 \u0438 \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u0441\u044F \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E.</div>';
+    root.innerHTML = '<div class="raid-tabs" role="group" aria-label="\u0422\u0438\u043F \u0431\u043E\u0441\u0441\u0430"><button class="secondary" id="normal-raids" aria-pressed="' + !rare + '">\u041E\u0431\u044B\u0447\u043D\u044B\u0435</button><button class="secondary" id="rare-raids" aria-pressed="' + !!rare + '">\u0420\u0435\u0434\u043A\u0438\u0435</button></div>' + (!raid ? '<label class="raid-select">\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430<select id="raid-map">' + MAPS.map((v, i) => '<option value="' + i + '" ' + (m === i ? "selected" : "") + ">" + v.boss + (rare ? " \xB7 " + raidNumber(RARE_RAIDS[i].hp) + " HP" : "") + "</option>").join("") + "</select></label>" : "") + '<p class="page-intro">\u0414\u0440\u0443\u0437\u044C\u044F \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F. \u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435 \u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0437\u0430\u0447\u0438\u0441\u0442\u0438 \u0440\u0430\u0439\u043E\u043D \u0442\u0440\u0438\u0436\u0434\u044B, \u0437\u0430\u0442\u0435\u043C \u0441\u043E\u0431\u0435\u0440\u0438 \u043E\u0442\u0440\u044F\u0434 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435.</p>' + (!raid ? '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">' + (rare ? "\u0420\u0415\u0414\u041A\u0418\u0419 \u0411\u041E\u0421\u0421" : "\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410") + " \xB7 " + MAPS[m].name + "</span><h2>" + MAPS[m].boss + "</h2><p>\u0414\u043E\u0441\u0442\u0443\u043F: 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0438 \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + (rare ? profile.level : MAPS[m].level) + (rare ? " \xB7 \u043F\u043E\u0431\u0435\u0434\u0430 \u043D\u0430\u0434 \u043E\u0431\u044B\u0447\u043D\u044B\u043C \u0431\u043E\u0441\u0441\u043E\u043C" : "") + ".<br>\u0421\u0435\u0439\u0447\u0430\u0441 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A: " + save.districtRuns[m] + ' / 3.</p><button class="primary" id="create-raid" ' + (!available ? "disabled" : "") + ">\u0421\u041E\u0417\u0414\u0410\u0422\u042C \u0420\u0415\u0419\u0414</button></div></div>" : '<div class="raid-intro"><canvas width="960" height="420"></canvas><div><span class="eyebrow orange">\u0410\u0421\u0418\u041D\u0425\u0420\u041E\u041D\u041D\u042B\u0419 \u0420\u0415\u0419\u0414 \xB7 ' + raid.id + "</span><h2>" + MAPS[m].boss + '</h2><div class="raid-health"><i style="width:' + raid.hp / raid.maxHp * 100 + '%"></i></div><p>' + raidNumber(raid.hp) + " / " + raidNumber(raid.maxHp) + " HP \xB7 " + raid.members.length + " / " + (raid.capacity || 10) + ' \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432</p><button class="primary" id="raid-attack" ' + (!raid.joined || !available || raid.hp <= 0 || cooldown || save.energy < BOSS_COST ? "disabled" : "") + ">" + (raid.hp <= 0 ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : cooldown ? "\u0412\u041E\u0417\u0412\u0420\u0410\u0429\u0415\u041D\u0418\u0415 \xB7 " + cooldown + " \u0421\u0415\u041A" : "\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C \xB7 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418") + "</button><small>\u0423\u0440\u043E\u043D \u0430\u0442\u0430\u043A\u0438: " + raidNumber((_a2 = raid.estimatedDamage) != null ? _a2 : raidHit(save, m, rare)) + " \xB7 \u043F\u043E\u0432\u0442\u043E\u0440 \u0447\u0435\u0440\u0435\u0437 " + raidProfile(m).cooldown / 1e3 + ' \u0441\u0435\u043A.</small></div></div><div class="raid-controls">' + (!raid.joined && raid.hp > 0 ? '<button class="primary" id="join-raid">\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F</button>' : "") + '<button class="secondary" id="copy-raid">\u0421\u041A\u041E\u041F\u0418\u0420\u041E\u0412\u0410\u0422\u042C \u0421\u0421\u042B\u041B\u041A\u0423 \u0414\u041B\u042F \u0414\u0420\u0423\u0417\u0415\u0419</button>' + (raid.hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0410\u0411\u0420\u0410\u0422\u042C: ' + rewardText(raid.reward) + "</button>" : "") + '<button class="secondary" id="close-raid">\u0414\u0420\u0423\u0413\u041E\u0419 \u0420\u0415\u0419\u0414</button></div><div class="party-list">' + raid.members.map((p) => "<div><span>" + String(p.name).replace(/[&<>"']/g, (c2) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c2]) + (p.me ? " \xB7 \u0422\u042B" : "") + "</span><b>" + raidNumber(p.damage) + " \u0443\u0440\u043E\u043D\u0430</b><small>" + (p.claimed ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430" : "") + "</small></div>").join("") + "</div>") + '<div class="network-note">\u0411\u0435\u0442\u0430 \xB7 \u0433\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u044D\u0442\u043E\u043C\u0443 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443. \u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0430\u0439 \u0434\u0440\u0443\u0437\u0435\u0439 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435: \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430 \u043E\u0431\u0449\u0435\u0435. \u0412\u0445\u043E\u0434 \u0438 \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u0441\u044F \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E.</div>';
     const trait = document.createElement("p");
     trait.className = "page-intro";
-    trait.textContent = raidProfile(m).trait;
-    root.prepend(trait);
+    trait.textContent = rare ? "\u0420\u0415\u0414\u041A\u0418\u0419 \xB7 " + raidNumber(profile.hp) + " HP \xB7 \u0434\u043E 300 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432. \u041E\u0441\u0430\u0434\u043D\u043E\u0435 \u0443\u0441\u0438\u043B\u0435\u043D\u0438\u0435 \xD7" + profile.multiplier.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + ". \u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434: " + rewardText(profile.pool) + ". \u0414\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u0440\u043E\u043F\u043E\u0440\u0446\u0438\u043E\u043D\u0430\u043B\u044C\u043D\u043E \u0443\u0440\u043E\u043D\u0443, \u0441 \u043E\u043A\u0440\u0443\u0433\u043B\u0435\u043D\u0438\u0435\u043C \u0432\u043D\u0438\u0437. \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0442\u043E\u043B\u044C\u043A\u043E \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B. \u0420\u0435\u0439\u0434 \u0431\u0435\u0437 \u0441\u0440\u043E\u043A\u0430 \u0438\u0441\u0442\u0435\u0447\u0435\u043D\u0438\u044F." : raidProfile(m).trait;
+    root.querySelector(".raid-tabs").after(trait);
+    if (rare && raid) {
+      const preview = document.createElement("p");
+      preview.className = "page-intro";
+      preview.textContent = "\u0422\u0432\u043E\u044F \u043D\u0430\u043A\u043E\u043F\u043B\u0435\u043D\u043D\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B: " + rewardText(raid.reward);
+      trait.after(preview);
+    }
+    $("#normal-raids").onclick = () => {
+      rareMode = false;
+      raid = null;
+      renderRaids();
+    };
+    $("#rare-raids").onclick = () => {
+      rareMode = true;
+      raid = null;
+      renderRaids();
+    };
+    if ($("#raid-map")) $("#raid-map").onchange = (e) => {
+      selected = Number(e.target.value);
+      renderRaids();
+    };
     let c = root.querySelector("canvas");
     scene(c, m, -1);
     let cg = c.getContext("2d");
     bossPortrait(cg, m);
     if ($("#create-raid")) $("#create-raid").onclick = () => action(async () => {
-      raid = (await api("raids", { map: selected })).raid;
+      const created = (await api("raids", { map: selected, rare: rareMode })).raid;
+      if (rareMode && !created.rare) throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0435\u0449\u0451 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u0441\u043E\u0437\u0434\u0430\u043D\u0438\u0435 \u0440\u0435\u0434\u043A\u043E\u0433\u043E \u0440\u0435\u0439\u0434\u0430 \u043F\u043E\u0437\u0436\u0435.");
+      raid = created;
     });
     if ($("#raid-attack")) $("#raid-attack").onclick = () => action(async () => {
       let result = await api("raids/" + raid.id + "/attack", {});
@@ -1932,9 +1977,11 @@
     });
     if ($("#raid-claim")) $("#raid-claim").onclick = () => action(async () => {
       raid = (await api("raids/" + raid.id + "/claim", {})).raid;
-      toast("\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430. \u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0440\u0430\u0439\u043E\u043D \u043E\u0442\u043A\u0440\u044B\u0442.");
+      toast(raid.rare ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0440\u0435\u0434\u043A\u043E\u0433\u043E \u0440\u0435\u0439\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430." : "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430. \u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0440\u0430\u0439\u043E\u043D \u043E\u0442\u043A\u0440\u044B\u0442.");
     });
     if ($("#close-raid")) $("#close-raid").onclick = () => {
+      rareMode = !!raid.rare;
+      selected = raid.map;
       raid = null;
       renderRaids();
     };
@@ -1987,9 +2034,10 @@
     if (launchValue("friend")) navigate("friends");
     else if (!invited) onboarding(navigate);
   }
-  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy, raidPolling;
+  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber, rewardText;
   var init_game = __esm({
     "game.js"() {
+      init_rare_raids();
       init_garage_ui();
       init_onboarding();
       init_ads_ui();
@@ -2097,6 +2145,9 @@
         joy.firstElementChild.style.transform = "";
       };
       raidPolling = false;
+      rareMode = false;
+      raidNumber = (n) => Math.floor(n).toLocaleString("ru-RU");
+      rewardText = (r = { scrap: 0, xp: 0, cores: 0, cloth: 0 }) => raidNumber(r.scrap) + " \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \xB7 " + raidNumber(r.xp) + " XP \xB7 " + r.cores + " \u044F\u0434\u0435\u0440 \xB7 " + r.cloth + " \u0442\u043A\u0430\u043D\u0438";
       initializeGame().catch(() => {
         var _a2;
         return (_a2 = window.obitelStartupFailure) == null ? void 0 : _a2.call(window, "GAME_START");

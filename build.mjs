@@ -2,7 +2,7 @@ import {mkdirSync,cpSync,writeFileSync} from 'node:fs';
 import {build} from 'esbuild';
 import {resolve} from 'node:path';
 mkdirSync('dist/client',{recursive:true});mkdirSync('dist/server',{recursive:true});
-for(const file of ['index.html','style.css','theme.css','beta-theme.css','mobile-clans.css','visual-theme.css','vehicles.js','garage-ui.js','ads-ui.js','ads-bridge.js','onboarding.js','conflict-ui.js','clans-ui.js','profile-ui.js','game.js','config.js','client-api.js','friends-ui.js','art.js','balance.js','assets'])cpSync(file,'dist/client/'+file,{recursive:true});
+for(const file of ['index.html','style.css','theme.css','beta-theme.css','mobile-clans.css','visual-theme.css','rare-raids.js','vehicles.js','garage-ui.js','ads-ui.js','ads-bridge.js','onboarding.js','conflict-ui.js','clans-ui.js','profile-ui.js','game.js','config.js','client-api.js','friends-ui.js','art.js','balance.js','assets'])cpSync(file,'dist/client/'+file,{recursive:true});
 await build({entryPoints:['worker.js'],outfile:'dist/server/index.js',bundle:true,format:'esm',platform:'browser',target:'es2022'});
 await build({entryPoints:['platform-entry.js'],outfile:'platform.js',bundle:true,format:'esm',platform:'browser',target:'es2020'});
 cpSync('platform.js','dist/client/platform.js');

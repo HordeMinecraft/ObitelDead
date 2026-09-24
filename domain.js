@@ -1,3 +1,4 @@
+import {RARE_RAIDS,RAID_CAPACITY,raidAllowed,raidHit,raidReward} from './rare-raids.js';
 import {purchaseVehicle} from './vehicles.js';
 import {adAction} from './ads-domain.js';
 import {conflictAction} from './conflict-domain.js';
@@ -30,7 +31,7 @@ export function createHandler(db,commit,id){
   const mine=rows.findIndex(x=>x.pid===uid);
   return {online:onlineCount(t),meRank:mine<0?null:mine+1,players:rows.slice(0,50).map((x,i)=>({rank:i+1,code:x.code,name:x.name,level:x.level,xp:x.xp,kills:x.kills,bossKills:x.bossKills,online:x.online}))};
  }
- function viewRaid(r,uid){return {id:r.id,map:r.map,hp:r.hp,maxHp:r.maxHp,created:r.created,owner:r.owner===uid,members:Object.entries(r.members).map(([pid,v])=>({name:db.players[pid]?.name||'Выживший',damage:v.damage,me:pid===uid,claimed:!!v.claimed,online:online(db.players[pid])})),nextAttack:r.members[uid]?.nextAttack||0,joined:!!r.members[uid]}}
+ function viewRaid(r,uid){return {id:r.id,map:r.map,rare:!!r.rare,capacity:RAID_CAPACITY,reward:raidReward(r,r.members[uid]?.damage||0),estimatedDamage:raidHit(db.players[uid].save,r.map,r.rare),hp:r.hp,maxHp:r.maxHp,created:r.created,owner:r.owner===uid,members:Object.entries(r.members).map(([pid,v])=>({name:db.players[pid]?.name||'Выживший',damage:v.damage,me:pid===uid,claimed:!!v.claimed,online:online(db.players[pid])})),nextAttack:r.members[uid]?.nextAttack||0,joined:!!r.members[uid]}}
  return async function handle(req,res,url){
   if(!url.pathname.startsWith('/api/'))return false;
   const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data))};
@@ -100,18 +101,18 @@ export function createHandler(db,commit,id){
     p.ticket=null;result={reward,xp,win};p.lastResult={ticket:t.id,result};
    }
    else if(req.method==='POST'&&path==='/api/raids'){
-    const m=b.map;if(!Number.isInteger(m)||!MAPS[m]||!bossUnlocked(s,m))err('Нужны 3 зачистки и рекомендуемый уровень');
-    const existing=Object.values(db.raids).find(r=>r.owner===session&&r.map===m&&r.hp>0);
-    if(existing)result.raid=viewRaid(existing,session);else{const rid=id().slice(0,12),hp=raidProfile(m).hp;const r={id:rid,map:m,owner:session,hp,maxHp:hp,created:now(),members:{[session]:{damage:0,nextAttack:0,claimed:false}}};db.raids[rid]=r;result.raid=viewRaid(r,session)}
+    const m=b.map,rare=b.rare===true;if(b.rare!==undefined&&typeof b.rare!=='boolean')err('Неизвестный тип рейда');if(!Number.isInteger(m)||!MAPS[m]||!raidAllowed(s,m,rare))err('Нужны зачистки, победа над обычным боссом для редкого рейда и требуемый уровень');
+    const existing=Object.values(db.raids).find(r=>r.owner===session&&r.map===m&&!!r.rare===rare&&r.hp>0);
+    if(existing)result.raid=viewRaid(existing,session);else{const rid=id().slice(0,12),hp=rare?RARE_RAIDS[m].hp:raidProfile(m).hp;const r={id:rid,map:m,rare,owner:session,hp,maxHp:hp,created:now(),members:{[session]:{damage:0,nextAttack:0,claimed:false}}};db.raids[rid]=r;result.raid=viewRaid(r,session)}
    }
    else if(/^\/api\/raids\/[a-f0-9]{12}(\/join|\/attack|\/claim)?$/.test(path)){
     const parts=path.split('/'),r=db.raids[parts[3]];if(!r)err('Рейд не найден',404);const action=parts[4];
     if(req.method==='POST'&&action==='join'){
-     if(r.hp<=0)err('Босс уже повержен');if(!r.members[session]){if(Object.keys(r.members).length>=10)err('В рейде уже 10 игроков');r.members[session]={damage:0,nextAttack:0,claimed:false}}
+     if(r.hp<=0)err('Босс уже повержен');if(!r.members[session]){if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(Object.keys(r.members).length>=RAID_CAPACITY)err('В рейде уже 300 игроков');r.members[session]={damage:0,nextAttack:0,claimed:false}}
     }else if(req.method==='POST'&&action==='attack'){
-     const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!bossUnlocked(s,r.map))err('Нужны 3 зачистки района и рекомендуемый уровень');if(r.hp<=0)err('Босс уже повержен');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,BOSS_COST))err('Недостаточно энергии');const damage=Math.min(r.hp,Math.round(raidDamage(s)*(1-raidProfile(r.map).armor)));r.hp-=damage;member.damage+=damage;member.nextAttack=now()+raidProfile(r.map).cooldown;result.damage=damage;
+     const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(r.hp<=0)err('Босс уже повержен');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,BOSS_COST))err('Недостаточно энергии');const damage=Math.min(r.hp,raidHit(s,r.map,r.rare));r.hp-=damage;member.damage+=damage;member.nextAttack=now()+raidProfile(r.map).cooldown;result.damage=damage;
     }else if(req.method==='POST'&&action==='claim'){
-     const member=r.members[session];if(!member||!member.damage||member.claimed||r.hp>0)err('Награда недоступна');member.claimed=true;s.scrap+=MAPS[r.map].reward*2;s.cores+=3;s.bossKills++;s.cloth+=6;s.xp+=45;if(!s.cleared.includes(r.map))s.cleared.push(r.map);
+     const member=r.members[session];if(!member||!member.damage||member.claimed||r.hp>0)err('Награда недоступна');member.claimed=true;const reward=raidReward(r,member.damage);for(const [key,value] of Object.entries(reward))s[key]+=value;s.bossKills++;if(!r.rare&&!s.cleared.includes(r.map))s.cleared.push(r.map);
     }else if(req.method!=='GET'||action)err('Метод не поддерживается',405);
     result.raid=viewRaid(r,session);
    }
