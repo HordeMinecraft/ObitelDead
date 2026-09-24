@@ -115,7 +115,8 @@ export default {
    return json({service:'obitel-api',ok:true,health:'/api/health'},200,{'Cache-Control':'no-store'});
   }catch(error){
    console.error('Worker error',error);
-   return json({error:'Сервер временно недоступен'},503,{'Cache-Control':'no-store'});
+   const cors=corsFor(request,env,new URL(request.url));
+   return json({error:'Ошибка игрового сервера. Код SERVER_INTERNAL. Повтори подключение.'},503,cors||{'Cache-Control':'no-store'});
   }
  }
 };

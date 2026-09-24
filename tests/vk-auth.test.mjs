@@ -38,3 +38,12 @@ test('safelisted VK login preserves the guest profile and rejects foreign origin
  assert.equal(result.headers.get('access-control-allow-origin'),'https://hordeminecraft.github.io');
  const profile=await(await api(request(guest,'profile'),env)).json();assert.equal(profile.save.xp,700);assert.equal(profile.account,'vk');DB.sqlite.close();
 });
+
+import worker from '../worker.js';
+test('unexpected storage failures retain CORS so WebView can read the server error',async()=>{
+ const DB={prepare(){throw new Error('test storage failure')}};
+ const make=origin=>new Request('https://beta.example/api/auth/vk',{method:'POST',headers:{Origin:origin,'Content-Type':'text/plain'},body:JSON.stringify({launch:launch('111')})});
+ const r=await worker.fetch(make('https://hordeminecraft.github.io'),{DB,VK_APP_SECRET:secret});
+ assert.equal(r.status,503);assert.equal(r.headers.get('access-control-allow-origin'),'https://hordeminecraft.github.io');assert.match((await r.json()).error,/SERVER_INTERNAL/);
+ const bad=await worker.fetch(make('https://evil.example'),{DB,VK_APP_SECRET:secret});assert.equal(bad.status,403);assert.equal(bad.headers.get('access-control-allow-origin'),null);
+});
