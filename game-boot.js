@@ -362,6 +362,86 @@
     }
   });
 
+  // landscape-ui.js
+  function initLandscape() {
+    const header = document.querySelector("header"), aside = document.querySelector("aside"), main = document.querySelector("main"), resources = document.querySelector(".resources");
+    const marker = document.createComment("resource-position");
+    resources.before(marker);
+    const toggle = document.createElement("button");
+    toggle.id = "landscape-menu";
+    toggle.className = "secondary";
+    toggle.textContent = "\u2630";
+    toggle.setAttribute("aria-label", "\u041E\u0442\u043A\u0440\u044B\u0442\u044C \u043C\u0435\u043D\u044E");
+    toggle.setAttribute("aria-expanded", "false");
+    aside.id = "game-navigation";
+    toggle.setAttribute("aria-controls", aside.id);
+    const title = document.createElement("span");
+    title.className = "landscape-current";
+    const shade = document.createElement("button");
+    shade.className = "landscape-shade";
+    shade.setAttribute("aria-label", "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u043C\u0435\u043D\u044E");
+    shade.tabIndex = -1;
+    header.prepend(toggle, title);
+    document.body.append(shade);
+    const media = matchMedia(query);
+    let open = false;
+    const change = (value) => {
+      var _a2;
+      open = value && media.matches;
+      document.body.classList.toggle("landscape-menu-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u043C\u0435\u043D\u044E" : "\u041E\u0442\u043A\u0440\u044B\u0442\u044C \u043C\u0435\u043D\u044E");
+      toggle.textContent = open ? "\xD7" : "\u2630";
+      aside.inert = media.matches && !open;
+      main.inert = open;
+      if (open) (_a2 = aside.querySelector("nav button.active")) == null ? void 0 : _a2.focus();
+    };
+    toggle.onclick = () => change(!open);
+    shade.onclick = () => {
+      change(false);
+      toggle.focus();
+    };
+    aside.addEventListener("click", (e) => {
+      if (e.target.closest("nav button") && media.matches) {
+        change(false);
+        main.scrollTop = 0;
+        toggle.focus();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (!open) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        change(false);
+        toggle.focus();
+      }
+      if (e.key === "Tab") {
+        const items = [toggle, ...aside.querySelectorAll("nav button:not(:disabled)")], i = items.indexOf(document.activeElement), next = e.shiftKey ? i <= 0 ? items.length - 1 : i - 1 : (i + 1) % items.length;
+        e.preventDefault();
+        items[next].focus();
+      }
+    });
+    const syncTitle = () => {
+      var _a2;
+      title.textContent = (((_a2 = aside.querySelector("nav button.active")) == null ? void 0 : _a2.innerText) || "\u0423\u0431\u0435\u0436\u0438\u0449\u0435").replace(/\s*\d+\s*$/, "").trim();
+    };
+    new MutationObserver(syncTitle).observe(document.querySelector("#page-title"), { childList: true, subtree: true, characterData: true });
+    const resize = () => {
+      change(false);
+      if (media.matches) header.append(resources);
+      else marker.after(resources);
+      syncTitle();
+    };
+    media.addEventListener("change", resize);
+    resize();
+  }
+  var query;
+  var init_landscape_ui = __esm({
+    "landscape-ui.js"() {
+      query = "(orientation: landscape) and (max-width: 1100px) and (max-height: 550px)";
+    }
+  });
+
   // vehicles.js
   var VEHICLES, vehicleFor;
   var init_vehicles = __esm({
@@ -2068,6 +2148,7 @@
     });
   }
   async function initializeGame() {
+    initLandscape();
     $("#retry-connection").onclick = connect;
     refresh();
     loadArt().then(refresh).catch(() => toast("\u0427\u0430\u0441\u0442\u044C \u0433\u0440\u0430\u0444\u0438\u043A\u0438 \u043D\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u043B\u0430\u0441\u044C. \u041C\u043E\u0436\u043D\u043E \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0438\u0433\u0440\u0443."));
@@ -2095,6 +2176,7 @@
   var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
+      init_landscape_ui();
       init_raid_view();
       init_garage_ui();
       init_onboarding();
