@@ -44,7 +44,7 @@ export function socialAction(db,uid,path,method,body,id,options={}){
   const p=db.players[pid];if(!p)return null;ensureSocial(p,id);
   const raid=Object.values(db.raids).find(r=>r.owner===pid&&r.hp>0);
   const save=migrateSave(p.save||freshSave());
-  return {code:p.publicId,name:p.name,online:isOnline(p),level:playerLevel(save),raid:raid?{id:raid.id,map:raid.map,hp:raid.hp}:null};
+  return {code:p.publicId,name:p.name,avatar:Number.isInteger(p.avatar)&&p.avatar>=0&&p.avatar<6?p.avatar:0,online:isOnline(p),level:playerLevel(save),raid:raid?{id:raid.id,map:raid.map,hp:raid.hp}:null};
  };
  return {code:player.publicId,friends:player.friends.map(view).filter(Boolean),requests:player.friendRequests.map(view).filter(Boolean)};
 }

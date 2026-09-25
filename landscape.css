@@ -127,3 +127,13 @@ button:disabled{cursor:not-allowed}.primary:disabled,.secondary:disabled{color:#
 .ui-icon{display:inline-block;width:24px;height:24px;vertical-align:middle;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 nav .ui-icon{width:20px;height:20px}.avatar .ui-icon,.avatar-option .ui-icon{width:30px;height:30px}.contract-icon .ui-icon,.garage-banner>span>.ui-icon{width:32px;height:32px}.energy-resource .ui-icon{width:20px;height:24px}#landscape-menu,#pause{display:inline-grid;place-items:center}#landscape-menu{display:none}@media(orientation:landscape) and (max-height:550px){#landscape-menu{display:inline-grid}}
 .item-icon .ui-icon{width:42px;height:42px;color:#d8bc83}
+nav button>span:first-child{display:inline-grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border:1px solid #64807155;border-radius:7px;background:linear-gradient(#38504777,#10202277);box-shadow:inset 0 1px #d3e1bd18}
+nav button.active>span:first-child{border-color:#c8ad70;background:linear-gradient(#8b723a66,#4a493077);color:#ffe0a3}
+nav button>span .ui-icon{width:20px;height:20px}nav .nav-heading{white-space:nowrap}
+@media(max-width:1000px) and (min-height:551px){nav .nav-heading{display:none}}
+.friend-person{display:flex;align-items:center;gap:14px!important;border:1px solid #4a6154;border-radius:12px;background:linear-gradient(110deg,#243930,#152528);padding:14px!important}
+.friend-avatar{display:grid;place-items:center;flex:0 0 50px;width:50px;height:54px;border:1px solid #78967b;border-radius:10px;color:#efd7a5;background:linear-gradient(#3b5547,#21362f)}
+.friend-avatar .ui-icon{width:30px;height:30px}.friend-person-info{flex:1;min-width:0}.friend-person-info b{display:block;font-size:18px;overflow-wrap:anywhere}.friend-person-info small{display:block;color:#acc3b0;margin-top:6px}
+.friends-empty{padding:24px;text-align:center;border:1px dashed #61795f;border-radius:14px;background:#1a2d2566}.friends-empty>.ui-icon{width:42px;height:42px;color:#d9bb7e}.friends-empty h3{font-size:24px;margin:12px 0}.friends-empty p{max-width:460px;margin:0 auto;color:#b6c5b5;line-height:1.6}
+#friend-form input{min-height:44px;font:16px sans-serif;letter-spacing:1px;padding:10px;min-width:0;box-sizing:border-box}#friends-page .settings-card>p{line-height:1.7;max-width:740px}.friend-code{flex-wrap:wrap}
+@media(orientation:landscape) and (max-height:550px){aside nav button{padding:5px 8px;font-size:12px;gap:7px}.friend-person{flex-wrap:wrap}.friend-person-info{min-width:160px}.friends-empty{padding:16px}.friends-empty>.ui-icon{width:28px;height:28px}}
