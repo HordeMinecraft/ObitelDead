@@ -362,6 +362,15 @@
     }
   });
 
+  // ui-icons.js
+  var paths, icon;
+  var init_ui_icons = __esm({
+    "ui-icons.js"() {
+      paths = { "map": "M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2z M9 3v16 M15 5v16", "gear": "M4 14l3-3 3 3 8-8 2 2-8 8 2 3-3 2-3-3-3 1-2-2z", "garage": "M4 15V9l3-5h10l3 5v6 M3 10h18v7H3z M6 17v3 M18 17v3 M6 13h2 M16 13h2", "daily": "M7 4H4v17h16V4h-3 M8 2h8v5H8z M8 11h8 M8 15h6", "raids": "M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z M9 9l6 6 M15 9l-6 6", "guide": "M3 4h7l2 2 2-2h7v15h-7l-2 2-2-2H3z M12 6v15", "settings": "M9 3h6l1 4 4 1v8l-4 1-1 4H9l-1-4-4-1V8l4-1z M15 12a3 3 0 1 0-6 0 3 3 0 0 0 6 0", "friends": "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M2 21v-3a6 6 0 0 1 12 0v3 M17 4a4 4 0 0 1 0 8 M18 15a5 5 0 0 1 4 5v1", "clans": "M5 3v18 M5 4h14l-3 5 3 5H5 M2 21h6", "conflict": "M4 3l6 2 10 14-2 2L4 7z M20 3l-6 2-3 4 M9 13l-5 6 2 2 5-5 M2 17l6 5 M16 22l6-5", "medical": "M9 3h6v6h6v6h-6v6H9v-6H3V9h6z", "energy": "M14 2L4 14h7l-1 8 10-13h-7z", "diamond": "M12 2l9 10-9 10L3 12z M3 12h18 M12 2l-4 10 4 10 4-10z", "skull": "M6 16C0 6 6 2 12 2s12 4 6 14v5H6z M8 10h1v2H8z M15 10h1v2h-1z M10 21v-4 M14 21v-4", "star": "M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z", "menu": "M4 6h16 M4 12h16 M4 18h16", "close": "M6 6l12 12 M18 6L6 18", "pause": "M8 4v16 M16 4v16" };
+      icon = (name) => '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' + (paths[name] || paths.medical) + '"/></svg>';
+    }
+  });
+
   // landscape-ui.js
   function initLandscape() {
     const header = document.querySelector("header"), aside = document.querySelector("aside"), main = document.querySelector("main"), resources = document.querySelector(".resources");
@@ -370,7 +379,7 @@
     const toggle = document.createElement("button");
     toggle.id = "landscape-menu";
     toggle.className = "secondary";
-    toggle.textContent = "\u2630";
+    toggle.innerHTML = icon("menu");
     toggle.setAttribute("aria-label", "\u041E\u0442\u043A\u0440\u044B\u0442\u044C \u043C\u0435\u043D\u044E");
     toggle.setAttribute("aria-expanded", "false");
     aside.id = "game-navigation";
@@ -391,7 +400,7 @@
       document.body.classList.toggle("landscape-menu-open", open);
       toggle.setAttribute("aria-expanded", String(open));
       toggle.setAttribute("aria-label", open ? "\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u043C\u0435\u043D\u044E" : "\u041E\u0442\u043A\u0440\u044B\u0442\u044C \u043C\u0435\u043D\u044E");
-      toggle.textContent = open ? "\xD7" : "\u2630";
+      toggle.innerHTML = icon(open ? "close" : "menu");
       aside.inert = media.matches && !open;
       main.inert = open;
       if (open) (_a2 = aside.querySelector("nav button.active")) == null ? void 0 : _a2.focus();
@@ -438,6 +447,7 @@
   var query;
   var init_landscape_ui = __esm({
     "landscape-ui.js"() {
+      init_ui_icons();
       query = "(orientation: landscape) and (max-height: 550px)";
     }
   });
@@ -884,7 +894,8 @@
   var AVATARS;
   var init_profile_ui = __esm({
     "profile-ui.js"() {
-      AVATARS = ["\u271A", "\u25C8", "\u265C", "\u26A1", "\u2620", "\u2605"];
+      init_ui_icons();
+      AVATARS = ["medical", "diamond", "clans", "energy", "skull", "star"].map(icon);
     }
   });
 
@@ -1520,7 +1531,7 @@
     if (name) name.textContent = playerProfile.name;
     const avatar = document.querySelector(".profile .avatar");
     if (avatar) {
-      avatar.textContent = AVATARS[playerProfile.avatar || 0];
+      avatar.innerHTML = AVATARS[playerProfile.avatar || 0];
       avatar.className = "avatar avatar-" + (playerProfile.avatar || 0);
     }
   }
@@ -2175,9 +2186,10 @@
     if (launchValue("friend")) navigate("friends");
     else if (!invited) onboarding(navigate);
   }
-  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, menuIcons, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
+  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
+      init_ui_icons();
       init_landscape_ui();
       init_raid_view();
       init_garage_ui();
@@ -2218,11 +2230,14 @@
       } catch (e) {
       }
       document.body.classList.toggle("high-contrast", prefs.contrast);
-      item = (icon, title, badge, desc, action2) => `<article class="item"><div class="item-icon">${icon}</div><span class="badge">${badge}</span><h3>${title}</h3><p>${desc}</p>${action2}</article>`;
+      item = (glyph, title, badge, desc, action2) => `<article class="item"><div class="item-icon">${icon({ "\u25A4": "daily", "\u25C7": "diamond", "\u271A": "medical", "\u25B0": "garage", "\u26A1": "energy" }[glyph] || "gear")}</div><span class="badge">${badge}</span><h3>${title}</h3><p>${desc}</p>${action2}</article>`;
       upgrade = (field, name, desc) => item(field === "engine" ? "\u2699" : field === "trunk" ? "\u25A4" : "\u25C7", name, `\u0423\u0420\u041E\u0412\u0415\u041D\u042C ${save[field]} / 10`, desc, `<button class="primary" data-upgrade="${field}" ${save[field] >= 10 || save.scrap < upgradeCost(save[field]) ? "disabled" : ""}>${save[field] >= 10 ? "\u041C\u0410\u041A\u0421\u0418\u041C\u0423\u041C" : `\u0423\u041B\u0423\u0427\u0428\u0418\u0422\u042C \xB7 ${upgradeCost(save[field])} \u0414\u0415\u0422.`}</button>`);
       itemArt = (i) => '<canvas class="loot-art" data-item="' + i + '" width="180" height="180"></canvas>';
-      menuIcons = { "map": "M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2z M9 3v16 M15 5v16", "gear": "M4 14l3-3 3 3 8-8 2 2-8 8 2 3-3 2-3-3-3 1-2-2z", "garage": "M4 15V9l3-5h10l3 5v6 M3 10h18v7H3z M6 17v3 M18 17v3 M6 13h2 M16 13h2", "daily": "M7 4H4v17h16V4h-3 M8 2h8v5H8z M8 11h8 M8 15h6", "raids": "M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z M9 9l6 6 M15 9l-6 6", "guide": "M3 4h7l2 2 2-2h7v15h-7l-2 2-2-2H3z M12 6v15", "settings": "M9 3h6l1 4 4 1v8l-4 1-1 4H9l-1-4-4-1V8l4-1z M15 12a3 3 0 1 0-6 0 3 3 0 0 0 6 0" };
-      document.querySelectorAll("nav [data-page]").forEach((b) => b.querySelector("span").innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + (menuIcons[b.dataset.page] || "M4 20v-6h16v6 M8 14V8h8v6 M12 2v6") + '"/></svg>');
+      document.querySelectorAll("nav [data-page]").forEach((b) => b.querySelector("span").innerHTML = icon(b.dataset.page));
+      document.querySelector(".contract-icon").innerHTML = icon("daily");
+      document.querySelector(".garage-banner>span").innerHTML = icon("garage");
+      document.querySelector(".energy-resource>i").innerHTML = icon("energy");
+      document.querySelector("#pause").innerHTML = icon("pause");
       document.querySelectorAll("[data-page]").forEach((b) => b.onclick = () => navigate(b.dataset.page));
       $(".brand").onclick = (e) => {
         e.preventDefault();

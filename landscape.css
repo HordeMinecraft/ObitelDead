@@ -124,3 +124,6 @@ button:disabled{cursor:not-allowed}.primary:disabled,.secondary:disabled{color:#
 }
 @media(orientation:landscape) and (max-height:340px){.hero-copy{top:46px}.hero-copy h2{font-size:25px}.hero-copy p{margin:6px 0}.hero-meta{margin-top:8px}.mission-panel{padding:10px}.mission-panel p{display:none}.mission-panel>small{font-size:8px}.landscape-current{font-size:14px}}
 @media(prefers-reduced-motion:reduce){button{transition:none!important}}
+.ui-icon{display:inline-block;width:24px;height:24px;vertical-align:middle;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav .ui-icon{width:20px;height:20px}.avatar .ui-icon,.avatar-option .ui-icon{width:30px;height:30px}.contract-icon .ui-icon,.garage-banner>span>.ui-icon{width:32px;height:32px}.energy-resource .ui-icon{width:20px;height:24px}#landscape-menu,#pause{display:inline-grid;place-items:center}#landscape-menu{display:none}@media(orientation:landscape) and (max-height:550px){#landscape-menu{display:inline-grid}}
+.item-icon .ui-icon{width:42px;height:42px;color:#d8bc83}
