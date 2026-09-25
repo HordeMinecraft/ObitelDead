@@ -88,7 +88,7 @@ function renderSettings(){const el=$('#settings-page');el.innerHTML='<div class=
 
 async function initializeGame(){
  initLandscape();
- $('#retry-connection').onclick=connect;refresh();loadArt().then(refresh).catch(()=>toast('Часть графики не загрузилась. Можно продолжить игру.'));requestAnimationFrame(frame);await connect();setInterval(()=>{if(!document.hidden&&page==='raids')tickRaid($('#raids-page'),raid,save,serverOffset)},1000);setInterval(()=>{if(networkReady)energyHud();if(!document.hidden&&page==='raids'&&raid&&!busy)pollRaid()},4000);const invited=launchValue('raid');if(invited&&/^[a-f0-9]{12}$/.test(invited)){try{raid=(await api('raids/'+invited)).raid;navigate('raids')}catch(e){toast(e.message)}}
+ $('#retry-connection').onclick=connect;refresh();const connection=connect();let artTimer;try{await Promise.race([loadArt(),new Promise((_,reject)=>{artTimer=setTimeout(()=>reject(new Error('ART_TIMEOUT')),25000)})]);}catch{window.obitelStartupFailure?.('ART_LOAD');return;}finally{clearTimeout(artTimer)}refresh();document.body.classList.remove('art-loading');document.getElementById('art-loading-screen')?.remove();requestAnimationFrame(frame);await connection;setInterval(()=>{if(!document.hidden&&page==='raids')tickRaid($('#raids-page'),raid,save,serverOffset)},1000);setInterval(()=>{if(networkReady)energyHud();if(!document.hidden&&page==='raids'&&raid&&!busy)pollRaid()},4000);const invited=launchValue('raid');if(invited&&/^[a-f0-9]{12}$/.test(invited)){try{raid=(await api('raids/'+invited)).raid;navigate('raids')}catch(e){toast(e.message)}}
  if(launchValue('friend'))navigate('friends');else if(!invited)onboarding(navigate);
 }
 initializeGame().catch(()=>window.obitelStartupFailure?.('GAME_START'));

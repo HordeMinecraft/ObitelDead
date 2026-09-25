@@ -1143,6 +1143,7 @@
       img.onerror = () => resolve();
       img.src = "assets/district-" + i + ".png";
     }))), loadSprite("assets/characters.png").then((c) => spriteAtlas = c), loadSprite("assets/equipment.png").then((c) => equipmentAtlas = c), loadSprite("assets/armor-tiers.png").then((c) => armorAtlas = c), loadSprite("assets/items.png").then((c) => itemAtlas = c), loadSprite("assets/weapons-loot.png").then((c) => weaponAtlas = c), loadSprite("assets/arsenal-expanded.png").then((c) => expandedAtlas = c)]);
+    if (environments.filter(Boolean).length !== 8 || !spriteAtlas || !equipmentAtlas || !armorAtlas || !itemAtlas || !weaponAtlas || !expandedAtlas) throw new Error("ART_LOAD");
   }
   function drawRig(g2, atlas, index, size, time, moving, running, type) {
     const sw = atlas.width / 3, sh = atlas.height / 2, sx = index % 3 * sw, sy = Math.floor(index / 3) * sh, k = size / sw, hip = sh * (type === "runner" ? 0.53 : 0.59), knee = sh * 0.77, phase = time * 8, swing = moving ? Math.sin(phase) * (running ? 0.25 : 0.13) : 0, bob = moving ? Math.abs(Math.sin(phase)) * 2 : 0, originX = -size * 0.5, originY = -size * 0.94 - bob;
@@ -2162,12 +2163,27 @@
     });
   }
   async function initializeGame() {
+    var _a2, _b2;
     initLandscape();
     $("#retry-connection").onclick = connect;
     refresh();
-    loadArt().then(refresh).catch(() => toast("\u0427\u0430\u0441\u0442\u044C \u0433\u0440\u0430\u0444\u0438\u043A\u0438 \u043D\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u043B\u0430\u0441\u044C. \u041C\u043E\u0436\u043D\u043E \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0438\u0433\u0440\u0443."));
+    const connection = connect();
+    let artTimer;
+    try {
+      await Promise.race([loadArt(), new Promise((_, reject) => {
+        artTimer = setTimeout(() => reject(new Error("ART_TIMEOUT")), 25e3);
+      })]);
+    } catch (e) {
+      (_a2 = window.obitelStartupFailure) == null ? void 0 : _a2.call(window, "ART_LOAD");
+      return;
+    } finally {
+      clearTimeout(artTimer);
+    }
+    refresh();
+    document.body.classList.remove("art-loading");
+    (_b2 = document.getElementById("art-loading-screen")) == null ? void 0 : _b2.remove();
     requestAnimationFrame(frame);
-    await connect();
+    await connection;
     setInterval(() => {
       if (!document.hidden && page === "raids") tickRaid($("#raids-page"), raid, save, serverOffset);
     }, 1e3);
