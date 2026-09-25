@@ -91,3 +91,36 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,su
 }
 @media(prefers-reduced-motion:reduce){nav button{transition:none}}
 @media(min-width:761px) and (min-height:551px){aside{position:sticky;top:0;align-self:start;max-height:100dvh;overflow-y:auto;box-sizing:border-box;scrollbar-width:thin}nav{gap:2px}nav button{min-height:44px;padding:9px 12px}.profile{margin-bottom:12px}nav .nav-heading{padding-top:12px}.radio,.aside-foot{display:none}}
+
+/* Unified control surfaces: brass actions, dark steel secondary controls. */
+.primary,.secondary,.boss-select{border-radius:9px;font-weight:600;line-height:1.25;min-height:44px;box-sizing:border-box}
+.primary{color:#261c11;background:linear-gradient(180deg,#f2d29a 0%,#d9aa64 55%,#c18c48 100%);border:1px solid #efd39e;box-shadow:inset 0 1px #fff8,0 3px 0 #73502b,0 6px 14px #0004;text-shadow:0 1px #ffe8c04d}
+.secondary{color:#d7e0d6;background:linear-gradient(180deg,#2c403e,#1a2c2d);border:1px solid #58716a;box-shadow:inset 0 1px #c9e0cc20,0 3px 8px #0003;letter-spacing:.5px}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:disabled{cursor:not-allowed}.primary:disabled,.secondary:disabled{color:#85928b;background:#23302d;border-color:#3d4d46;box-shadow:none;text-shadow:none;opacity:.75;transform:none;filter:none}
+.primary:not(:disabled):active,.secondary:not(:disabled):active{transform:translateY(1px);box-shadow:inset 0 2px 5px #0004}
+@media(hover:hover){.secondary:not(:disabled):hover{border-color:#c4ad78;color:#fff0d0;background:linear-gradient(#354c45,#223632)}.primary:not(:disabled):hover{filter:brightness(1.08)}}
+.boss-select,input:not([type=checkbox]):not([type=range]){color:#eae8d8;background-color:#101f22;border:1px solid #526e63;border-radius:8px}
+.raid-tabs button[aria-pressed=true]{color:#ffe2b0;background:linear-gradient(#655535,#403c29);border-color:#d4b47a;box-shadow:inset 0 1px #fff2}
+.settings-card,.journal,.clan-banner,.garage-showroom,.loadout-hero{border-radius:14px;box-shadow:inset 0 1px #d2dfc310,0 8px 22px #0003}
+@media(orientation:landscape) and (max-height:550px){
+ body:not(.in-battle) header{background:linear-gradient(90deg,#20332e,#101f23);border-bottom:1px solid #6c79604d;box-shadow:0 3px 12px #0004;gap:12px}
+ #landscape-menu{border-radius:9px;border-color:#8c9c7f;background:linear-gradient(#3a5145,#22362f);font-size:22px}
+ .landscape-current{font-size:17px;color:#f2e8cf;letter-spacing:.3px}
+ header .resources>span{border-radius:8px;background:linear-gradient(#30423c,#172726);border:1px solid #566e5b;box-shadow:inset 0 1px #dbe6bf1a;min-width:70px}
+ body:not(.in-battle) main{padding-top:10px;background:radial-gradient(at 75% 0,#45583b20,transparent 65%)}
+ aside{width:min(660px,92vw);padding:10px 14px 12px max(14px,env(safe-area-inset-left));background:linear-gradient(135deg,#22392f,#111f23);border-right-color:#9b895f}
+ aside nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ aside nav .nav-heading{grid-column:1/-1;font-size:9px;letter-spacing:1.4px;padding:5px 5px 2px;color:#afbc9d}
+ aside nav button{background:#0b1b2066;border:1px solid #52695b66;border-radius:8px;font-size:12px;gap:8px;min-height:44px}
+ aside nav button.active{background:linear-gradient(100deg,#89703b66,#384331);border-color:#d2b074}
+ aside nav button.active:after{display:none}
+ .hero{height:clamp(220px,calc(100dvh - 76px),300px);border-radius:12px}
+ .hero-copy{top:58px;width:44%;left:18px}.hero-copy h2{font-size:30px;margin:5px 0 8px}.hero-copy p{font-size:12px;line-height:1.45}
+ .hero-meta{margin-top:12px;gap:8px;font-size:8px}.mission-panel{bottom:12px;right:12px;width:43%;padding:14px;border-color:#87937480;background:linear-gradient(135deg,#30423af5,#142528f5)}
+ .mission-panel .primary{min-height:46px;margin-top:12px;font-size:12px}.mission-panel strong{font-size:16px}.mission-panel p{margin:8px 0}
+ .boss-route{border-radius:10px;margin-top:10px}.section-title h3{font-size:21px}
+ .settings-card,.journal{padding:16px}.setting-row{min-height:44px}.raid-controls{gap:10px}.raid-controls button{min-height:44px}
+}
+@media(orientation:landscape) and (max-height:340px){.hero-copy{top:46px}.hero-copy h2{font-size:25px}.hero-copy p{margin:6px 0}.hero-meta{margin-top:8px}.mission-panel{padding:10px}.mission-panel p{display:none}.mission-panel>small{font-size:8px}.landscape-current{font-size:14px}}
+@media(prefers-reduced-motion:reduce){button{transition:none!important}}
