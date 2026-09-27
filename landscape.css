@@ -151,3 +151,15 @@ nav button>span:first-child{background:radial-gradient(circle at 30% 15%,#728372
 #dash{touch-action:none;background:radial-gradient(circle at 40% 25%,#647748,#243e30 75%);border:2px solid #d3b371;box-shadow:inset 0 2px #e5d7a533,0 5px 16px #0006;color:#f2dfb1}
 #dash:active{background:#536c3f;box-shadow:inset 0 3px 10px #0006}
 @media(orientation:landscape) and (max-height:550px){#joystick{width:104px;height:104px}#dash{width:88px;height:88px}.battle-stats{background:#102322bb;border:1px solid #71816766;border-radius:9px}.battle-top>div{background:#102322bb;border:1px solid #71816766;border-radius:9px}.section-title{margin-top:16px;padding-bottom:8px}.primary,.secondary{letter-spacing:.35px}}
+
+/* Keep recovery controls available without hiding the game behind diagnostics. */
+.connection-details summary{cursor:pointer;font-size:12px;margin-top:6px;color:#d4c6a7}
+.connection-details p{max-width:70ch}
+@media (orientation:landscape) and (max-height:550px){
+ .connection-error{padding:6px 10px;gap:10px;margin-bottom:8px}
+ .connection-error>div{min-width:0;flex:1}
+ .connection-error b{font-size:13px;line-height:1.2}
+ .connection-details summary{font-size:11px;margin-top:3px}
+ .connection-error button{min-height:44px;padding:6px 12px}
+ .connection-details[open] p{font-size:11px;line-height:1.35}
+}
