@@ -1,8 +1,16 @@
 {
-  "name": "obitel-dead-api",
+  "name": "obiteldead",
   "main": "worker.js",
   "compatibility_date": "2026-09-16",
   "workers_dev": true,
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    }
+  },
   "vars": {
     "ALLOWED_ORIGINS": "https://hordeminecraft.github.io"
   },

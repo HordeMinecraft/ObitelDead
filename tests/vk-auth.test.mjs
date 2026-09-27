@@ -35,6 +35,7 @@ test('safelisted VK login preserves the guest profile and rejects foreign origin
  assert.equal((await api(req('https://evil.example'),env)).status,403);
  const result=await api(req('https://hordeminecraft.github.io'),env);
  assert.equal(result.status,200);assert.equal(result.headers.get('x-obitel-session'),guest);
+ assert.equal(result.headers.get('set-cookie'),null);
  assert.equal(result.headers.get('access-control-allow-origin'),'https://hordeminecraft.github.io');
  const profile=await(await api(request(guest,'profile'),env)).json();assert.equal(profile.save.xp,700);assert.equal(profile.account,'vk');DB.sqlite.close();
 });

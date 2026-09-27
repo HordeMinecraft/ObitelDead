@@ -75,7 +75,9 @@ export async function api(request,env){
    const committed=await env.DB.prepare('UPDATE game_world SET data = ?, revision = revision + 1 WHERE id = ? AND revision = ?').bind(JSON.stringify(db),'beta',row.revision).run();
    if(committed.meta.changes!==1)continue;
    headers.set('X-Obitel-Session',account);
-   headers.set('Set-Cookie',`obitel_session=${account}; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=31536000`);
+   // Cross-origin clients explicitly use the session header, never third-party cookies.
+   if(!request.headers.get('origin')||request.headers.get('origin')===url.origin)
+    headers.set('Set-Cookie',`obitel_session=${account}; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=31536000`);
    return json({authenticated:true,provider:'vk'},200,headers);
   }
   const existingId=(inbound.cookie||'').match(/(?:^|;\s*)obitel_session=([a-f0-9]{32})(?:;|$)/)?.[1];
@@ -90,7 +92,7 @@ export async function api(request,env){
      const cookie=String(v).replace('SameSite=Strict','SameSite=None; Secure');
      const token=cookie.match(/obitel_session=([a-f0-9]{32})/)?.[1];
      if(token)headers.set('X-Obitel-Session',token);
-     headers.set('Set-Cookie',cookie);
+     if(!request.headers.get('origin')||request.headers.get('origin')===url.origin)headers.set('Set-Cookie',cookie);
      return;
     }
     headers.set(k,v);
@@ -111,7 +113,11 @@ export default {
  async fetch(request,env){
   try{
    const url=new URL(request.url);
-   if(url.pathname.startsWith('/api/'))return await api(request,env);
+   if(url.pathname.startsWith('/api/')){
+    const response=await api(request,env);
+    if(url.pathname==='/api/auth/vk')console.info(JSON.stringify({event:'vk-login-response',status:response.status,origin:request.headers.get('origin'),allowOrigin:response.headers.get('access-control-allow-origin'),cookie:response.headers.has('set-cookie')}));
+    return response;
+   }
    return json({service:'obitel-api',ok:true,health:'/api/health'},200,{'Cache-Control':'no-store'});
   }catch(error){
    console.error('Worker error',error);
