@@ -1061,10 +1061,15 @@
     if (tokenMode && token && !authRequest) headers["X-Obitel-Session"] = token;
     const controller = new AbortController(), started = performance.now();
     const timeout = setTimeout(() => controller.abort(), 15e3);
+    let phase = "fetch", httpStatus = 0;
     try {
       const response = await fetch(new URL(path, API_BASE), { method: body === void 0 ? "GET" : "POST", headers, credentials: crossOrigin ? "omit" : "same-origin", body: body === void 0 ? void 0 : JSON.stringify(payload), signal: controller.signal });
-      if (!((_a2 = response.headers.get("content-type")) == null ? void 0 : _a2.includes("application/json"))) throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0435\u0440\u043D\u0443\u043B \u043D\u0435\u0432\u0435\u0440\u043D\u044B\u0439 \u043E\u0442\u0432\u0435\u0442. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0437\u0436\u0435.");
+      phase = "body";
+      httpStatus = response.status;
+      if (!((_a2 = response.headers.get("content-type")) == null ? void 0 : _a2.includes("application/json"))) throw Object.assign(new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0435\u0440\u043D\u0443\u043B \u043E\u0442\u0432\u0435\u0442 \u043D\u0435 \u0432 \u0444\u043E\u0440\u043C\u0430\u0442\u0435 JSON. \u041A\u043E\u0434 RESPONSE_FORMAT. HTTP " + httpStatus), { status: httpStatus });
       const data = await response.json();
+      phase = "processing";
+      if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("\u041D\u0435\u0432\u0435\u0440\u043D\u0430\u044F \u0441\u0442\u0440\u0443\u043A\u0442\u0443\u0440\u0430 \u043E\u0442\u0432\u0435\u0442\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0430. \u041A\u043E\u0434 RESPONSE_FORMAT.");
       if (!response.ok) throw Object.assign(new Error(data.error || "\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D"), { status: response.status });
       const issued = response.headers.get("X-Obitel-Session");
       if (tokenMode && issued && /^[a-f0-9]{32}$/.test(issued)) {
@@ -1085,7 +1090,8 @@
       return data;
     } catch (error) {
       if ((error == null ? void 0 : error.name) === "AbortError") throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u043E\u0442\u0432\u0435\u0447\u0430\u0435\u0442 \u0434\u043E\u043B\u044C\u0448\u0435 15 \u0441\u0435\u043A\u0443\u043D\u0434. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0441\u0432\u044F\u0437\u044C \u0438 \u043F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u043F\u044B\u0442\u043A\u0443.");
-      if (error instanceof TypeError) throw new Error("\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0441\u0432\u044F\u0437\u0430\u0442\u044C\u0441\u044F \u0441 \u0438\u0433\u0440\u043E\u0432\u044B\u043C \u0441\u0435\u0440\u0432\u0435\u0440\u043E\u043C (" + new URL(API_BASE).hostname + "). \u041A\u043E\u0434 NETWORK_FETCH. \u0417\u0430\u043F\u0440\u043E\u0441: " + (path === "auth/vk" ? "\u0432\u0445\u043E\u0434 VK" : path === "profile" ? "\u043F\u0440\u043E\u0444\u0438\u043B\u044C" : "\u0438\u0433\u0440\u043E\u0432\u043E\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435") + ". \u0418\u0441\u0442\u043E\u0447\u043D\u0438\u043A: " + location.origin + ". \u0420\u0435\u0436\u0438\u043C: " + (window.parent !== window ? "iframe" : "\u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0430") + ". \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0435.");
+      if (phase === "body" && (error instanceof TypeError || error instanceof SyntaxError)) throw new Error("\u041E\u0442\u0432\u0435\u0442 \u0441\u0435\u0440\u0432\u0435\u0440\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D, \u043D\u043E \u043D\u0435 \u043F\u0440\u043E\u0447\u0438\u0442\u0430\u043D. \u041A\u043E\u0434 RESPONSE_BODY. HTTP " + httpStatus + ". \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0435.");
+      if (phase === "fetch" && error instanceof TypeError) throw new Error("\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u043E\u0442\u0432\u0435\u0442 \u0438\u0433\u0440\u043E\u0432\u043E\u0433\u043E \u0441\u0435\u0440\u0432\u0435\u0440\u0430 (" + new URL(API_BASE).hostname + "). \u041A\u043E\u0434 NETWORK_FETCH. \u0417\u0430\u043F\u0440\u043E\u0441: " + (path === "auth/vk" ? "\u0432\u0445\u043E\u0434 VK" : path === "profile" ? "\u043F\u0440\u043E\u0444\u0438\u043B\u044C" : "\u0438\u0433\u0440\u043E\u0432\u043E\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435") + ". \u0418\u0441\u0442\u043E\u0447\u043D\u0438\u043A: " + location.origin + ". \u0420\u0435\u0436\u0438\u043C: " + (window.parent !== window ? "iframe" : "\u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0430") + ". \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0435.");
       throw error;
     } finally {
       clearTimeout(timeout);
@@ -1553,11 +1559,7 @@
     try {
       const params = new URLSearchParams(location.search);
       if (params.has("sign")) {
-        try {
-          await requestAPI("auth/vk", { launch: new URLSearchParams([...params].filter(([k]) => k.startsWith("vk_") || k === "sign")).toString() });
-        } catch (e) {
-          if (e.status !== 503 && e.status !== 404) throw e;
-        }
+        await requestAPI("auth/vk", { launch: new URLSearchParams([...params].filter(([k]) => k.startsWith("vk_") || k === "sign")).toString() });
       }
       const profile = await api("profile");
       networkReady = true;
@@ -1804,12 +1806,16 @@
   function joystick(e) {
     if (e.pointerId !== pointer) return;
     let b = joy.getBoundingClientRect(), x = (e.clientX - b.left - b.width / 2) / (b.width * 0.36), y = (e.clientY - b.top - b.height / 2) / (b.height * 0.36), l = Math.max(1, Math.hypot(x, y));
-    stick = { x: x / l, y: y / l };
-    joy.firstElementChild.style.transform = `translate(${stick.x * 30}px,${stick.y * 30}px)`;
+    const magnitude = Math.hypot(x, y), strength = magnitude < 0.12 ? 0 : Math.min(1, (magnitude - 0.12) / 0.88);
+    stick = { x: magnitude ? x / magnitude * strength : 0, y: magnitude ? y / magnitude * strength : 0 };
+    const travel = b.width * 0.28;
+    joy.firstElementChild.style.transform = `translate(${stick.x * travel}px,${stick.y * travel}px)`;
   }
   function pause() {
     if (!run || run.ended) return;
     run.paused = !run.paused;
+    pointer = null;
+    joy.firstElementChild.style.transform = "";
     keys.clear();
     setSprint(false);
     stick = { x: 0, y: 0 };
@@ -2305,7 +2311,7 @@
       pointer = null;
       joy = $("#joystick");
       joy.onpointerdown = (e) => {
-        if (pointer !== null) return;
+        if (pointer !== null || !run || run.paused || run.ended) return;
         e.preventDefault();
         pointer = e.pointerId;
         joy.setPointerCapture(pointer);
