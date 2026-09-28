@@ -42,3 +42,10 @@ Cloudflare Access не настроен; D1 DB и секрет VK_APP_SECRET п�
 В 23:34:33 тот же тип клиента VK iOS через сеть с выходом в Испании выполнил вход, OPTIONS /api/profile и GET /api/profile 200 с выданной сессией. Пользователь подтвердил: с VPN игра работает. Установлена зависимость сбоя от сетевого маршрута к Cloudflare; конкретный механизм сетевого ограничения по этим логам не определяется. Cloudflare описывает ограничения российских операторов: https://blog.cloudflare.com/russian-internet-users-are-unable-to-access-the-open-internet/
 
 Подготовлен api-gateway.mjs для размещения на доступном внешнем сервере. Он сохраняет существующий Worker и D1 в качестве единственного источника данных. Публичный адрес клиента ещё не переключён: хостинг шлюза не предоставлен, доступность нового адреса с телефона не проверена. Исправление для игроков пока не завершено.
+
+2026-09-28: deployed isolated PHP transport at api.hordeminecraft.ru/obitel-gateway.php.
+Client switches public production requests to this endpoint, keeping signed VK
+validation and all saves in the existing Worker/D1. Live health, CORS, invalid
+signature rejection, session forwarding and identical player progress verified.
+Mobile VK without VPN remains a user-device verification; do not infer success
+from server-to-server checks. See GATEWAY-DEPLOY.md.

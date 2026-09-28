@@ -1,6 +1,7 @@
-// Публичный адрес API. После первого деплоя Cloudflare Worker замени только эту строку.
-// Пример: https://obitel-dead-api.<твой-subdomain>.workers.dev/api/
-const CLOUD_API='https://obiteldead.deniswww127.workers.dev/api/';
+// PHP transport forwards to the existing Worker and D1; no new game database.
+const CLOUD_API=location.hostname==='hordeminecraft.github.io'
+ ? 'https://api.hordeminecraft.ru/obitel-gateway.php/'
+ : 'https://obiteldead.deniswww127.workers.dev/api/';
 
 const isRemoteFrontend=
  location.hostname==='hordeminecraft.github.io'||

@@ -2,7 +2,14 @@ import {API_BASE} from './config.js';
 const tokenKey='obitel-session:'+API_BASE;
 const crossOrigin=new URL(API_BASE).origin!==location.origin;
 const tokenMode=crossOrigin||window.parent!==window;
-let token='';try{token=localStorage.getItem(tokenKey)||''}catch{}
+let token='';try{
+ token=localStorage.getItem(tokenKey)||'';
+ // Only this gateway shares the original production world. Preserve guest saves.
+ if(!token&&API_BASE==='https://api.hordeminecraft.ru/obitel-gateway.php/'){
+  const previous=localStorage.getItem('obitel-session:https://obiteldead.deniswww127.workers.dev/api/');
+  if(/^[a-f0-9]{32}$/.test(previous||'')){token=previous;localStorage.setItem(tokenKey,token)}
+ }
+}catch{}
 const reads=new Map();
 export function requestAPI(path,body){
  if(body===undefined&&reads.has(path))return reads.get(path);
@@ -20,7 +27,11 @@ async function performRequest(path,body){
  const timeout=setTimeout(()=>controller.abort(),15000);
  let phase='fetch',httpStatus=0;
  try{
-  const response=await fetch(new URL(path,API_BASE),{method:body===undefined?'GET':'POST',headers,credentials:crossOrigin?'omit':'same-origin',body:body===undefined?undefined:JSON.stringify(payload),signal:controller.signal});
+  let url=new URL(path,API_BASE);
+  if(API_BASE==='https://api.hordeminecraft.ru/obitel-gateway.php/'){
+   url=new URL(API_BASE.slice(0,-1));url.searchParams.set('route',path);
+  }
+  const response=await fetch(url,{method:body===undefined?'GET':'POST',headers,credentials:crossOrigin?'omit':'same-origin',body:body===undefined?undefined:JSON.stringify(payload),signal:controller.signal});
   phase='body';httpStatus=response.status;
   if(!response.headers.get('content-type')?.includes('application/json'))throw Object.assign(new Error('Сервер вернул ответ не в формате JSON. Код RESPONSE_FORMAT. HTTP '+httpStatus),{status:httpStatus});
   const data=await response.json();

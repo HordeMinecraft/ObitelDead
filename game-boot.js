@@ -1033,7 +1033,7 @@
   var CLOUD_API, isRemoteFrontend, normalize, override, API_BASE;
   var init_config = __esm({
     "config.js"() {
-      CLOUD_API = "https://obiteldead.deniswww127.workers.dev/api/";
+      CLOUD_API = location.hostname === "hordeminecraft.github.io" ? "https://api.hordeminecraft.ru/obitel-gateway.php/" : "https://obiteldead.deniswww127.workers.dev/api/";
       isRemoteFrontend = location.hostname === "hordeminecraft.github.io" || location.hostname === "obitel.sourcecraft.site" || location.hostname.endsWith(".pages.dev");
       normalize = (value) => value.endsWith("/") ? value : value + "/";
       override = globalThis.OBITEL_API_BASE;
@@ -1063,7 +1063,12 @@
     const timeout = setTimeout(() => controller.abort(), 15e3);
     let phase = "fetch", httpStatus = 0;
     try {
-      const response = await fetch(new URL(path, API_BASE), { method: body === void 0 ? "GET" : "POST", headers, credentials: crossOrigin ? "omit" : "same-origin", body: body === void 0 ? void 0 : JSON.stringify(payload), signal: controller.signal });
+      let url = new URL(path, API_BASE);
+      if (API_BASE === "https://api.hordeminecraft.ru/obitel-gateway.php/") {
+        url = new URL(API_BASE.slice(0, -1));
+        url.searchParams.set("route", path);
+      }
+      const response = await fetch(url, { method: body === void 0 ? "GET" : "POST", headers, credentials: crossOrigin ? "omit" : "same-origin", body: body === void 0 ? void 0 : JSON.stringify(payload), signal: controller.signal });
       phase = "body";
       httpStatus = response.status;
       if (!((_a2 = response.headers.get("content-type")) == null ? void 0 : _a2.includes("application/json"))) throw Object.assign(new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0432\u0435\u0440\u043D\u0443\u043B \u043E\u0442\u0432\u0435\u0442 \u043D\u0435 \u0432 \u0444\u043E\u0440\u043C\u0430\u0442\u0435 JSON. \u041A\u043E\u0434 RESPONSE_FORMAT. HTTP " + httpStatus), { status: httpStatus });
@@ -1107,6 +1112,13 @@
       token = "";
       try {
         token = localStorage.getItem(tokenKey) || "";
+        if (!token && API_BASE === "https://api.hordeminecraft.ru/obitel-gateway.php/") {
+          const previous = localStorage.getItem("obitel-session:https://obiteldead.deniswww127.workers.dev/api/");
+          if (/^[a-f0-9]{32}$/.test(previous || "")) {
+            token = previous;
+            localStorage.setItem(tokenKey, token);
+          }
+        }
       } catch (e) {
       }
       reads = /* @__PURE__ */ new Map();
