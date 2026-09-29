@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ru">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#101713"><title>Обитель Мёртвых — зона отчуждения</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="beta-theme.css"><link rel="stylesheet" href="mobile-clans.css"><link rel="stylesheet" href="visual-theme.css"><meta name="description" content="Обитель Мёртвых — бесплатная онлайн-игра о выживании среди зомби. Зачищай районы, собирай ресурсы, улучшай оружие и броню, объединяйся с друзьями против боссов."><meta property="og:type" content="website"><meta property="og:title" content="Обитель Мёртвых — выживание среди зомби"><meta property="og:description" content="Исследуй заброшенный город, развивай выжившего и сражайся с боссами вместе с друзьями."><meta property="og:image" content="https://hordeminecraft.github.io/ObitelDead/assets/brand-beta.png"><meta property="og:url" content="https://hordeminecraft.github.io/ObitelDead/"><meta name="twitter:card" content="summary"><meta name="robots" content="index,follow"><link rel="canonical" href="https://hordeminecraft.github.io/ObitelDead/"><script src="startup.js"></script><script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Обитель Мёртвых","url":"https://hordeminecraft.github.io/ObitelDead/","description":"Онлайн-игра о выживании среди зомби: зачистка районов, развитие персонажа и совместные рейды на боссов.","genre":["Survival","Action","Role-playing"],"gamePlatform":"Web browser","inLanguage":"ru","isAccessibleForFree":true}</script><link rel="stylesheet" href="raid-layout.css">
-<link rel="stylesheet" href="landscape.css?v=20260928a">
+<link rel="stylesheet" href="landscape.css?v=20260929a">
 <style>
 body.art-loading{margin:0;background:#101c20}body.art-loading>.app{visibility:hidden}#art-loading-screen{position:fixed;inset:0;z-index:9990;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 35%,#334536,#101c20 70%);color:#ead7b4;text-align:center;font-family:sans-serif;padding:20px;box-sizing:border-box}#art-loading-screen img{width:84px;height:84px;object-fit:contain}#art-loading-screen h2{font-size:24px;letter-spacing:3px;margin:18px 0}#art-loading-screen p{color:#b3c1b0;font-size:14px}#art-loading-screen .loading-track{height:3px;width:220px;background:#405447;overflow:hidden;margin:22px auto}#art-loading-screen .loading-track:after{content:'';display:block;width:35%;height:100%;background:#dfb575;animation:load-signal 1.5s ease-in-out infinite alternate}@keyframes load-signal{to{transform:translateX(185%)}}@media(prefers-reduced-motion:reduce){#art-loading-screen .loading-track:after{animation:none}}
 </style></head>
@@ -12,53 +12,4 @@ body.art-loading{margin:0;background:#101c20}body.art-loading>.app{visibility:hi
 <div class="boss-route"><span><b>ОХОТА НА БОССА</b><small id="boss-progress">НУЖНО 3 ЗАЧИСТКИ</small></span><button class="secondary" id="boss-open">К РЕЙД-БОССУ ↗</button></div><div class="section-title"><h3>Маршрут выжившего <span>01 — 08</span></h3><span>8 РАЙОНОВ / 8 БОССОВ</span></div><div id="maps" class="map-grid"></div><div class="bottom-grid"><button class="contract-banner" data-page="daily"><span class="contract-icon">▤</span><div><span class="eyebrow orange">ЕЖЕДНЕВНЫЙ КОНТРАКТ</span><h3>Город должен стать тише</h3><p id="daily-short">Устранить 20 заражённых</p></div><span class="reward">+120 <small>ДЕТАЛЕЙ ↗</small></span></button><button class="garage-banner" data-page="garage"><span>▰</span><div><span class="eyebrow">ТВОЯ МОБИЛЬНАЯ БАЗА</span><h3>«Кочевник» <small id="car-level">УР. 0</small></h3><p>Подготовь машину к следующей вылазке ↗</p></div></button></div></section>
 <section id="gear-page" class="page" hidden></section><section id="garage-page" class="page" hidden></section><section id="daily-page" class="page" hidden></section><section id="raids-page" class="page" hidden></section><section id="friends-page" class="page" hidden></section><section id="clans-page" class="page" hidden></section><section id="conflict-page" class="page" hidden></section><section id="settings-page" class="page" hidden></section><section id="guide-page" class="page" hidden></section><section class="about-game"><h2>Обитель Мёртвых</h2><p>Город опустел, но борьба за жизнь продолжается. Исследуй восемь опасных районов, отбивай волны зомби и возвращайся в убежище с ресурсами. Создавай оружие, подбирай броню и улучшай свою мобильную базу.</p><p>Добавляй друзей, собирай отряд и атакуй сильных боссов. Каждый участник сражается в удобное время, приближая общую победу. Новые вылазки, ежедневные задания и развитие выжившего ждут тебя в Обители Мёртвых.</p></section><footer><span><i></i> УБЕЖИЩЕ В БЕЗОПАСНОСТИ</span><span>Сохранение на сервере <b>●</b></span></footer></main></div></div>
 <section id="game" hidden aria-label="Боевая вылазка"><canvas id="battle" width="960" height="600" tabindex="0" aria-label="Поле боя. Двигайтесь WASD или стрелками, Shift или пробел — бег."></canvas><div class="battle-top"><div><span id="battle-location"></span><b id="wave-label">ВОЛНА 1 / 3</b></div><button id="pause" aria-label="Пауза">Ⅱ</button></div><div class="battle-stats"><div><span id="hp-label">100 / 100</span><div class="hp-track"><i id="hp-bar"></i></div></div><div class="stamina-track"><i id="stamina-fill"></i></div><span class="stamina-title">ВЫНОСЛИВОСТЬ</span><span id="section-count">УЧАСТОК 1 / 3</span><span id="kill-label">0 УСТРАНЕНО</span></div><div id="boss-hud" hidden><span id="boss-name"></span><div><i id="boss-bar"></i></div></div><div class="battle-help">WASD / СТРЕЛКИ — ДВИЖЕНИЕ · АВТООГОНЬ · SHIFT / ПРОБЕЛ — БЕГ</div><div id="joystick" aria-label="Виртуальный джойстик"><i></i></div><button id="dash">БЕЖАТЬ <small>УДЕРЖИВАЙ</small></button><div id="overlay" hidden><div class="result-card"><span class="eyebrow orange" id="result-tag"></span><h2 id="result-title"></h2><p id="result-text"></p><div id="result-actions"></div></div></div></section><div id="toast" role="status"></div>
-<!-- VK ID One Tap: добавлено без удаления существующего кода -->
-<div id="VkIdSdkOneTap"></div>
-<script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script>
-<script type="text/javascript">
-(function () {
-  if (!('VKIDSDK' in window)) {
-    console.error('VK ID SDK не загрузился');
-    return;
-  }
-
-  const VKID = window.VKIDSDK;
-
-  VKID.Config.init({
-    app: 54794605,
-    redirectUrl: 'https://hordeminecraft.github.io/ObitelDead/',
-    responseMode: VKID.ConfigResponseMode.Callback,
-    source: VKID.ConfigSource.LOWCODE,
-    scope: ''
-  });
-
-  const oneTap = new VKID.OneTap();
-  const container = document.getElementById('VkIdSdkOneTap');
-
-  if (!container) return;
-
-  oneTap.render({
-    container: container,
-    showAlternativeLogin: true
-  })
-  .on(VKID.WidgetEvents.ERROR, vkidOnError)
-  .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
-    const code = payload.code;
-    const deviceId = payload.device_id;
-
-    VKID.Auth.exchangeCode(code, deviceId)
-      .then(vkidOnSuccess)
-      .catch(vkidOnError);
-  });
-
-  function vkidOnSuccess(data) {
-    console.log('VK ID: вход выполнен', data);
-  }
-
-  function vkidOnError(error) {
-    console.error('VK ID: ошибка авторизации', error);
-  }
-})();
-</script>
-<!-- /VK ID One Tap -->
-<script defer src="game-boot.js?v=20260928a"></script></body></html>
+<script defer src="game-boot.js?v=20260929a"></script></body></html>
