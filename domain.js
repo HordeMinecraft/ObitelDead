@@ -85,6 +85,8 @@ export function createHandler(db,commit,id,services={}){
      const verified=await services.resolveVKFriends(b.accessToken);
      if(verified.user!==p.vkUserId)err('Аккаунт VK не совпадает с игровым профилем',403);
      p.vkFriendIds=verified.friends;p.vkFriendsAt=now();
+     if(vkPhoto(verified.photo))p.vkPhoto=vkPhoto(verified.photo);
+     for(const user of verified.friends){const friend=db.players[db.vkAccounts?.[user]];const photo=vkPhoto(verified.photos?.[user]);if(friend?.vkUserId===user&&photo)friend.vkPhoto=photo;}
     }
     result=socialAction(db,session,'/api/friends','GET',{},id,{onlineWindow:ONLINE_WINDOW});
    }

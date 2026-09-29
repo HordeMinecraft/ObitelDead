@@ -1,3 +1,4 @@
+import {vkPhoto} from './vk-profile.js';
 // The token is used transiently, never persisted or logged.
 export async function verifiedVKFriends(token,fetcher=fetch){
  const fail=(message,status=502)=>{throw Object.assign(new Error(message),{status})};
@@ -11,15 +12,15 @@ export async function verifiedVKFriends(token,fetcher=fetch){
    return data.response;
   }catch(e){if(e.status)throw e;fail('Не удалось получить друзей из VK. Повтори позже.')}finally{clearTimeout(timer)}
  }
- const user=await call('users.get');
+ const user=await call('users.get',{fields:'photo_200'});
  if(!Array.isArray(user)||user.length!==1||!Number.isSafeInteger(user[0].id)||user[0].id<=0)fail('VK не подтвердил владельца профиля',403);
- const friends=[];
+ const friends=[],photos={};
  for(let offset=0;offset<20000;){
-  const page=await call('friends.get',{count:5000,offset});
-  if(!page||!Number.isSafeInteger(page.count)||page.count<0||page.count>20000||!Array.isArray(page.items)||page.items.some(id=>!Number.isSafeInteger(id)||id<=0))fail('VK вернул некорректный список друзей');
-  friends.push(...page.items);offset+=page.items.length;
+  const page=await call('friends.get',{count:5000,offset,fields:'photo_200'});
+  if(!page||!Number.isSafeInteger(page.count)||page.count<0||page.count>20000||!Array.isArray(page.items)||page.items.some(p=>!Number.isSafeInteger(p.id)||p.id<=0))fail('VK вернул некорректный список друзей');
+  for(const p of page.items){friends.push(p.id);const photo=vkPhoto(p.photo_200);if(photo)photos[String(p.id)]=photo;}offset+=page.items.length;
   if(offset>=page.count)break;
   if(!page.items.length||offset>=20000)fail('VK вернул неполный список друзей');
  }
- return {user:String(user[0].id),friends:[...new Set(friends.map(String))]};
+ return {user:String(user[0].id),friends:[...new Set(friends.map(String))],photo:vkPhoto(user[0].photo_200),photos};
 }
