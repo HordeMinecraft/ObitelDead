@@ -287,35 +287,11 @@
   });
 
   // platform-entry.js
-  async function inviteVK(link = "") {
-    if (!inVK) throw new Error("\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u0412\u041A \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u043F\u0440\u0438 \u0437\u0430\u043F\u0443\u0441\u043A\u0435 \u0438\u0433\u0440\u044B \u0432\u043D\u0443\u0442\u0440\u0438 \u0412\u041A.");
-    if (link) {
-      try {
-        return await withTimeout(dist_default.send("VKWebAppShare", { link }), "\u0412\u041A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B. \u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439 \u0441\u0441\u044B\u043B\u043A\u0443 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F.");
-      } catch (e) {
-      }
-    }
-    return withTimeout(dist_default.send("VKWebAppShowInviteBox", {}), "\u0412\u041A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B. \u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439 \u0441\u0441\u044B\u043B\u043A\u0443 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F.");
-  }
-  async function inviteVKFriends(code) {
-    if (!inVK) throw new Error("\u0412\u044B\u0431\u043E\u0440 \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A \u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D \u0442\u043E\u043B\u044C\u043A\u043E \u0432\u043D\u0443\u0442\u0440\u0438 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F \u0412\u041A.");
-    const result = await withTimeout(dist_default.send("VKWebAppGetFriends", { multi: true }), "\u0412\u041A \u043D\u0435 \u043E\u0442\u043A\u0440\u044B\u043B \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439.");
-    const users = Array.isArray(result == null ? void 0 : result.users) ? result.users : [];
-    if (!users.length) return { sent: 0, users: [] };
-    let sent = 0;
-    for (const user of users.slice(0, 20)) {
-      try {
-        await withTimeout(dist_default.send("VKWebAppShowRequestBox", {
-          uid: user.id,
-          message: "\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0439\u0441\u044F \u043A\u043E \u043C\u043D\u0435 \u0432 \xAB\u041E\u0431\u0438\u0442\u0435\u043B\u0438 \u041C\u0451\u0440\u0442\u0432\u044B\u0445\xBB!",
-          requestKey: "friend=" + code
-        }), "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0442\u043F\u0440\u0430\u0432\u0438\u0442\u044C \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435.");
-        sent++;
-      } catch (e) {
-      }
-    }
-    if (!sent) await inviteVK(inviteLink("friend", code));
-    return { sent, users };
+  async function syncVKFriends(api2) {
+    if (!inVK) throw new Error("\u041E\u0442\u043A\u0440\u043E\u0439 \u0438\u0433\u0440\u0443 \u0432\u043D\u0443\u0442\u0440\u0438 VK, \u0447\u0442\u043E\u0431\u044B \u0443\u0432\u0438\u0434\u0435\u0442\u044C \u0434\u0440\u0443\u0437\u0435\u0439 VK.");
+    const result = await withTimeout(dist_default.send("VKWebAppGetAuthToken", { app_id: VK_APP_ID, scope: "friends" }), "VK \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043D\u0430 \u0437\u0430\u043F\u0440\u043E\u0441 \u0434\u043E\u0441\u0442\u0443\u043F\u0430 \u043A \u0434\u0440\u0443\u0437\u044C\u044F\u043C.");
+    if (!(result == null ? void 0 : result.access_token)) throw new Error("VK \u043D\u0435 \u043F\u0440\u0435\u0434\u043E\u0441\u0442\u0430\u0432\u0438\u043B \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u0434\u0440\u0443\u0437\u044C\u044F\u043C.");
+    return api2("friends/vk-sync", { accessToken: result.access_token });
   }
   function inviteLink(kind, code) {
     const value = kind + "=" + encodeURIComponent(code);
@@ -329,7 +305,7 @@
     if (!inVK) throw new Error("\u0420\u0435\u043A\u043B\u0430\u043C\u0430 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 \u0442\u043E\u043B\u044C\u043A\u043E \u0432\u043D\u0443\u0442\u0440\u0438 VK");
     return playRewardedAd(dist_default);
   }
-  var VK_APP_ID, launch, inVK, withTimeout;
+  var VK_APP_ID, launch, inVK, withTimeout, canSyncVKFriendsSilently;
   var init_platform_entry = __esm({
     "platform-entry.js"() {
       init_ads_bridge();
@@ -359,6 +335,7 @@
         }
       }
       withTimeout = (promise, message) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(message)), 1e4))]);
+      canSyncVKFriendsSilently = () => inVK && (launch.get("vk_access_token_settings") || "").split(",").includes("friends");
     }
   });
 
@@ -366,7 +343,7 @@
   var paths, icon;
   var init_ui_icons = __esm({
     "ui-icons.js"() {
-      paths = { "map": "M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2z M9 3v16 M15 5v16", "gear": "M4 14l3-3 3 3 8-8 2 2-8 8 2 3-3 2-3-3-3 1-2-2z", "garage": "M4 15V9l3-5h10l3 5v6 M3 10h18v7H3z M6 17v3 M18 17v3 M6 13h2 M16 13h2", "daily": "M7 4H4v17h16V4h-3 M8 2h8v5H8z M8 11h8 M8 15h6", "raids": "M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z M9 9l6 6 M15 9l-6 6", "guide": "M3 4h7l2 2 2-2h7v15h-7l-2 2-2-2H3z M12 6v15", "settings": "M9 3h6l1 4 4 1v8l-4 1-1 4H9l-1-4-4-1V8l4-1z M15 12a3 3 0 1 0-6 0 3 3 0 0 0 6 0", "friends": "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M2 21v-3a6 6 0 0 1 12 0v3 M17 4a4 4 0 0 1 0 8 M18 15a5 5 0 0 1 4 5v1", "clans": "M5 3v18 M5 4h14l-3 5 3 5H5 M2 21h6", "conflict": "M4 3l6 2 10 14-2 2L4 7z M20 3l-6 2-3 4 M9 13l-5 6 2 2 5-5 M2 17l6 5 M16 22l6-5", "medical": "M9 3h6v6h6v6h-6v6H9v-6H3V9h6z", "energy": "M14 2L4 14h7l-1 8 10-13h-7z", "diamond": "M12 2l9 10-9 10L3 12z M3 12h18 M12 2l-4 10 4 10 4-10z", "skull": "M6 16C0 6 6 2 12 2s12 4 6 14v5H6z M8 10h1v2H8z M15 10h1v2h-1z M10 21v-4 M14 21v-4", "star": "M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z", "menu": "M4 6h16 M4 12h16 M4 18h16", "close": "M6 6l12 12 M18 6L6 18", "pause": "M8 4v16 M16 4v16" };
+      paths = { "leaderboard": "M7 3h10v7a5 5 0 0 1-10 0z M7 5H3v3a4 4 0 0 0 4 4 M17 5h4v3a4 4 0 0 1-4 4 M12 15v5 M7 21h10", "map": "M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2z M9 3v16 M15 5v16", "gear": "M4 14l3-3 3 3 8-8 2 2-8 8 2 3-3 2-3-3-3 1-2-2z", "garage": "M4 15V9l3-5h10l3 5v6 M3 10h18v7H3z M6 17v3 M18 17v3 M6 13h2 M16 13h2", "daily": "M7 4H4v17h16V4h-3 M8 2h8v5H8z M8 11h8 M8 15h6", "raids": "M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z M9 9l6 6 M15 9l-6 6", "guide": "M3 4h7l2 2 2-2h7v15h-7l-2 2-2-2H3z M12 6v15", "settings": "M9 3h6l1 4 4 1v8l-4 1-1 4H9l-1-4-4-1V8l4-1z M15 12a3 3 0 1 0-6 0 3 3 0 0 0 6 0", "friends": "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M2 21v-3a6 6 0 0 1 12 0v3 M17 4a4 4 0 0 1 0 8 M18 15a5 5 0 0 1 4 5v1", "clans": "M5 3v18 M5 4h14l-3 5 3 5H5 M2 21h6", "conflict": "M4 3l6 2 10 14-2 2L4 7z M20 3l-6 2-3 4 M9 13l-5 6 2 2 5-5 M2 17l6 5 M16 22l6-5", "medical": "M9 3h6v6h6v6h-6v6H9v-6H3V9h6z", "energy": "M14 2L4 14h7l-1 8 10-13h-7z", "diamond": "M12 2l9 10-9 10L3 12z M3 12h18 M12 2l-4 10 4 10 4-10z", "skull": "M6 16C0 6 6 2 12 2s12 4 6 14v5H6z M8 10h1v2H8z M15 10h1v2h-1z M10 21v-4 M14 21v-4", "star": "M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z", "menu": "M4 6h16 M4 12h16 M4 18h16", "close": "M6 6l12 12 M18 6L6 18", "pause": "M8 4v16 M16 4v16" };
       icon = (name) => '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' + (paths[name] || paths.medical) + '"/></svg>';
     }
   });
@@ -609,11 +586,11 @@
     const button = root.querySelector("#raid-attack");
     if (!button || !raid2) return;
     const seconds = Math.max(0, Math.ceil((raid2.nextAttack - Date.now() - offset) / 1e3));
-    button.disabled = !raid2.joined || !raidAllowed(save2, raid2.map, raid2.rare) || raid2.hp <= 0 || seconds > 0 || save2.energy < BOSS_COST;
-    button.textContent = raid2.hp <= 0 ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : seconds ? "\u041F\u041E\u0412\u0422\u041E\u0420 \u0427\u0415\u0420\u0415\u0417 " + seconds + " \u0421\u0415\u041A" : save2.energy < BOSS_COST ? "\u041D\u0423\u0416\u041D\u041E 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418" : "\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C \xB7 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418";
+    button.disabled = !!raid2.blockedBy || !raid2.joined || !raidAllowed(save2, raid2.map, raid2.rare) || raid2.hp <= 0 || seconds > 0 || save2.energy < BOSS_COST;
+    button.textContent = raid2.blockedBy ? "\u0421\u041D\u0410\u0427\u0410\u041B\u0410 \u041F\u041E\u0411\u0415\u0414\u0418 \u0410\u041A\u0422\u0418\u0412\u041D\u041E\u0413\u041E \u0411\u041E\u0421\u0421\u0410" : raid2.hp <= 0 ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : seconds ? "\u041F\u041E\u0412\u0422\u041E\u0420 \u0427\u0415\u0420\u0415\u0417 " + seconds + " \u0421\u0415\u041A" : save2.energy < BOSS_COST ? "\u041D\u0423\u0416\u041D\u041E 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418" : "\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C \xB7 12 \u042D\u041D\u0415\u0420\u0413\u0418\u0418";
   }
   function renderRaidView(root, { raid: raid2, save: save2, selected: selected2, rareMode: rareMode2, offset, onMode, onMap, onCreate, onAttack, onJoin, onClaim, onClose, onCopy }) {
-    var _a2, _b2, _c, _d;
+    var _a2, _b2, _c, _d, _e;
     const map = raid2 ? raid2.map : selected2, rare = raid2 ? !!raid2.rare : rareMode2, m = MAPS[map], profile = RARE_RAIDS[map], allowed = raidAllowed(save2, map, rare), mine = raid2 == null ? void 0 : raid2.members.find((p) => p.me);
     const reward = (raid2 == null ? void 0 : raid2.reward) || { scrap: m.reward * 2, xp: 45, cores: 3, cloth: 6 };
     const capacity = (raid2 == null ? void 0 : raid2.capacity) || RAID_CAPACITY;
@@ -629,12 +606,12 @@
  <article class="boss-encounter ${rare ? "is-rare" : ""}">
  <div class="boss-stage" style="--boss-scene:url('assets/district-${map}.png')"><span class="boss-rarity">${rare ? "\u0420\u0415\u0414\u041A\u0418\u0419" : "\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410"} \xB7 ${escape(m.name)}</span><img class="boss-character" src="assets/boss-${BOSS_ART[map]}.png" alt="${escape(m.boss)} \u2014 ${roles[map]}" width="512" height="512" decoding="async"><span class="boss-stage-caption">${roles[map]}</span></div>
  <div class="boss-brief"><span class="eyebrow">${raid2 ? "\u041E\u0411\u0429\u0418\u0419 \u0420\u0415\u0419\u0414" : "\u0414\u041E\u0421\u042C\u0415 \u041F\u0420\u041E\u0422\u0418\u0412\u041D\u0418\u041A\u0410"}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt(hp)}</b><span>/ ${fmt(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt(hp)} \u0438\u0437 ${fmt(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div>
- <div class="boss-facts"><div><span>\u0422\u0432\u043E\u044F \u0430\u0442\u0430\u043A\u0430</span><b>${fmt(hit)}</b></div><div><span>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438</span><b>${party.length} / ${capacity}</b></div><div><span>\u041F\u043E\u0432\u0442\u043E\u0440</span><b>${raidProfile(map).cooldown / 1e3} \u0441\u0435\u043A</b></div></div>
- ${!raid2 ? `<p class="boss-access">\u0423\u0440\u043E\u0432\u0435\u043D\u044C ${rare ? profile.level : m.level} \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438${rare ? " \xB7 \u043F\u043E\u0431\u0435\u0434\u0430 \u043D\u0430\u0434 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \u0432\u0435\u0440\u0441\u0438\u0435\u0439" : ""}<br><span>${allowed ? "\u0414\u043E\u0441\u0442\u0443\u043F \u043E\u0442\u043A\u0440\u044B\u0442" : "\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u0435\u0449\u0451 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u044B"}</span></p><button class="primary boss-action" id="create-raid" ${!allowed ? "disabled" : ""}>\u0421\u041E\u0417\u0414\u0410\u0422\u042C \u0420\u0415\u0419\u0414</button>` : `<button class="primary boss-action" id="raid-attack">\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C</button>${!raid2.joined && hp > 0 ? `<button class="secondary boss-action" id="join-raid" ${!allowed || party.length >= capacity ? "disabled" : ""}>${!allowed ? "\u041D\u0423\u0416\u0415\u041D \u041F\u0420\u041E\u0413\u0420\u0415\u0421\u0421" : party.length >= capacity ? "\u041E\u0422\u0420\u042F\u0414 \u0417\u0410\u041F\u041E\u041B\u041D\u0415\u041D" : "\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F"}</button>` : ""}`}
+ ${raid2 ? `<p class="raid-total">\u041E\u0411\u0429\u0418\u0419 \u0423\u0420\u041E\u041D: <b>${fmt((_e = raid2.totalDamage) != null ? _e : maxHp - hp)}</b> \xB7 \u0422\u0412\u041E\u0419: <b>${fmt(mine == null ? void 0 : mine.damage)}</b></p><p class="page-intro">${raid2.blockedBy ? "\u0423 \u0442\u0435\u0431\u044F \u0443\u0436\u0435 \u0435\u0441\u0442\u044C \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0431\u043E\u0441\u0441. \u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u0435\u0433\u043E, \u0447\u0442\u043E\u0431\u044B \u0432\u0441\u0442\u0443\u043F\u0438\u0442\u044C \u0432 \u044D\u0442\u043E\u0442 \u0440\u0435\u0439\u0434." : hp > 0 ? "\u0410\u0442\u0430\u043A\u0438 \u0432\u0441\u0435\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u0443\u043C\u0435\u043D\u044C\u0448\u0430\u044E\u0442 \u043E\u0434\u043D\u043E \u043E\u0431\u0449\u0435\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435." : "\u041E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430! \u0417\u0430\u0431\u0435\u0440\u0438 \u0441\u0432\u043E\u044E \u043D\u0430\u0433\u0440\u0430\u0434\u0443."}</p>` : ""}<div class="boss-facts"><div><span>\u0422\u0432\u043E\u044F \u0430\u0442\u0430\u043A\u0430</span><b>${fmt(hit)}</b></div><div><span>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438</span><b>${party.length} / ${capacity}</b></div><div><span>\u041F\u043E\u0432\u0442\u043E\u0440</span><b>${raidProfile(map).cooldown / 1e3} \u0441\u0435\u043A</b></div></div>
+ ${!raid2 ? `<p class="boss-access">\u0423\u0440\u043E\u0432\u0435\u043D\u044C ${rare ? profile.level : m.level} \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438${rare ? " \xB7 \u043F\u043E\u0431\u0435\u0434\u0430 \u043D\u0430\u0434 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \u0432\u0435\u0440\u0441\u0438\u0435\u0439" : ""}<br><span>${allowed ? "\u0414\u043E\u0441\u0442\u0443\u043F \u043E\u0442\u043A\u0440\u044B\u0442" : "\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u0435\u0449\u0451 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u044B"}</span></p><button class="primary boss-action" id="create-raid" ${!allowed ? "disabled" : ""}>\u0410\u041A\u0422\u0418\u0412\u0418\u0420\u041E\u0412\u0410\u0422\u042C \u041E\u0411\u0429\u0415\u0413\u041E \u0411\u041E\u0421\u0421\u0410</button>` : `<button class="primary boss-action" id="raid-attack">\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C</button>${!raid2.joined && hp > 0 ? `<button class="secondary boss-action" id="join-raid" ${raid2.blockedBy || !allowed || party.length >= capacity ? "disabled" : ""}>${!allowed ? "\u041D\u0423\u0416\u0415\u041D \u041F\u0420\u041E\u0413\u0420\u0415\u0421\u0421" : party.length >= capacity ? "\u041E\u0422\u0420\u042F\u0414 \u0417\u0410\u041F\u041E\u041B\u041D\u0415\u041D" : "\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F"}</button>` : ""}`}
  </div></article>
  <section class="raid-loot"><div class="section-title"><h3>${raid2 ? "\u0422\u0432\u043E\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B" : rare ? "\u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434 \u0440\u0435\u0439\u0434\u0430" : "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443"}</h3></div><div class="raid-rewards">${rewards(raid2 ? reward : rare ? profile.pool : reward)}</div>${rare ? "<p>\u0424\u043E\u043D\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u043D\u0430\u043D\u0435\u0441\u0451\u043D\u043D\u043E\u043C\u0443 \u0443\u0440\u043E\u043D\u0443. \u0411\u0435\u0437 \u0443\u0447\u0430\u0441\u0442\u0438\u044F \u0432 \u0430\u0442\u0430\u043A\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u044B \u043D\u0435\u0442.</p>" : ""}${raid2 && hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423</button>' : ""}</section>
- <details class="raid-rules" ${oldDetails && same ? "open" : ""}><summary>\u041F\u0440\u0430\u0432\u0438\u043B\u0430 \u0438 \u0443\u0441\u043B\u043E\u0432\u0438\u044F \u0440\u0435\u0439\u0434\u0430</summary><p>\u0410\u0442\u0430\u043A\u0438 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F, \u043E\u0431\u0449\u0435\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F. \u0426\u0435\u043D\u0430 \u2014 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438. ${rare ? "\u041E\u0441\u0430\u0434\u043D\u043E\u0435 \u0443\u0441\u0438\u043B\u0435\u043D\u0438\u0435 \xD7" + profile.multiplier.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + ". \u041E\u043D\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u043D\u0430 \u0440\u0435\u0434\u043A\u0438\u0445 \u0431\u043E\u0441\u0441\u043E\u0432. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u043E\u043A\u0440\u0443\u0433\u043B\u044F\u044E\u0442\u0441\u044F \u0432\u043D\u0438\u0437 \u0438 \u0432\u044B\u0434\u0430\u044E\u0442\u0441\u044F \u043E\u0434\u0438\u043D \u0440\u0430\u0437 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B. \u0420\u0435\u0439\u0434 \u0431\u0435\u0437 \u0441\u0440\u043E\u043A\u0430 \u0438\u0441\u0442\u0435\u0447\u0435\u043D\u0438\u044F." : raidProfile(map).trait}</p><p>\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u043F\u043E \u0441\u0441\u044B\u043B\u043A\u0435. \u0413\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443; \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 VK \u043D\u0435 \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0451\u043D.</p></details>
- ${raid2 ? '<div class="raid-controls"><button class="secondary" id="copy-raid">\u041F\u0420\u0418\u0413\u041B\u0410\u0421\u0418\u0422\u042C \u041F\u041E \u0421\u0421\u042B\u041B\u041A\u0415</button><button class="secondary" id="close-raid">\u041A \u0421\u041F\u0418\u0421\u041A\u0423 \u0411\u041E\u0421\u0421\u041E\u0412</button></div><section class="raid-party"><h3>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438 \xB7 ' + party.length + '</h3><div class="party-list"></div><div class="party-pagination"></div></section>' : ""}`;
+ <details class="raid-rules" ${oldDetails && same ? "open" : ""}><summary>\u041F\u0440\u0430\u0432\u0438\u043B\u0430 \u0438 \u0443\u0441\u043B\u043E\u0432\u0438\u044F \u0440\u0435\u0439\u0434\u0430</summary><p>\u0410\u0442\u0430\u043A\u0438 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F, \u043E\u0431\u0449\u0435\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F. \u0426\u0435\u043D\u0430 \u2014 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438. ${rare ? "\u041E\u0441\u0430\u0434\u043D\u043E\u0435 \u0443\u0441\u0438\u043B\u0435\u043D\u0438\u0435 \xD7" + profile.multiplier.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + ". \u041E\u043D\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u043D\u0430 \u0440\u0435\u0434\u043A\u0438\u0445 \u0431\u043E\u0441\u0441\u043E\u0432. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u043E\u043A\u0440\u0443\u0433\u043B\u044F\u044E\u0442\u0441\u044F \u0432\u043D\u0438\u0437 \u0438 \u0432\u044B\u0434\u0430\u044E\u0442\u0441\u044F \u043E\u0434\u0438\u043D \u0440\u0430\u0437 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B. \u0420\u0435\u0439\u0434 \u0431\u0435\u0437 \u0441\u0440\u043E\u043A\u0430 \u0438\u0441\u0442\u0435\u0447\u0435\u043D\u0438\u044F." : raidProfile(map).trait}</p><p>\u041D\u0430 \u0438\u0433\u0440\u043E\u043A\u0430 \u2014 \u043E\u0434\u0438\u043D \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0431\u043E\u0441\u0441 \u0434\u043E \u043F\u043E\u0431\u0435\u0434\u044B. \u041F\u0440\u0438 \u0432\u044B\u0431\u043E\u0440\u0435 \u0442\u043E\u0433\u043E \u0436\u0435 \u0431\u043E\u0441\u0441\u0430 \u0438\u0433\u0440\u0430 \u043F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0435\u0442 \u043A \u043E\u0431\u0449\u0435\u043C\u0443 \u0440\u0435\u0439\u0434\u0443, \u0432 \u043F\u0435\u0440\u0432\u0443\u044E \u043E\u0447\u0435\u0440\u0435\u0434\u044C \u0441 \u0434\u0440\u0443\u0437\u044C\u044F\u043C\u0438. \u0423\u0440\u043E\u043D \u0432\u0441\u0435\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u0441\u0443\u043C\u043C\u0438\u0440\u0443\u0435\u0442\u0441\u044F; \u043F\u043E\u043B\u043D\u044B\u0439 \u043E\u0442\u0440\u044F\u0434 \u2014 300 \u0438\u0433\u0440\u043E\u043A\u043E\u0432. \u0415\u0441\u043B\u0438 \u043E\u0442\u0440\u044F\u0434 \u0437\u0430\u043F\u043E\u043B\u043D\u0435\u043D, \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439.</p></details>
+ ${raid2 ? '<div class="raid-controls"><button class="secondary" id="close-raid">' + (raid2.blockedBy ? "\u041A \u041C\u041E\u0415\u041C\u0423 \u0411\u041E\u0421\u0421\u0423" : hp > 0 ? "\u0411\u041E\u0421\u0421 \u0410\u041A\u0422\u0418\u0412\u0415\u041D \u0414\u041E \u041F\u041E\u0411\u0415\u0414\u042B" : "\u041A \u0421\u041F\u0418\u0421\u041A\u0423 \u0411\u041E\u0421\u0421\u041E\u0412") + '</button></div><section class="raid-party"><h3>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438 \xB7 ' + party.length + '</h3><div class="party-list"></div><div class="party-pagination"></div></section>' : ""}`;
     root.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => onMode(b.dataset.mode === "rare"));
     const bind = (id, fn) => {
       const el = root.querySelector("#" + id);
@@ -941,91 +918,113 @@
 
   // friends-ui.js
   function friendsUI(root, api2, toast2, openRaid) {
-    let loading = false;
     async function render() {
-      if (loading) return;
-      loading = true;
+      var _a2;
+      if (pending.has(root)) return;
+      pending.add(root);
       try {
-        const data = await api2("friends");
-        const invited = String(launchValue("friend") || "").toLowerCase();
-        const portrait = (p) => '<span class="friend-avatar avatar-' + (Number(p.avatar) || 0) + '" aria-hidden="true">' + (AVATARS[p.avatar] || AVATARS[0]) + "</span>";
-        root.innerHTML = `
-    <div class="settings-card">
-     <span class="eyebrow orange">\u0421\u0412\u041E\u0418 \u0412 \u0413\u041E\u0420\u041E\u0414\u0415 \xB7 ${data.friends.length} \u0414\u0420\u0423\u0417\u0415\u0419</span>
-     <h2>\u0422\u0432\u043E\u0438 \u0434\u0440\u0443\u0437\u044C\u044F.</h2>
-     <p>1. \u041E\u0442\u043F\u0440\u0430\u0432\u044C \u0441\u0441\u044B\u043B\u043A\u0443 \u0434\u0440\u0443\u0433\u0443 \u0438\u043B\u0438 \u0432\u0432\u0435\u0434\u0438 \u0435\u0433\u043E \u043A\u043E\u0434. 2. \u0414\u043E\u0436\u0434\u0438\u0441\u044C \u043F\u0440\u0438\u043D\u044F\u0442\u0438\u044F \u0437\u0430\u044F\u0432\u043A\u0438. 3. \u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0439\u0441\u044F \u043A \u0435\u0433\u043E \u0440\u0435\u0439\u0434\u0430\u043C. \u0417\u0434\u0435\u0441\u044C \u043F\u043E\u043A\u0430\u0437\u0430\u043D\u044B \u0442\u043E\u043B\u044C\u043A\u043E \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0435 \u0442\u043E\u0431\u043E\u0439 \u0434\u0440\u0443\u0437\u044C\u044F.</p>
-     <div class="friend-code"><span>\u0422\u0412\u041E\u0419 \u041A\u041E\u0414</span><strong>${data.code}</strong><button class="secondary" id="friend-copy">\u0421\u0421\u042B\u041B\u041A\u0410 \u041F\u0420\u0418\u0413\u041B\u0410\u0428\u0415\u041D\u0418\u042F</button>${inVK ? '<button class="primary" id="vk-friends">\u0412\u042B\u0411\u0420\u0410\u0422\u042C \u0414\u0420\u0423\u0417\u0415\u0419 \u0412\u041A</button><button class="secondary" id="vk-invite">\u041F\u041E\u0414\u0415\u041B\u0418\u0422\u042C\u0421\u042F \u0421\u0421\u042B\u041B\u041A\u041E\u0419</button>' : ""}</div>
-     <form id="friend-form"><label for="friend-code-input">\u041A\u043E\u0434 \u0434\u0440\u0443\u0433\u0430</label><div class="friend-form"><input id="friend-code-input" maxlength="12" required pattern="[a-fA-F0-9]{12}" autocomplete="off" placeholder="12 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432" value="${escape2(invited)}"><button class="primary">\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F</button></div></form>
-    </div>
-    <div class="section-title"><h3>\u0412\u0445\u043E\u0434\u044F\u0449\u0438\u0435 \u0437\u0430\u044F\u0432\u043A\u0438</h3><span>${data.requests.length}</span></div>
-    <div class="party-list">${data.requests.map((p) => `<div class="friend-person">${portrait(p)}<span class="friend-person-info"><b>${escape2(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${p.level || 1}</small></span><button class="primary" data-accept="${p.code}">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-decline="${p.code}">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button></div>`).join("") || '<p class="page-intro">\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043F\u043E\u043A\u0430 \u043D\u0435\u0442.</p>'}</div>
-    <div class="section-title"><h3>\u041C\u043E\u0438 \u0434\u0440\u0443\u0437\u044C\u044F \xB7 ${data.friends.length}</h3><button class="secondary" id="friends-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div>
-    <div class="party-list">${data.friends.map((p) => `<div class="friend-person">${portrait(p)}<span class="friend-person-info"><b>${escape2(p.name)}</b><small>${p.online ? "\u25CF \u0412 \u0421\u0415\u0422\u0418" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${p.level || 1}${p.raid ? " \xB7 \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u0440\u0435\u0439\u0434 " + p.raid.hp + " HP" : ""}</small></span>${p.raid ? `<button class="primary" data-friend-raid="${p.raid.id}">\u041A \u0411\u041E\u0421\u0421\u0423 \u2192</button>` : ""}<button class="secondary" data-remove="${p.code}">\u0423\u0414\u0410\u041B\u0418\u0422\u042C</button></div>`).join("") || '<div class="friends-empty">' + icon("friends") + "<h3>\u041D\u0430\u0447\u043D\u0438 \u0441 \u043E\u0434\u043D\u043E\u0433\u043E \u0434\u0440\u0443\u0433\u0430</h3><p>\u0421\u043A\u043E\u043F\u0438\u0440\u0443\u0439 \u0441\u0441\u044B\u043B\u043A\u0443 \u043F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u0432\u044B\u0448\u0435 \u0438 \u043E\u0442\u043F\u0440\u0430\u0432\u044C \u0437\u043D\u0430\u043A\u043E\u043C\u043E\u043C\u0443. \u041F\u043E\u0441\u043B\u0435 \u043F\u0440\u0438\u043D\u044F\u0442\u0438\u044F \u0437\u0430\u044F\u0432\u043A\u0438 \u0437\u0434\u0435\u0441\u044C \u043F\u043E\u044F\u0432\u044F\u0442\u0441\u044F \u0435\u0433\u043E \u0430\u0432\u0430\u0442\u0430\u0440, \u0443\u0440\u043E\u0432\u0435\u043D\u044C \u0438 \u0440\u0435\u0439\u0434.</p></div>"}</div>
-`;
-        root.querySelector("#friends-refresh").onclick = render;
-        const mutate = async (path, code) => {
+        let data = await api2("friends");
+        if (data.account === "vk" && canSyncVKFriendsSilently() && !autoSyncAttempted) {
+          autoSyncAttempted = true;
           try {
-            await api2(path, { code });
-            toast2(path.endsWith("request") ? "\u0417\u0430\u044F\u0432\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430" : "\u0421\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D");
-            await render();
+            data = await syncVKFriends(api2);
           } catch (e) {
             toast2(e.message);
           }
+        }
+        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u0412\u041E\u0419 \u041E\u0422\u0420\u042F\u0414 \xB7 ${data.friends.length}</span><h2>\u0414\u0440\u0443\u0437\u044C\u044F \u0432 \u0433\u043E\u0440\u043E\u0434\u0435</h2><p>\u0414\u0440\u0443\u0437\u044C\u044F VK, \u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u0443\u0436\u0435 \u0432\u043E\u0448\u043B\u0438 \u0432 \u0438\u0433\u0440\u0443, \u043F\u043E\u044F\u0432\u043B\u044F\u044E\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0441\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0430\u0446\u0438\u0438. \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u043E\u0434\u043D\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430 \u2014 \u0430\u0442\u0430\u043A\u0438 \u043F\u043E\u043F\u0430\u0434\u0430\u044E\u0442 \u0432 \u043E\u0431\u0449\u0438\u0439 \u0440\u0435\u0439\u0434, \u0434\u0430\u0436\u0435 \u0435\u0441\u043B\u0438 \u0432\u044B \u0438\u0433\u0440\u0430\u0435\u0442\u0435 \u0432 \u0440\u0430\u0437\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F.</p>${inVK && data.account === "vk" ? `<button class="primary" id="vk-sync">${data.vkSyncedAt ? "\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C \u0414\u0420\u0423\u0417\u0415\u0419 VK" : "\u041F\u041E\u041A\u0410\u0417\u0410\u0422\u042C \u0414\u0420\u0423\u0417\u0415\u0419 VK"}</button><small>VK \u043C\u043E\u0436\u0435\u0442 \u0437\u0430\u043F\u0440\u043E\u0441\u0438\u0442\u044C \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043D\u0438\u0435 \u043D\u0430 \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439. \u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u043D\u0435 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u044E\u0442\u0441\u044F.</small>` : "<p>\u0414\u043B\u044F \u0434\u0440\u0443\u0437\u0435\u0439 VK \u043E\u0442\u043A\u0440\u043E\u0439 \u0438\u0433\u0440\u0443 \u0432\u043D\u0443\u0442\u0440\u0438 VK. \u0414\u0440\u0443\u0433\u0438\u0445 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 \u043C\u043E\u0436\u043D\u043E \u0434\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0438\u0437 \u0422\u041E\u041F\u0430.</p>"}</div>
+   <div class="section-title"><h3>\u0412\u0445\u043E\u0434\u044F\u0449\u0438\u0435 \u0437\u0430\u044F\u0432\u043A\u0438 \xB7 ${data.requests.length}</h3><button class="secondary" id="friends-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div>
+   <div class="social-list">${data.requests.map((p) => `<article class="friend-person">${portrait(p)}<span class="friend-person-info"><b>${esc3(p.name)}</b><small>\u0423\u0440\u043E\u0432\u0435\u043D\u044C ${p.level}</small></span><button class="primary" data-accept="${p.code}">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-decline="${p.code}">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button></article>`).join("") || '<p class="page-intro">\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043D\u0435\u0442.</p>'}</div>
+   <div class="section-title"><h3>\u041C\u043E\u0438 \u0434\u0440\u0443\u0437\u044C\u044F \xB7 ${data.friends.length}</h3></div><div class="social-list">${data.friends.map((p) => `<article class="friend-person">${portrait(p)}<span class="friend-person-info"><b>${esc3(p.name)}</b><small>${p.vk ? "VK \xB7 " : ""}${p.online ? "\u0412 \u0441\u0435\u0442\u0438" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440. ${p.level}${p.raid ? " \xB7 \u0431\u043E\u0441\u0441: " + Math.floor(p.raid.hp).toLocaleString("ru-RU") + " HP" : ""}</small></span>${p.raid ? `<button class="primary" data-raid="${p.raid.id}">\u041A \u0411\u041E\u0421\u0421\u0423</button>` : ""}${!p.vk ? `<button class="secondary" data-remove="${p.code}">\u0423\u0414\u0410\u041B\u0418\u0422\u042C</button>` : ""}</article>`).join("") || '<div class="friends-empty">' + icon("friends") + "<h3>\u041E\u0442\u0440\u044F\u0434 \u043F\u043E\u043A\u0430 \u043F\u0443\u0441\u0442</h3><p>\u0421\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0438\u0440\u0443\u0439 \u0434\u0440\u0443\u0437\u0435\u0439 VK \u0438\u043B\u0438 \u0434\u043E\u0431\u0430\u0432\u044C \u0438\u0433\u0440\u043E\u043A\u043E\u0432 \u0438\u0437 \u0432\u043A\u043B\u0430\u0434\u043A\u0438 \xAB\u0422\u041E\u041F \u0438\u0433\u0440\u043E\u043A\u043E\u0432\xBB. \u0417\u0434\u0435\u0441\u044C \u043D\u0435\u0442 \u0431\u043E\u0442\u043E\u0432 \u0438 \u0441\u043B\u0443\u0447\u0430\u0439\u043D\u044B\u0445 \u043F\u0440\u043E\u0444\u0438\u043B\u0435\u0439.</p></div>"}</div>
+   <details class="settings-card"><summary>\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043E \u0438\u0433\u0440\u043E\u0432\u043E\u043C\u0443 \u043A\u043E\u0434\u0443</summary><p>\u0422\u0432\u043E\u0439 \u043A\u043E\u0434: <strong>${esc3(data.code)}</strong></p><form id="friend-form" class="friend-form"><input aria-label="\u041A\u043E\u0434 \u0438\u0433\u0440\u043E\u043A\u0430" maxlength="12" required pattern="[a-fA-F0-9]{12}" placeholder="12 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432"><button class="secondary">\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C</button></form></details>`;
+        const mutate = async (path, code, button) => {
+          button.disabled = true;
+          try {
+            await api2(path, { code });
+            await render();
+            toast2("\u0421\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D");
+          } catch (e) {
+            toast2(e.message);
+            button.disabled = false;
+          }
         };
+        root.querySelector("#friends-refresh").onclick = render;
+        (_a2 = root.querySelector("#vk-sync")) == null ? void 0 : _a2.addEventListener("click", async (e) => {
+          const b = e.currentTarget;
+          b.disabled = true;
+          try {
+            await syncVKFriends(api2);
+            await render();
+            toast2("\u0414\u0440\u0443\u0437\u044C\u044F VK \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u044B");
+          } catch (err) {
+            toast2(err.message);
+            b.disabled = false;
+          }
+        });
+        for (const name of ["accept", "decline", "remove"]) root.querySelectorAll("[data-" + name + "]").forEach((b) => b.onclick = () => mutate("friends/" + name, b.dataset[name], b));
+        root.querySelectorAll("[data-raid]").forEach((b) => b.onclick = () => openRaid(b.dataset.raid));
         root.querySelector("#friend-form").onsubmit = (e) => {
           e.preventDefault();
-          mutate("friends/request", root.querySelector("input").value.trim().toLowerCase());
+          mutate("friends/request", e.target.querySelector("input").value.trim().toLowerCase(), e.target.querySelector("button"));
         };
-        root.querySelectorAll("[data-accept]").forEach((b) => b.onclick = () => mutate("friends/accept", b.dataset.accept));
-        root.querySelectorAll("[data-decline]").forEach((b) => b.onclick = () => mutate("friends/decline", b.dataset.decline));
-        root.querySelectorAll("[data-remove]").forEach((b) => b.onclick = () => mutate("friends/remove", b.dataset.remove));
-        root.querySelectorAll("[data-friend-raid]").forEach((b) => b.onclick = () => openRaid(b.dataset.friendRaid));
-        root.querySelector("#friend-copy").onclick = async () => {
-          const link = inviteLink("friend", data.code);
-          try {
-            await navigator.clipboard.writeText(link);
-            toast2("\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u043E");
-          } catch (e) {
-            root.querySelector("input").value = data.code;
-            toast2("\u041F\u0435\u0440\u0435\u0434\u0430\u0439 \u0434\u0440\u0443\u0433\u0443 \u0441\u0432\u043E\u0439 \u043A\u043E\u0434: " + data.code);
-          }
-        };
-        if (root.querySelector("#vk-friends")) root.querySelector("#vk-friends").onclick = async () => {
-          try {
-            const r = await inviteVKFriends(data.code);
-            toast2(r.sent ? "\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u044B: " + r.sent : "\u041D\u0438\u043A\u0442\u043E \u043D\u0435 \u0432\u044B\u0431\u0440\u0430\u043D");
-          } catch (e) {
-            toast2(e.message || "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043E\u0442\u043A\u0440\u044B\u0442\u044C \u0434\u0440\u0443\u0437\u0435\u0439 \u0412\u041A");
-          }
-        };
-        if (root.querySelector("#vk-invite")) root.querySelector("#vk-invite").onclick = () => inviteVK(inviteLink("friend", data.code)).catch((e) => toast2(e.message || "\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u0435 \u0437\u0430\u043A\u0440\u044B\u0442\u043E"));
-        if (/^[a-f0-9]{12}$/.test(invited) && invited !== data.code) {
-          const key2 = "obitel-friend-invite:" + invited;
-          if (!sessionStorage.getItem(key2)) {
-            sessionStorage.setItem(key2, "1");
-            try {
-              await api2("friends/request", { code: invited });
-              toast2("\u0417\u0430\u044F\u0432\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430 \u0438\u0433\u0440\u043E\u043A\u0443, \u043A\u043E\u0442\u043E\u0440\u044B\u0439 \u043F\u0440\u0438\u0433\u043B\u0430\u0441\u0438\u043B \u0442\u0435\u0431\u044F");
-            } catch (e) {
-            }
-          }
-        }
       } catch (e) {
-        root.innerHTML = '<div class="settings-card"><p>' + escape2(e.message) + '</p><button class="secondary" id="friends-retry">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
+        root.innerHTML = '<div class="settings-card"><p>' + esc3(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
         root.querySelector("button").onclick = render;
       } finally {
-        loading = false;
+        pending.delete(root);
       }
     }
     render();
   }
-  var escape2;
+  var esc3, portrait, autoSyncAttempted, pending;
   var init_friends_ui = __esm({
     "friends-ui.js"() {
       init_profile_ui();
       init_ui_icons();
       init_platform_entry();
-      escape2 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      esc3 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      portrait = (p) => '<span class="friend-avatar avatar-' + (Number(p.avatar) || 0) + '" aria-hidden="true">' + (AVATARS[p.avatar] || AVATARS[0]) + "</span>";
+      autoSyncAttempted = false;
+      pending = /* @__PURE__ */ new WeakSet();
+    }
+  });
+
+  // leaderboard-ui.js
+  function leaderboardUI(root, api2, toast2) {
+    async function render() {
+      if (pending2.has(root)) return;
+      pending2.add(root);
+      try {
+        const d = await api2("leaderboard");
+        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u041E\u041F 100 \xB7 \u0412\u042B\u0416\u0418\u0412\u0428\u0418\u0415</span><h2>\u0413\u0435\u0440\u043E\u0438 \u0433\u043E\u0440\u043E\u0434\u0430</h2><p>\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E \u043E\u043F\u044B\u0442\u0443. \u041F\u0440\u0438 \u0440\u0430\u0432\u0435\u043D\u0441\u0442\u0432\u0435 \u2014 \u043F\u043E\u0431\u0435\u0434\u044B \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u0430\u043C\u0438 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0418\u0433\u0440\u0430\u0439 \u0438 \u0440\u0430\u0437\u0432\u0438\u0432\u0430\u0439\u0441\u044F: \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0435.</p><div class="leader-summary"><strong>\u0422\u0432\u043E\u0451 \u043C\u0435\u0441\u0442\u043E: ${d.meRank ? "#" + d.meRank : "\u2014"}</strong><span>\u0412 \u0441\u0435\u0442\u0438: ${fmt2(d.online)}</span><button class="secondary" id="top-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div></div><div class="social-list leaderboard-list">${d.players.map((p) => `<article class="friend-person rank-${p.rank <= 3 ? p.rank : "other"} ${p.me ? "is-me" : ""}"><strong class="rank-number">#${p.rank}</strong>${portrait(p)}<span class="friend-person-info"><b>${esc4(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</b><small>\u0423\u0440. ${p.level} \xB7 ${fmt2(p.xp)} XP \xB7 \u0411\u043E\u0441\u0441\u044B: ${fmt2(p.bossKills)}</small></span>${p.me ? '<span class="rank-status">\u0422\u0412\u041E\u0419 \u041F\u0420\u041E\u0424\u0418\u041B\u042C</span>' : p.friend ? '<span class="rank-status">\u0412 \u0414\u0420\u0423\u0417\u042C\u042F\u0425</span>' : `<button class="secondary" data-add="${p.code}" ${p.requested ? "disabled" : ""}>${p.requested ? "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410" : "\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F"}</button>`}</article>`).join("")}</div>`;
+        root.querySelector("#top-refresh").onclick = render;
+        root.querySelectorAll("[data-add]").forEach((b) => b.onclick = async () => {
+          b.disabled = true;
+          try {
+            await api2("friends/request", { code: b.dataset.add });
+            b.textContent = "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410";
+            toast2("\u0418\u0433\u0440\u043E\u0432\u0430\u044F \u0437\u0430\u044F\u0432\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430");
+          } catch (e) {
+            b.disabled = false;
+            toast2(e.message);
+          }
+        });
+      } catch (e) {
+        root.innerHTML = '<div class="settings-card"><p>' + esc4(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
+        root.querySelector("button").onclick = render;
+      } finally {
+        pending2.delete(root);
+      }
+    }
+    render();
+  }
+  var esc4, fmt2, pending2;
+  var init_leaderboard_ui = __esm({
+    "leaderboard-ui.js"() {
+      init_friends_ui();
+      esc4 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      fmt2 = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
+      pending2 = /* @__PURE__ */ new WeakSet();
     }
   });
 
@@ -1557,6 +1556,7 @@
   }
   async function api(path, body) {
     const data = await requestAPI(path, body);
+    if (Object.prototype.hasOwnProperty.call(data, "activeRaidId")) activeRaidId = data.activeRaidId;
     if (path === "profile") showProfile({ name: data.name, avatar: data.avatar || 0 });
     if (data.save) {
       save = data.save;
@@ -1575,6 +1575,11 @@
       }
       const profile = await api("profile");
       networkReady = true;
+      try {
+        const encounters = await api("raids");
+        raid = encounters.active || encounters.completed[0] || null;
+      } catch (e) {
+      }
       status.innerHTML = profile.account === "vk" ? "<i></i> \u041F\u0420\u041E\u0424\u0418\u041B\u042C VK" : "<i></i> \u0413\u041E\u0421\u0422\u0415\u0412\u041E\u0419 \u041F\u0420\u041E\u0424\u0418\u041B\u042C";
       playerProfile.account = profile.account || "guest";
       $("#connection-error").hidden = true;
@@ -1680,6 +1685,7 @@
     }).join("") + "</div>";
   }
   function renderPage() {
+    if (page === "leaderboard") leaderboardUI($("#leaderboard-page"), api, toast);
     if (page === "conflict") conflictUI($("#conflict-page"), api, toast, () => {
       energyHud();
       $("#scrap").textContent = save.scrap;
@@ -1738,7 +1744,7 @@
     page = p;
     document.querySelectorAll(".page").forEach((el) => el.hidden = el.id !== `${p}-page`);
     document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("active", b.dataset.page === p));
-    $("#page-title").textContent = { map: "\u0413\u043E\u0440\u043E\u0434 \u0431\u043E\u043B\u044C\u0448\u0435 \u043D\u0435 \u0441\u043F\u0438\u0442.", gear: "\u0421\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435 \u0440\u0435\u0448\u0430\u0435\u0442.", garage: "\u0414\u043E\u043C \u043D\u0430 \u0447\u0435\u0442\u044B\u0440\u0451\u0445 \u043A\u043E\u043B\u0451\u0441\u0430\u0445.", daily: "\u041A\u0430\u0436\u0434\u044B\u0439 \u0434\u0435\u043D\u044C \u2014 \u043D\u043E\u0432\u0430\u044F \u0446\u0435\u043B\u044C.", guide: "\u0417\u043D\u0430\u043D\u0438\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 \u0436\u0438\u0437\u043D\u044C.", raids: "\u041E\u0434\u0438\u043D \u0431\u043E\u0441\u0441. \u041E\u0431\u0449\u0430\u044F \u0446\u0435\u043B\u044C.", friends: "\u0421\u0432\u043E\u0438 \u043D\u0435 \u0431\u0440\u043E\u0441\u0430\u044E\u0442.", conflict: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0433\u043E\u0440\u043E\u0434\u0443 \u0441\u0432\u0435\u0442.", clans: "\u0412\u044B\u0436\u0438\u0432\u0430\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u0435.", settings: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439 \u0441\u0432\u043E\u0439 \u0440\u0438\u0442\u043C." }[p];
+    $("#page-title").textContent = { map: "\u0413\u043E\u0440\u043E\u0434 \u0431\u043E\u043B\u044C\u0448\u0435 \u043D\u0435 \u0441\u043F\u0438\u0442.", gear: "\u0421\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435 \u0440\u0435\u0448\u0430\u0435\u0442.", garage: "\u0414\u043E\u043C \u043D\u0430 \u0447\u0435\u0442\u044B\u0440\u0451\u0445 \u043A\u043E\u043B\u0451\u0441\u0430\u0445.", daily: "\u041A\u0430\u0436\u0434\u044B\u0439 \u0434\u0435\u043D\u044C \u2014 \u043D\u043E\u0432\u0430\u044F \u0446\u0435\u043B\u044C.", guide: "\u0417\u043D\u0430\u043D\u0438\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 \u0436\u0438\u0437\u043D\u044C.", raids: "\u041E\u0434\u0438\u043D \u0431\u043E\u0441\u0441. \u041E\u0431\u0449\u0430\u044F \u0446\u0435\u043B\u044C.", leaderboard: "\u0413\u0435\u0440\u043E\u0438 \u0433\u043E\u0440\u043E\u0434\u0430.", friends: "\u0421\u0432\u043E\u0438 \u043D\u0435 \u0431\u0440\u043E\u0441\u0430\u044E\u0442.", conflict: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0433\u043E\u0440\u043E\u0434\u0443 \u0441\u0432\u0435\u0442.", clans: "\u0412\u044B\u0436\u0438\u0432\u0430\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u0435.", settings: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439 \u0441\u0432\u043E\u0439 \u0440\u0438\u0442\u043C." }[p];
     renderPage();
     if (p === "daily") bindAd($("#daily-page"), api, toast, refresh);
   }
@@ -2077,13 +2083,13 @@
     if (run && !$("#game").hidden) {
       draw();
       let ratio = canvas.clientWidth / Math.max(1, canvas.clientHeight), vw = Math.min(960, Math.max(240, Math.round(600 * ratio)));
-      let portrait = vw < 960;
+      let portrait2 = vw < 960;
       let vh = Math.min(600, Math.round(vw / ratio));
       if (canvas.width !== vw || canvas.height !== vh) {
         canvas.width = vw;
         canvas.height = vh;
       }
-      let left = portrait ? Math.max(0, Math.min(960 - vw, run.x - vw / 2)) : 0;
+      let left = portrait2 ? Math.max(0, Math.min(960 - vw, run.x - vw / 2)) : 0;
       display.imageSmoothingEnabled = false;
       let top = Math.max(0, Math.min(600 - vh, run.y - vh / 2));
       if (canvas.height !== vh) canvas.height = vh;
@@ -2116,6 +2122,10 @@
       rareMode,
       offset: serverOffset,
       onMode: (value) => {
+        if (activeRaidId) {
+          toast("\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u043E\u0431\u0435\u0434\u0438 \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430");
+          return;
+        }
         rareMode = value;
         raid = null;
         renderRaids();
@@ -2142,6 +2152,12 @@
         toast("\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430");
       }),
       onClose: () => {
+        if (activeRaidId) {
+          action(async () => {
+            raid = (await api("raids/" + activeRaidId)).raid;
+          });
+          return;
+        }
         rareMode = !!raid.rare;
         selected = raid.map;
         raid = null;
@@ -2221,7 +2237,7 @@
     if (launchValue("friend")) navigate("friends");
     else if (!invited) onboarding(navigate);
   }
-  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
+  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
       init_ui_icons();
@@ -2234,6 +2250,7 @@
       init_profile_ui();
       init_clans_ui();
       init_friends_ui();
+      init_leaderboard_ui();
       init_platform_entry();
       init_client_api();
       init_balance();
@@ -2253,6 +2270,7 @@
       last = 0;
       keys = /* @__PURE__ */ new Set();
       stick = { x: 0, y: 0 };
+      activeRaidId = null;
       raid = null;
       serverOffset = 0;
       networkReady = false;

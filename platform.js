@@ -296,6 +296,13 @@ async function currentVKUser() {
     return null;
   }
 }
+async function syncVKFriends(api) {
+  if (!inVK) throw new Error("\u041E\u0442\u043A\u0440\u043E\u0439 \u0438\u0433\u0440\u0443 \u0432\u043D\u0443\u0442\u0440\u0438 VK, \u0447\u0442\u043E\u0431\u044B \u0443\u0432\u0438\u0434\u0435\u0442\u044C \u0434\u0440\u0443\u0437\u0435\u0439 VK.");
+  const result = await withTimeout(dist_default.send("VKWebAppGetAuthToken", { app_id: VK_APP_ID, scope: "friends" }), "VK \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043D\u0430 \u0437\u0430\u043F\u0440\u043E\u0441 \u0434\u043E\u0441\u0442\u0443\u043F\u0430 \u043A \u0434\u0440\u0443\u0437\u044C\u044F\u043C.");
+  if (!result?.access_token) throw new Error("VK \u043D\u0435 \u043F\u0440\u0435\u0434\u043E\u0441\u0442\u0430\u0432\u0438\u043B \u0434\u043E\u0441\u0442\u0443\u043F \u043A \u0434\u0440\u0443\u0437\u044C\u044F\u043C.");
+  return api("friends/vk-sync", { accessToken: result.access_token });
+}
+var canSyncVKFriendsSilently = () => inVK && (launch.get("vk_access_token_settings") || "").split(",").includes("friends");
 async function inviteVK(link = "") {
   if (!inVK) throw new Error("\u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u0412\u041A \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u043F\u0440\u0438 \u0437\u0430\u043F\u0443\u0441\u043A\u0435 \u0438\u0433\u0440\u044B \u0432\u043D\u0443\u0442\u0440\u0438 \u0412\u041A.");
   if (link) {
@@ -340,11 +347,13 @@ async function showRewardedAd() {
 }
 export {
   VK_APP_ID,
+  canSyncVKFriendsSilently,
   currentVKUser,
   inVK,
   inviteLink,
   inviteVK,
   inviteVKFriends,
   launchValue,
-  showRewardedAd
+  showRewardedAd,
+  syncVKFriends
 };

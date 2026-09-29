@@ -1,5 +1,6 @@
 import {createHandler} from './domain.js';
 import {verifyVKLaunch,bindVKAccount} from './vk-auth.js';
+import {verifiedVKFriends} from './vk-friends.js';
 
 const DEFAULT_ORIGINS=[
  'https://hordeminecraft.github.io',
@@ -55,6 +56,7 @@ export async function api(request,env){
   try{const input=JSON.parse(raw);vkUser=await verifyVKLaunch(input.launch,env.VK_APP_SECRET);authSession=typeof input.session==='string'&&/^[a-f0-9]{32}$/.test(input.session)?input.session:null;}
   catch(e){return json({error:e.status?e.message:'Неверный запрос VK'},e.status||400,cors);}
  }
+ let friendsPromise;
  for(let attempt=0;attempt<8;attempt++){
   const row=await env.DB.prepare('SELECT data, revision FROM game_world WHERE id = ?').bind('beta').first();
   if(!row){
@@ -100,7 +102,7 @@ export async function api(request,env){
    writeHead(s,h){status=s;for(const [k,v]of Object.entries(h||{}))headers.set(k,v)},
    end(v=''){body=String(v)}
   };
-  await createHandler(db,()=>{},()=>crypto.randomUUID().replaceAll('-',''))(req,res,url);
+  await createHandler(db,()=>{},()=>crypto.randomUUID().replaceAll('-',''),{resolveVKFriends:token=>friendsPromise??=verifiedVKFriends(token)})(req,res,url);
   if(status>=400)return new Response(body,{status,headers});
   if(readOnlyRaid)return new Response(body,{status,headers});
   const committed=await env.DB.prepare('UPDATE game_world SET data = ?, revision = revision + 1 WHERE id = ? AND revision = ?').bind(JSON.stringify(db),'beta',row.revision).run();

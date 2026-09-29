@@ -15,7 +15,10 @@ const seed=(DB,world)=>DB.sqlite.prepare('INSERT INTO game_world VALUES (?,?,0)'
 test('rare creation is gated, distinct from normal and supports ten billion HP',async()=>{
  const DB=database(),uid='a'.repeat(32);seed(DB,{players:{[uid]:veteran()},raids:{}});
  const call=async body=>{const r=await api(request(uid,'raids',body),{DB});assert.equal(r.status,200);return (await r.json()).raid;};
- const normal=await call({map:7}),rare=await call({map:7,rare:true});assert.notEqual(normal.id,rare.id);assert.equal(rare.hp,10_000_000_000);assert.equal((await call({map:7,rare:true})).id,rare.id);
+ const normal=await call({map:7});
+ assert.equal((await api(request(uid,'raids',{map:7,rare:true}),{DB})).status,409);
+ const finished=JSON.parse(DB.sqlite.prepare('SELECT data FROM game_world').get().data);finished.raids[normal.id].hp=0;DB.sqlite.prepare('UPDATE game_world SET data=?').run(JSON.stringify(finished));
+ const rare=await call({map:7,rare:true});assert.notEqual(normal.id,rare.id);assert.equal(rare.hp,10_000_000_000);assert.equal((await call({map:7,rare:true})).id,rare.id);
  const hit=await api(request(uid,'raids/'+rare.id+'/attack',{}),{DB});const data=await hit.json();assert.equal(data.raid.hp,rare.hp-raidHit(veteran().save,7,true));assert.equal(data.save.energy,48);
  assert.equal((await api(request(uid,'raids/'+rare.id+'/attack',{}),{DB})).status,400);
  assert.equal((await api(request(uid,'raids',{map:0,rare:'yes'}),{DB})).status,400);
@@ -37,4 +40,27 @@ test('rare reward uses damage share, cannot be claimed twice and does not unlock
 });
 test('rare pools are bounded across 300 shares and no contribution earns nothing',()=>{
  for(const profile of RARE_RAIDS){const r={map:profile.map,rare:true,maxHp:profile.hp};const amounts=Array(299).fill(Math.floor(profile.hp/300));amounts.push(profile.hp-amounts.reduce((a,b)=>a+b,0));for(const key of Object.keys(profile.pool)){const sum=amounts.reduce((a,d)=>a+raidReward(r,d)[key],0);assert.ok(sum<=profile.pool[key]);assert.ok(sum>=profile.pool[key]-300);}assert.deepEqual(raidReward(r,0),{scrap:0,xp:0,cores:0,cloth:0});}
+});
+
+test('players activate the same shared boss and cannot switch until victory',async()=>{
+ const DB=database(),a='a'.repeat(32),b='b'.repeat(32);seed(DB,{players:{[a]:veteran(),[b]:veteran()},raids:{}});
+ const replies=await Promise.all([a,b].map(uid=>api(request(uid,'raids',{map:0}),{DB})));
+ const [first,second]=await Promise.all(replies.map(r=>r.json()));assert.equal(first.raid.id,second.raid.id);
+ const rid=first.raid.id;
+ assert.equal((await api(request(a,'raids',{map:1}),{DB})).status,409);
+ const hits=await Promise.all([a,b].map(uid=>api(request(uid,'raids/'+rid+'/attack',{}),{DB})));
+ assert.deepEqual(hits.map(r=>r.status),[200,200]);
+ const view=await (await api(request(a,'raids'),{DB})).json();
+ assert.equal(view.active.id,rid);assert.equal(view.active.members.length,2);
+ assert.equal(view.active.totalDamage,view.active.members.reduce((n,m)=>n+m.damage,0));
+ const world=JSON.parse(DB.sqlite.prepare('SELECT data FROM game_world').get().data);world.raids[rid].hp=0;DB.sqlite.prepare('UPDATE game_world SET data=?').run(JSON.stringify(world));
+ assert.equal((await api(request(a,'raids',{map:1}),{DB})).status,200);DB.sqlite.close();
+});
+
+test('legacy membership cannot bypass active boss lock by joining or attacking',async()=>{
+ const DB=database(),uid='a'.repeat(32),one='1'.repeat(12),two='2'.repeat(12),p=veteran();p.activeRaid=one;
+ const boss=id=>({id,map:0,hp:100000,maxHp:100000,created:1,members:{[uid]:{damage:0,nextAttack:0}}});
+ seed(DB,{players:{[uid]:p},raids:{[one]:boss(one),[two]:boss(two)}});
+ for(const action of ['join','attack'])assert.equal((await api(request(uid,'raids/'+two+'/'+action,{}),{DB})).status,409);
+ const world=JSON.parse(DB.sqlite.prepare('SELECT data FROM game_world').get().data);assert.equal(world.players[uid].save.energy,p.save.energy);assert.equal(world.raids[two].hp,100000);DB.sqlite.close();
 });

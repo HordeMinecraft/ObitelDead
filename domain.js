@@ -3,13 +3,14 @@ import {purchaseVehicle} from './vehicles.js';
 import {adAction} from './ads-domain.js';
 import {conflictAction} from './conflict-domain.js';
 import {clanAction} from './clans-domain.js';
-import {socialAction,ensureSocial} from './friends-domain.js';
+import {socialAction,ensureSocial,friendIds} from './friends-domain.js';
+import {activeRaid} from './raid-state.js';
 import {freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave,playerLevel,raidProfile,weaponUnlocked} from './balance.js';
 
 const ONLINE_WINDOW=90_000;
 const MAX_NAME=32;
 
-export function createHandler(db,commit,id){
+export function createHandler(db,commit,id,services={}){
  const err=(text,status=400)=>{throw Object.assign(new Error(text),{status})};
  const now=()=>Date.now();
  const online=(p,t=now())=>Number(p?.lastSeen||0)>=t-ONLINE_WINDOW;
@@ -23,15 +24,15 @@ export function createHandler(db,commit,id){
   if(!q)return null;
   ensureSocial(q,id);
   const qs=migrateSave(q.save||freshSave());
-  return {code:q.publicId,name:q.name,level:playerLevel(qs),xp:Number(qs.xp||0),kills:Number(qs.kills||0),bossKills:Number(qs.bossKills||0),online:online(q,t)};
+  return {code:q.publicId,name:q.name,avatar:q.avatar||0,level:playerLevel(qs),xp:Number(qs.xp||0),kills:Number(qs.kills||0),bossKills:Number(qs.bossKills||0),online:online(q,t)};
  }
  function onlineCount(t=now()){return Object.values(db.players).filter(p=>online(p,t)).length}
  function leaderboard(uid,t=now()){
   const rows=Object.keys(db.players).map(pid=>({pid,...publicPlayer(pid,t)})).filter(x=>x.code).sort((a,b)=>b.xp-a.xp||b.bossKills-a.bossKills||b.kills-a.kills||a.name.localeCompare(b.name,'ru'));
-  const mine=rows.findIndex(x=>x.pid===uid);
-  return {online:onlineCount(t),meRank:mine<0?null:mine+1,players:rows.slice(0,50).map((x,i)=>({rank:i+1,code:x.code,name:x.name,level:x.level,xp:x.xp,kills:x.kills,bossKills:x.bossKills,online:x.online}))};
+  const mine=rows.findIndex(x=>x.pid===uid),friends=new Set(friendIds(db,uid));
+  return {online:onlineCount(t),meRank:mine<0?null:mine+1,players:rows.slice(0,100).map((x,i)=>({rank:i+1,code:x.code,name:x.name,avatar:x.avatar,level:x.level,xp:x.xp,kills:x.kills,bossKills:x.bossKills,online:x.online,me:x.pid===uid,friend:friends.has(x.pid),requested:db.players[x.pid].friendRequests.includes(uid)}))};
  }
- function viewRaid(r,uid){return {id:r.id,map:r.map,rare:!!r.rare,capacity:RAID_CAPACITY,reward:raidReward(r,r.members[uid]?.damage||0),estimatedDamage:raidHit(db.players[uid].save,r.map,r.rare),hp:r.hp,maxHp:r.maxHp,created:r.created,owner:r.owner===uid,members:Object.entries(r.members).map(([pid,v])=>({name:db.players[pid]?.name||'Выживший',damage:v.damage,me:pid===uid,claimed:!!v.claimed,online:online(db.players[pid])})),nextAttack:r.members[uid]?.nextAttack||0,joined:!!r.members[uid]}}
+ function viewRaid(r,uid){const active=activeRaid(db,uid);return {blockedBy:active&&active.id!==r.id?active.id:null,totalDamage:r.maxHp-r.hp,id:r.id,map:r.map,rare:!!r.rare,capacity:RAID_CAPACITY,reward:raidReward(r,r.members[uid]?.damage||0),estimatedDamage:raidHit(db.players[uid].save,r.map,r.rare),hp:r.hp,maxHp:r.maxHp,created:r.created,owner:r.owner===uid,members:Object.entries(r.members).map(([pid,v])=>({name:db.players[pid]?.name||'Выживший',damage:v.damage,me:pid===uid,claimed:!!v.claimed,online:online(db.players[pid])})),nextAttack:r.members[uid]?.nextAttack||0,joined:!!r.members[uid]}}
  return async function handle(req,res,url){
   if(!url.pathname.startsWith('/api/'))return false;
   const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data))};
@@ -71,6 +72,16 @@ export function createHandler(db,commit,id){
    else if(req.method==='POST'&&/^\/api\/ads\/(start|claim|cancel|status)$/.test(path))result=adAction(p,path.split('/').pop(),b,id);
    else if(path.startsWith('/api/conflict'))result=conflictAction(db,session,path,req.method,b);
    else if(path.startsWith('/api/clans'))result=clanAction(db,session,path,req.method,b,id);
+   else if(req.method==='POST'&&path==='/api/friends/vk-sync'){
+    if(!p.vkUserId)err('Открой игру через VK для синхронизации друзей',401);
+    if(!services.resolveVKFriends)err('Синхронизация друзей VK недоступна на этом сервере',503);
+    if(!p.vkFriendsAt||now()-p.vkFriendsAt>=60000){
+     const verified=await services.resolveVKFriends(b.accessToken);
+     if(verified.user!==p.vkUserId)err('Аккаунт VK не совпадает с игровым профилем',403);
+     p.vkFriendIds=verified.friends;p.vkFriendsAt=now();
+    }
+    result=socialAction(db,session,'/api/friends','GET',{},id,{onlineWindow:ONLINE_WINDOW});
+   }
    else if(path.startsWith('/api/friends'))result=socialAction(db,session,path,req.method,b,id,{onlineWindow:ONLINE_WINDOW});
    else if(req.method==='POST'&&path==='/api/vehicle')result=purchaseVehicle(s,b.vehicle,playerLevel(s));
    else if(req.method==='POST'&&path==='/api/upgrade'){
@@ -100,15 +111,24 @@ export function createHandler(db,commit,id){
     s.scrap+=reward;s.cloth+=win?3+t.map:0;s.xp+=xp;s.kills+=kills;s.daily.kills+=kills;if(win)s.districtRuns[t.map]++;
     p.ticket=null;result={reward,xp,win};p.lastResult={ticket:t.id,result};
    }
+   else if(req.method==='GET'&&path==='/api/raids'){
+    const active=activeRaid(db,session);
+    result={active:active?viewRaid(active,session):null,completed:Object.values(db.raids).filter(r=>r.hp<=0&&r.members[session]?.damage&&!r.members[session].claimed).map(r=>viewRaid(r,session))};
+   }
    else if(req.method==='POST'&&path==='/api/raids'){
     const m=b.map,rare=b.rare===true;if(b.rare!==undefined&&typeof b.rare!=='boolean')err('Неизвестный тип рейда');if(!Number.isInteger(m)||!MAPS[m]||!raidAllowed(s,m,rare))err('Нужны зачистки, победа над обычным боссом для редкого рейда и требуемый уровень');
-    const existing=Object.values(db.raids).find(r=>r.owner===session&&r.map===m&&!!r.rare===rare&&r.hp>0);
-    if(existing)result.raid=viewRaid(existing,session);else{const rid=id().slice(0,12),hp=rare?RARE_RAIDS[m].hp:raidProfile(m).hp;const r={id:rid,map:m,rare,owner:session,hp,maxHp:hp,created:now(),members:{[session]:{damage:0,nextAttack:0,claimed:false}}};db.raids[rid]=r;result.raid=viewRaid(r,session)}
+    const active=activeRaid(db,session);
+    if(active&&(active.map!==m||!!active.rare!==rare))err('Сначала победи активного босса: '+MAPS[active.map].boss,409);
+    const friends=new Set(friendIds(db,session));
+    const existing=active||Object.values(db.raids).filter(r=>r.map===m&&!!r.rare===rare&&r.hp>0&&Object.keys(r.members).length<RAID_CAPACITY).sort((a,b)=>Number(Object.keys(b.members).some(x=>friends.has(x)))-Number(Object.keys(a.members).some(x=>friends.has(x)))||a.created-b.created||a.id.localeCompare(b.id))[0];
+    if(existing){existing.members[session]??={damage:0,nextAttack:0,claimed:false};p.activeRaid=existing.id;result.raid=viewRaid(existing,session)}else{const rid=id().slice(0,12),hp=rare?RARE_RAIDS[m].hp:raidProfile(m).hp;const r={id:rid,map:m,rare,owner:session,hp,maxHp:hp,created:now(),members:{[session]:{damage:0,nextAttack:0,claimed:false}}};db.raids[rid]=r;p.activeRaid=rid;result.raid=viewRaid(r,session)}
    }
    else if(/^\/api\/raids\/[a-f0-9]{12}(\/join|\/attack|\/claim)?$/.test(path)){
     const parts=path.split('/'),r=db.raids[parts[3]];if(!r)err('Рейд не найден',404);const action=parts[4];
+    const active=activeRaid(db,session);
+    if(req.method==='POST'&&['join','attack'].includes(action)&&active&&active.id!==r.id)err('Сначала победи активного босса: '+MAPS[active.map].boss,409);
     if(req.method==='POST'&&action==='join'){
-     if(r.hp<=0)err('Босс уже повержен');if(!r.members[session]){if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(Object.keys(r.members).length>=RAID_CAPACITY)err('В рейде уже 300 игроков');r.members[session]={damage:0,nextAttack:0,claimed:false}}
+     if(r.hp<=0)err('Босс уже повержен');if(!r.members[session]){if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(Object.keys(r.members).length>=RAID_CAPACITY)err('В рейде уже 300 игроков');r.members[session]={damage:0,nextAttack:0,claimed:false}}p.activeRaid=r.id;
     }else if(req.method==='POST'&&action==='attack'){
      const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(r.hp<=0)err('Босс уже повержен');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,BOSS_COST))err('Недостаточно энергии');const damage=Math.min(r.hp,raidHit(s,r.map,r.rare));r.hp-=damage;member.damage+=damage;member.nextAttack=now()+raidProfile(r.map).cooldown;result.damage=damage;
     }else if(req.method==='POST'&&action==='claim'){
@@ -117,7 +137,7 @@ export function createHandler(db,commit,id){
     result.raid=viewRaid(r,session);
    }
    else err('Метод не найден',404);
-   commit();send(200,{...result,save:s,serverTime:now()});
+   commit();send(200,{...result,activeRaidId:activeRaid(db,session)?.id||null,save:s,serverTime:now()});
   }catch(e){send(e.status||500,{error:e.status?e.message:'Ошибка сервера'})}
   return true;
  }

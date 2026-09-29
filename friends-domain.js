@@ -1,4 +1,10 @@
 import {freshSave,migrateSave,playerLevel} from './balance.js';
+import {activeRaid} from './raid-state.js';
+
+export function friendIds(db,uid){
+ const player=db.players[uid],vk=new Set(player?.vkFriendIds||[]);
+ return [...new Set([...(player?.friends||[]),...Object.entries(db.players).filter(([pid,p])=>pid!==uid&&p.vkUserId&&vk.has(p.vkUserId)).map(([pid])=>pid)])].filter(pid=>pid!==uid&&db.players[pid]);
+}
 
 export function ensureSocial(player,id){
  player.publicId??=id().slice(0,12);
@@ -21,13 +27,13 @@ export function socialAction(db,uid,path,method,body,id,options={}){
  if(method==='POST'){
   const [otherId,other]=target();
   if(path==='/api/friends/request'){
-   if(player.friends.includes(otherId))fail('Вы уже друзья');
+   if(friendIds(db,uid).includes(otherId))fail('Вы уже друзья');
    if(other.friendRequests.length>=100)fail('У игрока слишком много заявок');
    if(!other.friendRequests.includes(uid))other.friendRequests.push(uid);
   }
   else if(path==='/api/friends/accept'){
    if(!player.friendRequests.includes(otherId))fail('Нет входящей заявки');
-   if(player.friends.length>=100||other.friends.length>=100)fail('В списке уже 100 друзей');
+   if(player.friends.length>=300||other.friends.length>=300)fail('В списке уже 300 друзей');
    if(!player.friends.includes(otherId))player.friends.push(otherId);
    if(!other.friends.includes(uid))other.friends.push(uid);
    player.friendRequests=player.friendRequests.filter(x=>x!==otherId);
@@ -42,9 +48,9 @@ export function socialAction(db,uid,path,method,body,id,options={}){
  }else if(method!=='GET'||path!=='/api/friends')fail('Метод не поддерживается',405);
  const view=pid=>{
   const p=db.players[pid];if(!p)return null;ensureSocial(p,id);
-  const raid=Object.values(db.raids).find(r=>r.owner===pid&&r.hp>0);
+  const raid=activeRaid(db,pid);
   const save=migrateSave(p.save||freshSave());
-  return {code:p.publicId,name:p.name,avatar:Number.isInteger(p.avatar)&&p.avatar>=0&&p.avatar<6?p.avatar:0,online:isOnline(p),level:playerLevel(save),raid:raid?{id:raid.id,map:raid.map,hp:raid.hp}:null};
+  return {code:p.publicId,name:p.name,avatar:Number.isInteger(p.avatar)&&p.avatar>=0&&p.avatar<6?p.avatar:0,vk:!!p.vkUserId&&(player.vkFriendIds||[]).includes(p.vkUserId),online:isOnline(p),level:playerLevel(save),raid:raid?{id:raid.id,map:raid.map,hp:raid.hp}:null};
  };
- return {code:player.publicId,friends:player.friends.map(view).filter(Boolean),requests:player.friendRequests.map(view).filter(Boolean)};
+ return {code:player.publicId,vkSyncedAt:player.vkFriendsAt||0,account:player.vkUserId?'vk':'guest',friends:friendIds(db,uid).map(view).filter(Boolean),requests:player.friendRequests.filter(pid=>!friendIds(db,uid).includes(pid)).map(view).filter(Boolean)};
 }

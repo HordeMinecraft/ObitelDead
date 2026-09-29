@@ -21,6 +21,14 @@ export async function currentVKUser(){
  try{return await withTimeout(bridge.send('VKWebAppGetUserInfo',{}),'ВК не ответил на запрос профиля.')}catch{return null}
 }
 
+export async function syncVKFriends(api){
+ if(!inVK)throw new Error('Открой игру внутри VK, чтобы увидеть друзей VK.');
+ const result=await withTimeout(bridge.send('VKWebAppGetAuthToken',{app_id:VK_APP_ID,scope:'friends'}),'VK не ответил на запрос доступа к друзьям.');
+ if(!result?.access_token)throw new Error('VK не предоставил доступ к друзьям.');
+ return api('friends/vk-sync',{accessToken:result.access_token});
+}
+export const canSyncVKFriendsSilently=()=>inVK&&(launch.get('vk_access_token_settings')||'').split(',').includes('friends');
+
 export async function inviteVK(link=''){
  if(!inVK)throw new Error('Приглашения ВК доступны при запуске игры внутри ВК.');
  if(link){
