@@ -57,3 +57,14 @@ ARMOR.push(
 );
 export const armorUnlocked=(s,i)=>playerLevel(s)>=ARMOR[i].level||(s.bossKills||0)>=ARMOR[i].bosses&&ARMOR[i].bosses>0||i===0;
 export function migrateSave(s){migrateVehicles(s);s.districtRuns=Array.from({length:MAPS.length},(_,i)=>Math.max(0,Number(s.districtRuns?.[i])||0));s.armorTier??=s.armor>0?1:0;s.ownedArmor??=s.armor>0?[0,1]:[0];s.bossKills??=s.cleared.length;s.cloth??=0;return s}
+// Expedition economy: lower supply rate, independent of boss/contract rewards.
+export const EXPEDITION_LOOT={scrapChance:1/3,scrapMin:4,scrapMax:8,healthChance:.05,healthLimit:2,heal:28};
+export function expeditionReward(map,kills,loot,win,multiplier=1){
+ const bounded=Math.max(0,Math.min(Math.ceil(kills*8/3),Math.floor(Number(loot)||0)));
+ return Math.round((win?MAPS[map].reward/3+bounded:bounded*.35)*multiplier);
+}
+export function expeditionDrop(random=Math.random,healthDropped=0){
+ const scrap=random()<EXPEDITION_LOOT.scrapChance?EXPEDITION_LOOT.scrapMin+Math.floor(random()*(EXPEDITION_LOOT.scrapMax-EXPEDITION_LOOT.scrapMin+1)):0;
+ const health=healthDropped<EXPEDITION_LOOT.healthLimit&&random()<EXPEDITION_LOOT.healthChance;
+ return {scrap,health};
+}

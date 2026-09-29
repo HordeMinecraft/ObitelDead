@@ -6,7 +6,7 @@ import {conflictAction} from './conflict-domain.js';
 import {clanAction} from './clans-domain.js';
 import {socialAction,ensureSocial,friendIds} from './friends-domain.js';
 import {activeRaid} from './raid-state.js';
-import {freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave,playerLevel,raidProfile,weaponUnlocked} from './balance.js';
+import {expeditionReward,freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave,playerLevel,raidProfile,weaponUnlocked} from './balance.js';
 
 const ONLINE_WINDOW=90_000;
 const MAX_NAME=32;
@@ -115,7 +115,7 @@ export function createHandler(db,commit,id,services={}){
     const maxKills=27+t.map*3,kills=Math.max(0,Math.min(maxKills,Math.floor(Number(b.kills)||0)));
     const win=b.win===true&&kills===maxKills&&now()-t.started>18000;
     const loot=Math.max(0,Math.min(kills*8,Math.floor(Number(b.loot)||0)));
-    const reward=Math.round((win?MAPS[t.map].reward+loot:loot*.35)*stats(s).loot),xp=runXP(kills,win,t.map,t.level||1);
+    const reward=expeditionReward(t.map,kills,loot,win,stats(s).loot),xp=runXP(kills,win,t.map,t.level||1);
     s.scrap+=reward;s.cloth+=win?3+t.map:0;s.xp+=xp;s.kills+=kills;s.daily.kills+=kills;if(win)s.districtRuns[t.map]++;
     p.ticket=null;result={reward,xp,win};p.lastResult={ticket:t.id,result};
    }
