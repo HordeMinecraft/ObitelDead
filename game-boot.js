@@ -287,6 +287,14 @@
   });
 
   // platform-entry.js
+  async function currentVKUser() {
+    if (!inVK) return null;
+    try {
+      return await withTimeout(dist_default.send("VKWebAppGetUserInfo", {}), "\u0412\u041A \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043D\u0430 \u0437\u0430\u043F\u0440\u043E\u0441 \u043F\u0440\u043E\u0444\u0438\u043B\u044F.");
+    } catch (e) {
+      return null;
+    }
+  }
   async function syncVKFriends(api2) {
     if (!inVK) throw new Error("\u041E\u0442\u043A\u0440\u043E\u0439 \u0438\u0433\u0440\u0443 \u0432\u043D\u0443\u0442\u0440\u0438 VK, \u0447\u0442\u043E\u0431\u044B \u0443\u0432\u0438\u0434\u0435\u0442\u044C \u0434\u0440\u0443\u0437\u0435\u0439 VK.");
     const result = await withTimeout(dist_default.send("VKWebAppGetAuthToken", { app_id: VK_APP_ID, scope: "friends" }), "VK \u043D\u0435 \u043E\u0442\u0432\u0435\u0442\u0438\u043B \u043D\u0430 \u0437\u0430\u043F\u0440\u043E\u0441 \u0434\u043E\u0441\u0442\u0443\u043F\u0430 \u043A \u0434\u0440\u0443\u0437\u044C\u044F\u043C.");
@@ -916,6 +924,20 @@
     }
   });
 
+  // vk-profile.js
+  function vkPhoto(value) {
+    try {
+      const u = new URL(value);
+      return u.protocol === "https:" && !u.username && !u.password && (!u.port || u.port === "443") && ["userapi.com", "vkuserphoto.ru", "vkuserlive.ru", "vk.com", "vk.ru", "vk.me"].some((d) => u.hostname === d || u.hostname.endsWith("." + d)) ? u.href : "";
+    } catch (e) {
+      return "";
+    }
+  }
+  var init_vk_profile = __esm({
+    "vk-profile.js"() {
+    }
+  });
+
   // friends-ui.js
   function friendsUI(root, api2, toast2, openRaid) {
     async function render() {
@@ -979,11 +1001,12 @@
   var esc3, portrait, autoSyncAttempted, pending;
   var init_friends_ui = __esm({
     "friends-ui.js"() {
+      init_vk_profile();
       init_profile_ui();
       init_ui_icons();
       init_platform_entry();
       esc3 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-      portrait = (p) => '<span class="friend-avatar avatar-' + (Number(p.avatar) || 0) + '" aria-hidden="true">' + (AVATARS[p.avatar] || AVATARS[0]) + "</span>";
+      portrait = (p) => '<span class="friend-avatar avatar-' + (Number(p.avatar) || 0) + '" aria-hidden="true">' + (vkPhoto(p.photo) ? '<img src="' + esc3(vkPhoto(p.photo)) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : AVATARS[p.avatar] || AVATARS[0]) + "</span>";
       autoSyncAttempted = false;
       pending = /* @__PURE__ */ new WeakSet();
     }
@@ -996,7 +1019,7 @@
       pending2.add(root);
       try {
         const d = await api2("leaderboard");
-        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u041E\u041F 100 \xB7 \u0412\u042B\u0416\u0418\u0412\u0428\u0418\u0415</span><h2>\u0413\u0435\u0440\u043E\u0438 \u0433\u043E\u0440\u043E\u0434\u0430</h2><p>\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E \u043E\u043F\u044B\u0442\u0443. \u041F\u0440\u0438 \u0440\u0430\u0432\u0435\u043D\u0441\u0442\u0432\u0435 \u2014 \u043F\u043E\u0431\u0435\u0434\u044B \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u0430\u043C\u0438 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0418\u0433\u0440\u0430\u0439 \u0438 \u0440\u0430\u0437\u0432\u0438\u0432\u0430\u0439\u0441\u044F: \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0435.</p><div class="leader-summary"><strong>\u0422\u0432\u043E\u0451 \u043C\u0435\u0441\u0442\u043E: ${d.meRank ? "#" + d.meRank : "\u2014"}</strong><span>\u0412 \u0441\u0435\u0442\u0438: ${fmt2(d.online)}</span><button class="secondary" id="top-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div></div><div class="social-list leaderboard-list">${d.players.map((p) => `<article class="friend-person rank-${p.rank <= 3 ? p.rank : "other"} ${p.me ? "is-me" : ""}"><strong class="rank-number">#${p.rank}</strong>${portrait(p)}<span class="friend-person-info"><b>${esc4(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</b><small>\u0423\u0440. ${p.level} \xB7 ${fmt2(p.xp)} XP \xB7 \u0411\u043E\u0441\u0441\u044B: ${fmt2(p.bossKills)}</small></span>${p.me ? '<span class="rank-status">\u0422\u0412\u041E\u0419 \u041F\u0420\u041E\u0424\u0418\u041B\u042C</span>' : p.friend ? '<span class="rank-status">\u0412 \u0414\u0420\u0423\u0417\u042C\u042F\u0425</span>' : `<button class="secondary" data-add="${p.code}" ${p.requested ? "disabled" : ""}>${p.requested ? "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410" : "\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F"}</button>`}</article>`).join("")}</div>`;
+        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u041E\u041F 100 \xB7 \u0412\u042B\u0416\u0418\u0412\u0428\u0418\u0415</span><h2>\u0413\u0435\u0440\u043E\u0438 \u0433\u043E\u0440\u043E\u0434\u0430</h2><p>\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E \u043E\u043F\u044B\u0442\u0443. \u041F\u0440\u0438 \u0440\u0430\u0432\u0435\u043D\u0441\u0442\u0432\u0435 \u2014 \u043F\u043E\u0431\u0435\u0434\u044B \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u0430\u043C\u0438 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0418\u0433\u0440\u0430\u0439 \u0438 \u0440\u0430\u0437\u0432\u0438\u0432\u0430\u0439\u0441\u044F: \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0435 \u043F\u043E\u0441\u043B\u0435 \u0432\u0445\u043E\u0434\u0430 \u0447\u0435\u0440\u0435\u0437 VK. \u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043A\u0430\u0436\u0434\u044B\u0435 4 \u0441\u0435\u043A\u0443\u043D\u0434\u044B.</p><div class="leader-summary"><strong>\u0422\u0432\u043E\u0451 \u043C\u0435\u0441\u0442\u043E: ${d.meRank ? "#" + d.meRank : "\u2014"}</strong><span>\u0418\u0433\u0440\u043E\u043A\u043E\u0432 VK: ${fmt2(d.total)} \xB7 \u0412 \u0441\u0435\u0442\u0438: ${fmt2(d.online)}</span><button class="secondary" id="top-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div></div><div class="social-list leaderboard-list">${d.players.map((p) => `<article class="friend-person rank-${p.rank <= 3 ? p.rank : "other"} ${p.me ? "is-me" : ""}"><strong class="rank-number">#${p.rank}</strong>${portrait(p)}<span class="friend-person-info"><b>${esc4(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</b><small>\u0423\u0440. ${p.level} \xB7 ${fmt2(p.xp)} XP \xB7 \u0411\u043E\u0441\u0441\u044B: ${fmt2(p.bossKills)}</small></span>${p.me ? '<span class="rank-status">\u0422\u0412\u041E\u0419 \u041F\u0420\u041E\u0424\u0418\u041B\u042C</span>' : p.friend ? '<span class="rank-status">\u0412 \u0414\u0420\u0423\u0417\u042C\u042F\u0425</span>' : `<button class="secondary" data-add="${p.code}" ${p.requested ? "disabled" : ""}>${p.requested ? "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410" : "\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F"}</button>`}</article>`).join("") || '<p class="page-intro">\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D\u043D\u044B\u0445 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 VK \u043F\u043E\u043A\u0430 \u043D\u0435\u0442. \u0412\u043E\u0439\u0434\u0438 \u0447\u0435\u0440\u0435\u0437 VK, \u0447\u0442\u043E\u0431\u044B \u0443\u0447\u0430\u0441\u0442\u0432\u043E\u0432\u0430\u0442\u044C \u0432 \u0440\u0435\u0439\u0442\u0438\u043D\u0433\u0435.</p>'}</div>`;
         root.querySelector("#top-refresh").onclick = render;
         root.querySelectorAll("[data-add]").forEach((b) => b.onclick = async () => {
           b.disabled = true;
@@ -1550,14 +1573,14 @@
     if (name) name.textContent = playerProfile.name;
     const avatar = document.querySelector(".profile .avatar");
     if (avatar) {
-      avatar.innerHTML = AVATARS[playerProfile.avatar || 0];
+      avatar.innerHTML = portrait(playerProfile);
       avatar.className = "avatar avatar-" + (playerProfile.avatar || 0);
     }
   }
   async function api(path, body) {
     const data = await requestAPI(path, body);
     if (Object.prototype.hasOwnProperty.call(data, "activeRaidId")) activeRaidId = data.activeRaidId;
-    if (path === "profile") showProfile({ name: data.name, avatar: data.avatar || 0 });
+    if (path === "profile" || path === "profile/vk") showProfile({ name: data.name, avatar: data.avatar || 0, photo: data.photo || "" });
     if (data.save) {
       save = data.save;
       persist();
@@ -1575,6 +1598,12 @@
       }
       const profile = await api("profile");
       networkReady = true;
+      if (profile.account === "vk" && canSyncVKFriendsSilently()) syncVKFriends(api).catch(() => {
+      });
+      if (profile.account === "vk") currentVKUser().then((user) => {
+        if (user && (user.photo_200 || user.photo_100)) return api("profile/vk", { id: user.id, photo: user.photo_200 || user.photo_100 });
+      }).catch(() => {
+      });
       try {
         const encounters = await api("raids");
         raid = encounters.active || encounters.completed[0] || null;
@@ -2223,6 +2252,7 @@
     }, 1e3);
     setInterval(() => {
       if (networkReady) energyHud();
+      if (networkReady && !document.hidden && page === "leaderboard" && !busy) leaderboardUI($("#leaderboard-page"), api, toast);
       if (!document.hidden && page === "raids" && raid && !busy) pollRaid();
     }, 4e3);
     const invited = launchValue("raid");

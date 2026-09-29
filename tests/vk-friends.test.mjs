@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {verifiedVKFriends} from '../vk-friends.js';
 import {friendIds} from '../friends-domain.js';
 test('VK verifies token owner and filters installed IDs against registered profiles',async()=>{
- const calls=[];const result=await verifiedVKFriends('temporary-token',async(url,opts)=>{calls.push(url);assert.equal(opts.method,'POST');return Response.json({response:url.endsWith('users.get')?[{id:42}]:[8,8,9]})});
+ const calls=[];const result=await verifiedVKFriends('temporary-token',async(url,opts)=>{calls.push(url);assert.equal(opts.method,'POST');return Response.json({response:url.endsWith('users.get')?[{id:42}]:{count:3,items:[8,8,9]}})});
  assert.deepEqual(result,{user:'42',friends:['8','9']});assert.equal(calls.length,2);
- const db={players:{a:{vkUserId:'42',vkFriendIds:result.friends},b:{vkUserId:'8'},c:{vkUserId:'10'}},raids:{}};
+ const db={vkAccounts:{'42':'a','8':'b','10':'c'},players:{a:{vkUserId:'42',vkFriendIds:result.friends},b:{vkUserId:'8'},c:{vkUserId:'10'}},raids:{}};
  assert.deepEqual(friendIds(db,'a'),['b']);assert.ok(!JSON.stringify(db).includes('temporary-token'));
 });
 test('VK API errors cannot supply unverified friend identities',async()=>{

@@ -84,8 +84,8 @@ export async function api(request,env){
   }
   const existingId=(inbound.cookie||'').match(/(?:^|;\s*)obitel_session=([a-f0-9]{32})(?:;|$)/)?.[1];
   const existingPlayer=db.players[existingId];
-  // Raid polling reads the snapshot; persist presence at most once per 30 seconds.
-  const readOnlyRaid=request.method==='GET'&&/^\/api\/raids\/[a-f0-9]{12}$/.test(url.pathname)
+  // Raid and leaderboard polling read the snapshot; persist presence at most once per 30 seconds.
+  const readOnlyPoll=request.method==='GET'&&(/^\/api\/raids\/[a-f0-9]{12}$/.test(url.pathname)||url.pathname==='/api/leaderboard')
    &&existingPlayer?.publicId&&Number(existingPlayer.lastSeen||0)>Date.now()-30000;
   const req={method:request.method,headers:inbound,async *[Symbol.asyncIterator](){if(raw)yield raw}};
   const res={
@@ -104,7 +104,7 @@ export async function api(request,env){
   };
   await createHandler(db,()=>{},()=>crypto.randomUUID().replaceAll('-',''),{resolveVKFriends:token=>friendsPromise??=verifiedVKFriends(token)})(req,res,url);
   if(status>=400)return new Response(body,{status,headers});
-  if(readOnlyRaid)return new Response(body,{status,headers});
+  if(readOnlyPoll)return new Response(body,{status,headers});
   const committed=await env.DB.prepare('UPDATE game_world SET data = ?, revision = revision + 1 WHERE id = ? AND revision = ?').bind(JSON.stringify(db),'beta',row.revision).run();
   if(committed.meta.changes===1)return new Response(body,{status,headers});
  }

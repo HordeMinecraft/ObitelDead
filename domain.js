@@ -1,3 +1,4 @@
+import {vkPhoto,rankedPlayers} from './vk-profile.js';
 import {RARE_RAIDS,RAID_CAPACITY,raidAllowed,raidHit,raidReward} from './rare-raids.js';
 import {purchaseVehicle} from './vehicles.js';
 import {adAction} from './ads-domain.js';
@@ -24,13 +25,13 @@ export function createHandler(db,commit,id,services={}){
   if(!q)return null;
   ensureSocial(q,id);
   const qs=migrateSave(q.save||freshSave());
-  return {code:q.publicId,name:q.name,avatar:q.avatar||0,level:playerLevel(qs),xp:Number(qs.xp||0),kills:Number(qs.kills||0),bossKills:Number(qs.bossKills||0),online:online(q,t)};
+  return {code:q.publicId,name:q.name,avatar:q.avatar||0,photo:vkPhoto(q.vkPhoto),level:playerLevel(qs),xp:Number(qs.xp||0),kills:Number(qs.kills||0),bossKills:Number(qs.bossKills||0),online:online(q,t)};
  }
- function onlineCount(t=now()){return Object.values(db.players).filter(p=>online(p,t)).length}
+ function onlineCount(t=now()){return rankedPlayers(db).filter(id=>online(db.players[id],t)).length}
  function leaderboard(uid,t=now()){
-  const rows=Object.keys(db.players).map(pid=>({pid,...publicPlayer(pid,t)})).filter(x=>x.code).sort((a,b)=>b.xp-a.xp||b.bossKills-a.bossKills||b.kills-a.kills||a.name.localeCompare(b.name,'ru'));
+  const rows=rankedPlayers(db).map(pid=>({pid,...publicPlayer(pid,t)})).filter(x=>x.code).sort((a,b)=>b.xp-a.xp||b.bossKills-a.bossKills||b.kills-a.kills||a.name.localeCompare(b.name,'ru'));
   const mine=rows.findIndex(x=>x.pid===uid),friends=new Set(friendIds(db,uid));
-  return {online:onlineCount(t),meRank:mine<0?null:mine+1,players:rows.slice(0,100).map((x,i)=>({rank:i+1,code:x.code,name:x.name,avatar:x.avatar,level:x.level,xp:x.xp,kills:x.kills,bossKills:x.bossKills,online:x.online,me:x.pid===uid,friend:friends.has(x.pid),requested:db.players[x.pid].friendRequests.includes(uid)}))};
+  return {updatedAt:t,total:rows.length,online:rows.filter(x=>x.online).length,meRank:mine<0?null:mine+1,players:rows.slice(0,100).map((x,i)=>({rank:i+1,code:x.code,name:x.name,avatar:x.avatar,photo:x.photo,level:x.level,xp:x.xp,kills:x.kills,bossKills:x.bossKills,online:x.online,me:x.pid===uid,friend:friends.has(x.pid),requested:db.players[x.pid].friendRequests.includes(uid)}))};
  }
  function viewRaid(r,uid){const active=activeRaid(db,uid);return {blockedBy:active&&active.id!==r.id?active.id:null,totalDamage:r.maxHp-r.hp,id:r.id,map:r.map,rare:!!r.rare,capacity:RAID_CAPACITY,reward:raidReward(r,r.members[uid]?.damage||0),estimatedDamage:raidHit(db.players[uid].save,r.map,r.rare),hp:r.hp,maxHp:r.maxHp,created:r.created,owner:r.owner===uid,members:Object.entries(r.members).map(([pid,v])=>({name:db.players[pid]?.name||'Выживший',damage:v.damage,me:pid===uid,claimed:!!v.claimed,online:online(db.players[pid])})),nextAttack:r.members[uid]?.nextAttack||0,joined:!!r.members[uid]}}
  return async function handle(req,res,url){
@@ -58,13 +59,18 @@ export function createHandler(db,commit,id,services={}){
     try{b=raw?JSON.parse(raw):{}}catch{err('Некорректный JSON')}
    }
    let result={};const path=url.pathname;
-   if(req.method==='GET'&&path==='/api/profile')result={name:p.name,avatar:p.avatar||0,code:p.publicId,online:true,account:p.vkUserId?'vk':'guest'};
+   if(req.method==='GET'&&path==='/api/profile')result={name:p.name,avatar:p.avatar||0,photo:vkPhoto(p.vkPhoto),code:p.publicId,online:true,account:p.vkUserId?'vk':'guest'};
+   else if(req.method==='POST'&&path==='/api/profile/vk'){
+    if(!p.vkUserId||String(b.id)!==p.vkUserId)err('Профиль VK не подтверждён',403);
+    const photo=vkPhoto(b.photo);if(!photo)err('Некорректная фотография VK');
+    p.vkPhoto=photo;result={name:p.name,avatar:p.avatar||0,photo,account:'vk'};
+   }
    else if(req.method==='POST'&&path==='/api/profile'){
     const name=String(b.name||'').replace(/\s+/g,' ').trim();
     if(b.name!==undefined&&(name.length<2||name.length>MAX_NAME||/[<>\x00-\x1f]/.test(name)))err('Ник: 2–32 символа, без угловых скобок');
     if(b.avatar!==undefined&&(!Number.isInteger(b.avatar)||b.avatar<0||b.avatar>5))err('Аватар не найден');
     if(b.name!==undefined)p.name=name;if(b.avatar!==undefined)p.avatar=b.avatar;
-    result={name:p.name,avatar:p.avatar||0,code:p.publicId,online:true};
+    result={name:p.name,avatar:p.avatar||0,photo:vkPhoto(p.vkPhoto),code:p.publicId,online:true};
    }
    else if(req.method==='GET'&&path==='/api/online')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='POST'&&path==='/api/online/ping')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};

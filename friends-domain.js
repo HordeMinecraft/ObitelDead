@@ -1,9 +1,10 @@
+import {vkPhoto} from './vk-profile.js';
 import {freshSave,migrateSave,playerLevel} from './balance.js';
 import {activeRaid} from './raid-state.js';
 
 export function friendIds(db,uid){
  const player=db.players[uid],vk=new Set(player?.vkFriendIds||[]);
- return [...new Set([...(player?.friends||[]),...Object.entries(db.players).filter(([pid,p])=>pid!==uid&&p.vkUserId&&vk.has(p.vkUserId)).map(([pid])=>pid)])].filter(pid=>pid!==uid&&db.players[pid]);
+ return [...new Set([...(player?.friends||[]),...Object.entries(db.players).filter(([pid,p])=>pid!==uid&&p.vkUserId&&db.vkAccounts?.[p.vkUserId]===pid&&vk.has(p.vkUserId)).map(([pid])=>pid)])].filter(pid=>pid!==uid&&db.players[pid]);
 }
 
 export function ensureSocial(player,id){
@@ -50,7 +51,7 @@ export function socialAction(db,uid,path,method,body,id,options={}){
   const p=db.players[pid];if(!p)return null;ensureSocial(p,id);
   const raid=activeRaid(db,pid);
   const save=migrateSave(p.save||freshSave());
-  return {code:p.publicId,name:p.name,avatar:Number.isInteger(p.avatar)&&p.avatar>=0&&p.avatar<6?p.avatar:0,vk:!!p.vkUserId&&(player.vkFriendIds||[]).includes(p.vkUserId),online:isOnline(p),level:playerLevel(save),raid:raid?{id:raid.id,map:raid.map,hp:raid.hp}:null};
+  return {code:p.publicId,name:p.name,photo:vkPhoto(p.vkPhoto),avatar:Number.isInteger(p.avatar)&&p.avatar>=0&&p.avatar<6?p.avatar:0,vk:!!p.vkUserId&&(player.vkFriendIds||[]).includes(p.vkUserId),online:isOnline(p),level:playerLevel(save),raid:raid?{id:raid.id,map:raid.map,hp:raid.hp}:null};
  };
  return {code:player.publicId,vkSyncedAt:player.vkFriendsAt||0,account:player.vkUserId?'vk':'guest',friends:friendIds(db,uid).map(view).filter(Boolean),requests:player.friendRequests.filter(pid=>!friendIds(db,uid).includes(pid)).map(view).filter(Boolean)};
 }

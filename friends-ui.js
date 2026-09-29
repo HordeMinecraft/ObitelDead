@@ -1,8 +1,9 @@
+import {vkPhoto} from './vk-profile.js';
 import {AVATARS} from './profile-ui.js';
 import {icon} from './ui-icons.js';
 import {syncVKFriends,canSyncVKFriendsSilently,inVK} from './platform.js';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export const portrait=p=>'<span class="friend-avatar avatar-'+(Number(p.avatar)||0)+'" aria-hidden="true">'+(AVATARS[p.avatar]||AVATARS[0])+'</span>';
+export const portrait=p=>'<span class="friend-avatar avatar-'+(Number(p.avatar)||0)+'" aria-hidden="true">'+(vkPhoto(p.photo)?'<img src="'+esc(vkPhoto(p.photo))+'" alt="" loading="lazy" referrerpolicy="no-referrer">':(AVATARS[p.avatar]||AVATARS[0]))+'</span>';
 let autoSyncAttempted=false;
 const pending=new WeakSet();
 export function friendsUI(root,api,toast,openRaid){
