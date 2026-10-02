@@ -48,3 +48,13 @@ test('unexpected storage failures retain CORS so WebView can read the server err
  assert.equal(r.status,503);assert.equal(r.headers.get('access-control-allow-origin'),'https://hordeminecraft.github.io');assert.match((await r.json()).error,/SERVER_INTERNAL/);
  const bad=await worker.fetch(make('https://evil.example'),{DB,VK_APP_SECRET:secret});assert.equal(bad.status,403);assert.equal(bad.headers.get('access-control-allow-origin'),null);
 });
+
+
+test('milestone claim survives concurrent Worker requests and a second signed VK device',async()=>{
+ const DB=database(),a='e'.repeat(32),b='f'.repeat(32),save={...freshSave(),districtRuns:[1,0,0,0,0,0,0,0],xp:64};
+ DB.sqlite.prepare('INSERT INTO game_world VALUES (?,?,0)').run('beta',JSON.stringify({players:{[a]:{name:'Тест',save}},raids:{}}));
+ const first=await login(DB,a,launch('222'));assert.equal(first.status,200);
+ const responses=await Promise.all([api(request(a,'operations/claim',{id:'milestone:first-sortie'}),{DB}),api(request(a,'operations/claim',{id:'milestone:first-sortie'}),{DB})]);assert.deepEqual(responses.map(r=>r.status).sort(),[200,400]);
+ const second=await login(DB,b,launch('222'));assert.equal(second.status,200);const session=second.headers.get('x-obitel-session');assert.equal(session,a);
+ const view=await(await api(request(session,'operations'),{DB})).json();assert.equal(view.save.cloth,1);assert.equal(view.save.xp,64);assert.equal(view.milestones.find(m=>m.id==='first-sortie').claimed,true);DB.sqlite.close();
+});

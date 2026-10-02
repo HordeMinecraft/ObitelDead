@@ -347,44 +347,6 @@
     }
   });
 
-  // combat-tactics.js
-  function repulseStatus(run2) {
-    const seconds = Math.max(0, ((run2 == null ? void 0 : run2.repulseAt) || 0) - ((run2 == null ? void 0 : run2.time) || 0));
-    return { seconds, ready: !!run2 && !run2.paused && !run2.ended && !run2.transition && seconds === 0 && run2.stamina >= REPULSE.cost };
-  }
-  function repel(run2) {
-    if (!repulseStatus(run2).ready) return false;
-    run2.stamina -= REPULSE.cost;
-    run2.repulseAt = run2.time + REPULSE.cooldown;
-    run2.repulses = (run2.repulses || 0) + 1;
-    for (const enemy of run2.enemies) {
-      if (enemy.hp <= 0) continue;
-      let dx = enemy.x - run2.x, dy = enemy.y - run2.y, length = Math.hypot(dx, dy);
-      if (length > REPULSE.radius) continue;
-      if (length < 1e-3) {
-        dx = run2.face || 1;
-        dy = 0;
-        length = 1;
-      }
-      const distance = enemy.type === "boss" ? REPULSE.distance * 0.3 : REPULSE.distance;
-      enemy.x = Math.max(25, Math.min(935, enemy.x + dx / length * distance));
-      enemy.y = Math.max(260, Math.min(540, enemy.y + dy / length * distance * 0.8));
-      enemy.attack = null;
-      enemy.cd = Math.max(enemy.cd, 0.8);
-    }
-    return true;
-  }
-  function battleReport(run2) {
-    const seconds = Math.max(0, Math.floor(run2.time));
-    return { duration: Math.floor(seconds / 60) + ":" + String(seconds % 60).padStart(2, "0"), kills: run2.kills, hits: run2.hits || 0, repulses: run2.repulses || 0, energy: run2.plan.cost };
-  }
-  var REPULSE;
-  var init_combat_tactics = __esm({
-    "combat-tactics.js"() {
-      REPULSE = { cost: 35, cooldown: 9, radius: 115, distance: 90 };
-    }
-  });
-
   // vehicles.js
   var VEHICLES, vehicleFor;
   var init_vehicles = __esm({
@@ -526,35 +488,53 @@
     }
   });
 
-  // operations.js
-  function sortiePlan(save2, map, mode = "standard", time = Date.now()) {
-    const option = SORTIE_MODES.find((x) => x.id === mode);
-    if (!option || !MAPS[map] || playerLevel(save2) < option.level) throw Object.assign(new Error("\u0420\u0435\u0436\u0438\u043C \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D"), { status: 400 });
-    const day = moscowDay(time), condition = CONDITIONS[map === 0 ? 0 : (day + map) % CONDITIONS.length];
-    return { ...option, condition: { ...condition }, day };
+  // campaign.js
+  function campaignState(save2) {
+    const completed = new Set((save2.cleared || []).filter((i) => Number.isInteger(i) && MAPS[i]));
+    const districts = MAPS.map((map, index) => {
+      var _a2;
+      const runs = Math.min(3, count((_a2 = save2.districtRuns) == null ? void 0 : _a2[index])), done = completed.has(index), open = unlocked(save2, index), level = playerLevel(save2);
+      return { index, name: map.name, role: DISTRICT_ROLES[index], level: map.level, boss: map.boss, runs, done, open, status: done ? "\u041E\u0421\u0412\u041E\u0415\u041D" : !open ? "\u0417\u0410\u041A\u0420\u042B\u0422" : runs < 3 ? "\u0417\u0410\u0427\u0418\u0421\u0422\u041A\u0410" : level < map.level ? "\u041D\u0423\u0416\u0415\u041D \u0423\u0420\u041E\u0412\u0415\u041D\u042C" : "\u0411\u041E\u0421\u0421 \u0414\u041E\u0421\u0422\u0423\u041F\u0415\u041D" };
+    });
+    const next = districts.find((d) => !d.done) || null;
+    const action2 = !next ? "campaign-complete" : next.runs < 3 ? "sortie" : playerLevel(save2) < next.level ? "level" : "boss";
+    return { districts, completed: completed.size, total: MAPS.length, percent: Math.round(completed.size / MAPS.length * 100), next, action: action2, title: !next ? "\u0412\u0441\u0435 \u0432\u043E\u0441\u0435\u043C\u044C \u0440\u0430\u0439\u043E\u043D\u043E\u0432 \u043E\u0441\u0432\u043E\u0435\u043D\u044B" : action2 === "level" ? "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u044C\u0441\u044F \u043A \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u043C\u0443 \u0440\u0430\u0439\u043E\u043D\u0443" : action2 === "boss" ? "\u041F\u043E\u0431\u0435\u0434\u0438 \u0431\u043E\u0441\u0441\u0430 \u0440\u0430\u0439\u043E\u043D\u0430" : next.runs ? "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443" : "\u041E\u0442\u043A\u0440\u043E\u0439 \u043F\u0443\u0442\u044C \u0432 \u0440\u0430\u0439\u043E\u043D", description: !next ? "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u0439 \u0440\u0435\u0439\u0434\u044B, \u043F\u043E\u043C\u043E\u0433\u0430\u0439 \u0434\u0440\u0443\u0437\u044C\u044F\u043C \u0438 \u0432\u044B\u043F\u043E\u043B\u043D\u044F\u0439 \u043F\u0440\u0438\u043A\u0430\u0437\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430." : action2 === "level" ? "\u041D\u0443\u0436\u0435\u043D \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + next.level + ". \u041F\u043E\u0432\u0442\u043E\u0440\u044F\u0439 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B\u0435 \u0432\u044B\u043B\u0430\u0437\u043A\u0438 \u0434\u043B\u044F \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u044F \u043E\u043F\u044B\u0442\u0430." : action2 === "boss" ? next.boss + " \u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 \u0440\u0430\u0439\u043E\u043D. \u041F\u043E\u0431\u0435\u0434\u0430 \u0438 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u044B \u043E\u0442\u043A\u0440\u043E\u044E\u0442 \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439." : next.name + " \xB7 \u043E\u0441\u0442\u0430\u043B\u043E\u0441\u044C \u043F\u043E\u0431\u0435\u0434\u043D\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A: " + (3 - next.runs) };
   }
-  function sortieEnemy(base, type, plan) {
-    return { ...base, hp: base.hp * plan.hp * (type === "tank" && plan.condition.id === "iron" ? 1.25 : 1), speed: base.speed * plan.speed * (type === "runner" && plan.condition.id === "rush" ? 1.2 : 1) };
+  function claims(save2) {
+    const ids = new Set(MILESTONES.map((m) => m.id));
+    save2.chronicleClaims = [...new Set((Array.isArray(save2.chronicleClaims) ? save2.chronicleClaims : []).filter((id) => ids.has(id)))];
+    return save2.chronicleClaims;
   }
-  function sortieEnemyType(index, condition) {
-    return index % 5 === 4 ? "tank" : index % (condition.id === "hunt" ? 2 : 3) === (condition.id === "hunt" ? 1 : 2) ? "runner" : "walker";
+  function milestoneView(save2) {
+    const claimed = claims(save2), metrics = { runs: MAPS.reduce((n, _, i) => {
+      var _a2;
+      return n + count((_a2 = save2.districtRuns) == null ? void 0 : _a2[i]);
+    }, 0), kills: count(save2.kills), bosses: count(save2.bossKills), districts: unique(save2.cleared, MAPS.length), weapons: unique(save2.owned, WEAPONS.length), armor: unique(save2.ownedArmor, ARMOR.length), level: playerLevel(save2) };
+    return MILESTONES.map((m) => ({ ...m, progress: Math.min(m.goal, metrics[m.metric]), claimed: claimed.includes(m.id) }));
   }
-  var SORTIE_MODES, CONDITIONS, moscowDay;
-  var init_operations = __esm({
-    "operations.js"() {
+  var count, unique, DISTRICT_ROLES, MILESTONES;
+  var init_campaign = __esm({
+    "campaign.js"() {
       init_balance();
-      SORTIE_MODES = [
-        { id: "scout", name: "\u0420\u0430\u0437\u0432\u0435\u0434\u043A\u0430", level: 1, cost: 6, hp: 0.8, speed: 0.9, reward: 0.65, xp: 0.75, description: "\u0421\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439 \u0442\u0435\u043C\u043F. \u041C\u0435\u043D\u044C\u0448\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u0430, \u0434\u0435\u0448\u0435\u0432\u043B\u0435 \u0432\u044B\u0445\u043E\u0434." },
-        { id: "standard", name: "\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0430", level: 1, cost: 8, hp: 1, speed: 1, reward: 1, xp: 1, description: "\u041E\u0431\u044B\u0447\u043D\u0430\u044F \u0443\u0433\u0440\u043E\u0437\u0430 \u0438 \u043D\u0430\u0433\u0440\u0430\u0434\u0430. \u041E\u0441\u043D\u043E\u0432\u043D\u043E\u0439 \u043F\u0443\u0442\u044C \u043F\u043E \u0440\u0430\u0439\u043E\u043D\u0430\u043C." },
-        { id: "siege", name: "\u041F\u0440\u043E\u0440\u044B\u0432", level: 5, cost: 12, hp: 1.4, speed: 1.12, reward: 1.65, xp: 1.4, description: "\u0416\u0438\u0432\u0443\u0447\u0438\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0411\u043E\u043B\u044C\u0448\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0437\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u0443\u044E \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443." }
+      count = (n) => Number.isFinite(Number(n)) ? Math.max(0, Math.floor(Number(n))) : 0;
+      unique = (values, max) => new Set((Array.isArray(values) ? values : []).filter((n) => Number.isInteger(n) && n >= 0 && n < max)).size;
+      DISTRICT_ROLES = ["\u0416\u0438\u043B\u043E\u0439 \u0441\u0435\u043A\u0442\u043E\u0440", "\u0422\u043E\u043F\u043B\u0438\u0432\u043D\u044B\u0439 \u0443\u0437\u0435\u043B", "\u0421\u043A\u043B\u0430\u0434 \u0441\u043D\u0430\u0431\u0436\u0435\u043D\u0438\u044F", "\u041C\u0435\u0434\u0438\u0446\u0438\u043D\u0441\u043A\u0438\u0439 \u0441\u0435\u043A\u0442\u043E\u0440", "\u0417\u043E\u043D\u0430 \u0441\u0438\u0433\u043D\u0430\u043B\u0430", "\u041F\u043E\u0434\u0437\u0435\u043C\u043D\u044B\u0439 \u0442\u0440\u0430\u043D\u0441\u043F\u043E\u0440\u0442", "\u041F\u0440\u043E\u0438\u0437\u0432\u043E\u0434\u0441\u0442\u0432\u0435\u043D\u043D\u044B\u0439 \u0443\u0437\u0435\u043B", "\u0414\u0430\u043B\u044C\u043D\u044F\u044F \u0441\u0432\u044F\u0437\u044C"];
+      MILESTONES = [
+        { id: "first-sortie", title: "\u041F\u0435\u0440\u0432\u043E\u0435 \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0435\u043D\u0438\u0435", description: "\u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u043E\u0434\u043D\u0443 \u043F\u043E\u0431\u0435\u0434\u043D\u0443\u044E \u0432\u044B\u043B\u0430\u0437\u043A\u0443.", metric: "runs", goal: 1, icon: "map", reward: { cloth: 1 } },
+        { id: "hunter-100", title: "\u0411\u0435\u0437\u043E\u043F\u0430\u0441\u043D\u044B\u0439 \u043F\u0435\u0440\u0438\u043C\u0435\u0442\u0440", description: "\u0423\u0441\u0442\u0440\u0430\u043D\u0438 100 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445.", metric: "kills", goal: 100, icon: "raids", reward: { scrap: 35 } },
+        { id: "sorties-10", title: "\u041F\u043E\u043B\u0435\u0432\u043E\u0439 \u043E\u043F\u044B\u0442", description: "\u0417\u0430\u0432\u0435\u0440\u0448\u0438 10 \u043F\u043E\u0431\u0435\u0434\u043D\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A.", metric: "runs", goal: 10, icon: "map", reward: { scrap: 45, cloth: 2 } },
+        { id: "first-boss", title: "\u041F\u0435\u0440\u0432\u0430\u044F \u043E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430", description: "\u041F\u043E\u043B\u0443\u0447\u0438 \u043D\u0430\u0433\u0440\u0430\u0434\u0443 \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443 \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u043E\u043C.", metric: "bosses", goal: 1, icon: "raids", reward: { cores: 1, cloth: 2 } },
+        { id: "arsenal-3", title: "\u041D\u0430 \u0432\u0441\u0435 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u0438", description: "\u0421\u043E\u0431\u0435\u0440\u0438 \u0442\u0440\u0438 \u0440\u0430\u0437\u043D\u044B\u0435 \u043C\u043E\u0434\u0435\u043B\u0438 \u043E\u0440\u0443\u0436\u0438\u044F.", metric: "weapons", goal: 3, icon: "gear", reward: { cloth: 2 } },
+        { id: "districts-3", title: "\u0413\u043E\u0440\u043E\u0434 \u043E\u0442\u0432\u0435\u0447\u0430\u0435\u0442", description: "\u041E\u0441\u0432\u043E\u0439 \u0442\u0440\u0438 \u0440\u0430\u0437\u043D\u044B\u0445 \u0440\u0430\u0439\u043E\u043D\u0430.", metric: "districts", goal: 3, icon: "guide", reward: { cores: 2 } },
+        { id: "hunter-500", title: "\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0430 \u0441\u0435\u043A\u0442\u043E\u0440\u0430", description: "\u0423\u0441\u0442\u0440\u0430\u043D\u0438 500 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445.", metric: "kills", goal: 500, icon: "raids", reward: { scrap: 90, cloth: 3 } },
+        { id: "armor-3", title: "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430 \u0440\u0435\u0448\u0430\u0435\u0442", description: "\u0421\u043E\u0431\u0435\u0440\u0438 \u0442\u0440\u0438 \u043A\u043E\u043C\u043F\u043B\u0435\u043A\u0442\u0430 \u0431\u0440\u043E\u043D\u0438.", metric: "armor", goal: 3, icon: "clans", reward: { cloth: 3 } },
+        { id: "level-25", title: "\u041E\u043F\u044B\u0442\u043D\u044B\u0439 \u0432\u044B\u0436\u0438\u0432\u0448\u0438\u0439", description: "\u0414\u043E\u0441\u0442\u0438\u0433\u043D\u0438 25 \u0443\u0440\u043E\u0432\u043D\u044F.", metric: "level", goal: 25, icon: "leaderboard", reward: { scrap: 250, cloth: 4 } },
+        { id: "sorties-50", title: "\u041D\u0430\u0434\u0451\u0436\u043D\u044B\u0439 \u043C\u0430\u0440\u0448\u0440\u0443\u0442", description: "\u0417\u0430\u0432\u0435\u0440\u0448\u0438 50 \u043F\u043E\u0431\u0435\u0434\u043D\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A.", metric: "runs", goal: 50, icon: "map", reward: { scrap: 120, cloth: 4 } },
+        { id: "districts-8", title: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0433\u043E\u0440\u043E\u0434 \u0436\u0438\u0432\u044B\u043C", description: "\u041E\u0441\u0432\u043E\u0439 \u0432\u0441\u0435 \u0432\u043E\u0441\u0435\u043C\u044C \u0440\u0430\u0439\u043E\u043D\u043E\u0432.", metric: "districts", goal: 8, icon: "guide", reward: { cores: 3, cloth: 12 } },
+        { id: "hunter-2500", title: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F \u043B\u0438\u043D\u0438\u044F", description: "\u0423\u0441\u0442\u0440\u0430\u043D\u0438 2500 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445.", metric: "kills", goal: 2500, icon: "conflict", reward: { scrap: 180, cloth: 5 } },
+        { id: "level-100", title: "\u041E\u043F\u043E\u0440\u0430 \u0443\u0431\u0435\u0436\u0438\u0449\u0430", description: "\u0414\u043E\u0441\u0442\u0438\u0433\u043D\u0438 100 \u0443\u0440\u043E\u0432\u043D\u044F.", metric: "level", goal: 100, icon: "leaderboard", reward: { scrap: 500, cloth: 6 } },
+        { id: "level-500", title: "\u041B\u0435\u0433\u0435\u043D\u0434\u0430 \u041E\u0431\u0438\u0442\u0435\u043B\u0438", description: "\u0414\u043E\u0441\u0442\u0438\u0433\u043D\u0438 500 \u0443\u0440\u043E\u0432\u043D\u044F.", metric: "level", goal: 500, icon: "leaderboard", reward: { cores: 10 } }
       ];
-      CONDITIONS = [
-        { id: "quiet", name: "\u0422\u0438\u0445\u0438\u0435 \u0443\u043B\u0438\u0446\u044B", description: "\u041E\u0431\u044B\u0447\u043D\u0430\u044F \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u044C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445." },
-        { id: "rush", name: "\u0411\u0435\u0433\u0443\u0449\u0430\u044F \u0441\u0442\u0430\u044F", description: "\u0411\u0435\u0433\u0443\u043D\u044B \u0434\u0432\u0438\u0433\u0430\u044E\u0442\u0441\u044F \u043D\u0430 20% \u0431\u044B\u0441\u0442\u0440\u0435\u0435." },
-        { id: "iron", name: "\u0422\u044F\u0436\u0451\u043B\u044B\u0439 \u0441\u043B\u0435\u0434", description: "\u0413\u0440\u043E\u043C\u0438\u043B\u044B \u043F\u043E\u043B\u0443\u0447\u0430\u044E\u0442 \u043D\u0430 25% \u0431\u043E\u043B\u044C\u0448\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F." },
-        { id: "hunt", name: "\u041E\u0445\u043E\u0442\u0430", description: "\u0412 \u0432\u043E\u043B\u043D\u0430\u0445 \u0447\u0430\u0449\u0435 \u0432\u0441\u0442\u0440\u0435\u0447\u0430\u044E\u0442\u0441\u044F \u0431\u0435\u0433\u0443\u043D\u044B." }
-      ];
-      moscowDay = (time = Date.now()) => Math.floor((time + 108e5) / 864e5);
     }
   });
 
@@ -583,6 +563,134 @@
     }
   });
 
+  // campaign-ui.js
+  function renderCampaignSummary(root, save2, onContinue, onJournal) {
+    const c = campaignState(save2), ready = milestoneView(save2).filter((m) => !m.claimed && m.progress >= m.goal).length;
+    root.innerHTML = '<div class="campaign-seal">' + shelterIcon("guide") + '</div><div class="campaign-objective"><span class="eyebrow">\u041C\u0410\u0420\u0428\u0420\u0423\u0422 \u0412\u042B\u0416\u0418\u0412\u0428\u0415\u0413\u041E</span><h3>' + c.title + "</h3><p>" + c.description + '</p></div><div class="campaign-meter"><b>' + c.completed + "<small> / " + c.total + '</small></b><span>\u0420\u0410\u0419\u041E\u041D\u041E\u0412 \u041E\u0421\u0412\u041E\u0415\u041D\u041E</span><div><i style="width:' + c.percent + '%"></i></div></div><button class="secondary" data-campaign="continue">' + (ready ? "\u041D\u0410\u0413\u0420\u0410\u0414\u042B \xB7 " + ready : c.action === "boss" ? "\u041A \u0411\u041E\u0421\u0421\u0423" : c.next ? "\u041A \u0426\u0415\u041B\u0418" : "\u0412 \u0416\u0423\u0420\u041D\u0410\u041B") + "</button>";
+    root.querySelector("button").onclick = () => ready ? onJournal(true) : c.next ? onContinue(c) : onJournal(false);
+  }
+  function renderCampaignJournal(root, save2, onMap, onRaids) {
+    const c = campaignState(save2);
+    root.innerHTML = '<div class="chronicle-hero"><span class="eyebrow">\u041A\u0410\u041C\u041F\u0410\u041D\u0418\u042F \xB7 \u0412\u041E\u0421\u0421\u0422\u0410\u041D\u041E\u0412\u041B\u0415\u041D\u0418\u0415 \u0413\u041E\u0420\u041E\u0414\u0410</span><h2>\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0433\u043E\u0440\u043E\u0434 \u0436\u0438\u0432\u044B\u043C.</h2><p>\u041E\u0441\u0432\u043E\u0439 \u0432\u043E\u0441\u0435\u043C\u044C \u0440\u0430\u0439\u043E\u043D\u043E\u0432. \u0422\u0440\u0438 \u043F\u043E\u0431\u0435\u0434\u043D\u044B\u0435 \u0432\u044B\u043B\u0430\u0437\u043A\u0438 \u0438 \u0443\u0440\u043E\u0432\u0435\u043D\u044C \u0440\u0430\u0439\u043E\u043D\u0430 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u044E\u0442 \u0431\u043E\u0441\u0441\u0430; \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B \u043F\u043E\u043B\u0443\u0447\u0438 \u0435\u0433\u043E \u043D\u0430\u0433\u0440\u0430\u0434\u0443 \u0438 \u0434\u0432\u0438\u0433\u0430\u0439\u0441\u044F \u0434\u0430\u043B\u044C\u0448\u0435.</p><div class="city-route">' + c.districts.map((d) => {
+      var _a2;
+      return '<button data-route="' + d.index + '" class="' + (d.done ? "done" : ((_a2 = c.next) == null ? void 0 : _a2.index) === d.index ? "current" : "") + '" aria-label="' + d.name + ": " + d.status + '">' + String(d.index + 1).padStart(2, "0") + "</button>";
+    }).join("") + '</div><span class="route-caption">' + c.completed + " / 8 \u0420\u0410\u0419\u041E\u041D\u041E\u0412 \u041E\u0421\u0412\u041E\u0415\u041D\u041E \xB7 " + (c.next ? "\u0423\u0420\u041E\u0412\u0415\u041D\u042C " + c.next.level + " \u0414\u041B\u042F \u0421\u041B\u0415\u0414\u0423\u042E\u0429\u0415\u0413\u041E \u0411\u041E\u0421\u0421\u0410" : "\u041A\u0410\u041C\u041F\u0410\u041D\u0418\u042F \u0417\u0410\u0412\u0415\u0420\u0428\u0415\u041D\u0410") + '</span></div><div class="district-dossiers">' + c.districts.map((d) => '<article class="district-dossier ' + (d.done ? "done" : "") + '"><div class="dossier-art" style="background-image:url(assets/district-' + d.index + '.webp)"><span>' + String(d.index + 1).padStart(2, "0") + "</span><b>" + d.status + '</b></div><div class="dossier-body"><span class="eyebrow">' + d.role + "</span><h3>" + d.name + "</h3><p>\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + d.level + " \xB7 \u0411\u043E\u0441\u0441: " + d.boss + '</p><div class="district-stages">' + [1, 2, 3].map((n) => '<i class="' + (d.runs >= n ? "done" : "") + '"></i>').join("") + "<span>" + shelterIcon(d.done ? "leaderboard" : "raids") + "</span></div><small>" + d.runs + " / 3 \u0417\u0410\u0427\u0418\u0421\u0422\u041A\u0418 \xB7 " + (d.done ? "\u0411\u041E\u0421\u0421 \u041F\u041E\u0412\u0415\u0420\u0416\u0415\u041D" : "\u041F\u041E\u0411\u0415\u0414\u0418 \u0411\u041E\u0421\u0421\u0410 \u0414\u041B\u042F \u041F\u0420\u041E\u0414\u041E\u041B\u0416\u0415\u041D\u0418\u042F") + '</small><button class="' + (d.open ? "primary" : "secondary") + '" data-dossier="' + d.index + '">' + (!d.open ? "\u0422\u0420\u0415\u0411\u041E\u0412\u0410\u041D\u0418\u042F" : d.status === "\u0411\u041E\u0421\u0421 \u0414\u041E\u0421\u0422\u0423\u041F\u0415\u041D" ? "\u041A \u0411\u041E\u0421\u0421\u0423" : "\u0412\u042B\u0411\u0420\u0410\u0422\u042C \u0420\u0410\u0419\u041E\u041D") + "</button></div></article>").join("") + "</div>";
+    root.querySelectorAll("[data-route]").forEach((b) => b.onclick = () => onMap(Number(b.dataset.route)));
+    root.querySelectorAll("[data-dossier]").forEach((b) => b.onclick = () => {
+      const d = c.districts[Number(b.dataset.dossier)];
+      d.status === "\u0411\u041E\u0421\u0421 \u0414\u041E\u0421\u0422\u0423\u041F\u0415\u041D" ? onRaids(d.index) : onMap(d.index);
+    });
+  }
+  async function renderMilestones(root, api2, toast2, onUpdate) {
+    root.innerHTML = '<div class="chronicle-loading">\u0421\u0432\u0435\u0440\u044F\u0435\u043C \u0434\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u044F \u0441 \u0443\u0431\u0435\u0436\u0438\u0449\u0435\u043C\u2026</div>';
+    try {
+      const view = await api2("operations");
+      if (!root.isConnected) return;
+      if (!view.milestones) throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u0447\u0435\u0440\u0435\u0437 \u043C\u0438\u043D\u0443\u0442\u0443.");
+      const claimed = view.milestones.filter((m) => m.claimed).length, ready = view.milestones.filter((m) => !m.claimed && m.progress >= m.goal).length;
+      root.innerHTML = '<div class="chronicle-hero milestone-hero"><span class="eyebrow">\u041B\u0418\u0427\u041D\u041E\u0415 \u0414\u0415\u041B\u041E \xB7 \u041F\u041E\u0421\u0422\u041E\u042F\u041D\u041D\u042B\u0415 \u0426\u0415\u041B\u0418</span><h2>\u0422\u0432\u043E\u0439 \u0441\u043B\u0435\u0434 \u0432 \u0433\u043E\u0440\u043E\u0434\u0435.</h2><p>\u0414\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u044F \u043D\u0435 \u0441\u0431\u0440\u0430\u0441\u044B\u0432\u0430\u044E\u0442\u0441\u044F. \u041A\u0430\u0436\u0434\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0432\u044B\u0434\u0430\u0451\u0442\u0441\u044F \u043E\u0434\u0438\u043D \u0440\u0430\u0437, \u0431\u0435\u0437 \u0434\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0433\u043E \u043E\u043F\u044B\u0442\u0430.</p><div class="chronicle-totals"><b>' + claimed + " / " + view.milestones.length + "<small>\u041D\u0410\u0413\u0420\u0410\u0414 \u041F\u041E\u041B\u0423\u0427\u0415\u041D\u041E</small></b><b>" + ready + '<small>\u041C\u041E\u0416\u041D\u041E \u0417\u0410\u0411\u0420\u0410\u0422\u042C</small></b></div></div><div class="milestone-grid">' + [...view.milestones].sort((a, b) => Number(a.claimed) - Number(b.claimed) || Number(b.progress >= b.goal) - Number(a.progress >= a.goal)).map((m) => '<article class="milestone-card ' + (m.claimed ? "claimed" : m.progress >= m.goal ? "ready" : "") + '"><span class="milestone-emblem">' + shelterIcon(m.icon) + '</span><div><span class="eyebrow">' + (m.claimed ? "\u0417\u0410\u041F\u0418\u0421\u0410\u041D\u041E \u0412 \u0416\u0423\u0420\u041D\u0410\u041B" : m.progress >= m.goal ? "\u0426\u0415\u041B\u042C \u0414\u041E\u0421\u0422\u0418\u0413\u041D\u0423\u0422\u0410" : "\u041F\u041E\u0421\u0422\u041E\u042F\u041D\u041D\u0410\u042F \u0426\u0415\u041B\u042C") + "</span><h3>" + m.title + "</h3><p>" + m.description + '</p><div class="milestone-track" role="progressbar" aria-label="' + m.title + '" aria-valuenow="' + m.progress + '" aria-valuemin="0" aria-valuemax="' + m.goal + '"><i style="width:' + m.progress / m.goal * 100 + '%"></i></div><small>' + m.progress + " / " + m.goal + '</small></div><div class="milestone-reward"><b>' + rewardText(m.reward) + '</b><button class="' + (!m.claimed && m.progress >= m.goal ? "primary" : "secondary") + '" data-milestone="' + m.id + '" ' + (m.claimed || m.progress < m.goal ? "disabled" : "") + ">" + (m.claimed ? "\u041F\u041E\u041B\u0423\u0427\u0415\u041D\u041E" : m.progress < m.goal ? "\u0412 \u041F\u0420\u041E\u0426\u0415\u0421\u0421\u0415" : "\u0417\u0410\u0411\u0420\u0410\u0422\u042C") + "</button></div></article>").join("") + "</div>";
+      root.querySelectorAll("[data-milestone]").forEach((b) => b.onclick = async () => {
+        b.disabled = true;
+        try {
+          await api2("operations/claim", { id: "milestone:" + b.dataset.milestone });
+          toast2("\u0414\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u0435 \u0437\u0430\u043F\u0438\u0441\u0430\u043D\u043E. \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430.");
+          onUpdate();
+        } catch (e) {
+          b.disabled = false;
+          toast2(e.message);
+        }
+      });
+    } catch (e) {
+      if (root.isConnected) {
+        root.textContent = e.message;
+        const retry = document.createElement("button");
+        retry.className = "secondary";
+        retry.textContent = "\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C";
+        retry.onclick = () => renderMilestones(root, api2, toast2, onUpdate);
+        root.append(retry);
+      }
+    }
+  }
+  var rewardText;
+  var init_campaign_ui = __esm({
+    "campaign-ui.js"() {
+      init_campaign();
+      init_ui_icons();
+      rewardText = (reward) => Object.entries(reward).map(([key2, n]) => ({ scrap: "\u0414\u0435\u0442\u0430\u043B\u0438", cloth: "\u0422\u043A\u0430\u043D\u044C", cores: "\u042F\u0434\u0440\u0430" })[key2] + " +" + n).join(" \xB7 ");
+    }
+  });
+
+  // combat-tactics.js
+  function repulseStatus(run2) {
+    const seconds = Math.max(0, ((run2 == null ? void 0 : run2.repulseAt) || 0) - ((run2 == null ? void 0 : run2.time) || 0));
+    return { seconds, ready: !!run2 && !run2.paused && !run2.ended && !run2.transition && seconds === 0 && run2.stamina >= REPULSE.cost };
+  }
+  function repel(run2) {
+    if (!repulseStatus(run2).ready) return false;
+    run2.stamina -= REPULSE.cost;
+    run2.repulseAt = run2.time + REPULSE.cooldown;
+    run2.repulses = (run2.repulses || 0) + 1;
+    for (const enemy of run2.enemies) {
+      if (enemy.hp <= 0) continue;
+      let dx = enemy.x - run2.x, dy = enemy.y - run2.y, length = Math.hypot(dx, dy);
+      if (length > REPULSE.radius) continue;
+      if (length < 1e-3) {
+        dx = run2.face || 1;
+        dy = 0;
+        length = 1;
+      }
+      const distance = enemy.type === "boss" ? REPULSE.distance * 0.3 : REPULSE.distance;
+      enemy.x = Math.max(25, Math.min(935, enemy.x + dx / length * distance));
+      enemy.y = Math.max(260, Math.min(540, enemy.y + dy / length * distance * 0.8));
+      enemy.attack = null;
+      enemy.cd = Math.max(enemy.cd, 0.8);
+    }
+    return true;
+  }
+  function battleReport(run2) {
+    const seconds = Math.max(0, Math.floor(run2.time));
+    return { duration: Math.floor(seconds / 60) + ":" + String(seconds % 60).padStart(2, "0"), kills: run2.kills, hits: run2.hits || 0, repulses: run2.repulses || 0, energy: run2.plan.cost };
+  }
+  var REPULSE;
+  var init_combat_tactics = __esm({
+    "combat-tactics.js"() {
+      REPULSE = { cost: 35, cooldown: 9, radius: 115, distance: 90 };
+    }
+  });
+
+  // operations.js
+  function sortiePlan(save2, map, mode = "standard", time = Date.now()) {
+    const option = SORTIE_MODES.find((x) => x.id === mode);
+    if (!option || !MAPS[map] || playerLevel(save2) < option.level) throw Object.assign(new Error("\u0420\u0435\u0436\u0438\u043C \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D"), { status: 400 });
+    const day = moscowDay(time), condition = CONDITIONS[map === 0 ? 0 : (day + map) % CONDITIONS.length];
+    return { ...option, condition: { ...condition }, day };
+  }
+  function sortieEnemy(base, type, plan) {
+    return { ...base, hp: base.hp * plan.hp * (type === "tank" && plan.condition.id === "iron" ? 1.25 : 1), speed: base.speed * plan.speed * (type === "runner" && plan.condition.id === "rush" ? 1.2 : 1) };
+  }
+  function sortieEnemyType(index, condition) {
+    return index % 5 === 4 ? "tank" : index % (condition.id === "hunt" ? 2 : 3) === (condition.id === "hunt" ? 1 : 2) ? "runner" : "walker";
+  }
+  var SORTIE_MODES, CONDITIONS, moscowDay;
+  var init_operations = __esm({
+    "operations.js"() {
+      init_balance();
+      init_campaign();
+      SORTIE_MODES = [
+        { id: "scout", name: "\u0420\u0430\u0437\u0432\u0435\u0434\u043A\u0430", level: 1, cost: 6, hp: 0.8, speed: 0.9, reward: 0.65, xp: 0.75, description: "\u0421\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439 \u0442\u0435\u043C\u043F. \u041C\u0435\u043D\u044C\u0448\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u0430, \u0434\u0435\u0448\u0435\u0432\u043B\u0435 \u0432\u044B\u0445\u043E\u0434." },
+        { id: "standard", name: "\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0430", level: 1, cost: 8, hp: 1, speed: 1, reward: 1, xp: 1, description: "\u041E\u0431\u044B\u0447\u043D\u0430\u044F \u0443\u0433\u0440\u043E\u0437\u0430 \u0438 \u043D\u0430\u0433\u0440\u0430\u0434\u0430. \u041E\u0441\u043D\u043E\u0432\u043D\u043E\u0439 \u043F\u0443\u0442\u044C \u043F\u043E \u0440\u0430\u0439\u043E\u043D\u0430\u043C." },
+        { id: "siege", name: "\u041F\u0440\u043E\u0440\u044B\u0432", level: 5, cost: 12, hp: 1.4, speed: 1.12, reward: 1.65, xp: 1.4, description: "\u0416\u0438\u0432\u0443\u0447\u0438\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0411\u043E\u043B\u044C\u0448\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0437\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u0443\u044E \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443." }
+      ];
+      CONDITIONS = [
+        { id: "quiet", name: "\u0422\u0438\u0445\u0438\u0435 \u0443\u043B\u0438\u0446\u044B", description: "\u041E\u0431\u044B\u0447\u043D\u0430\u044F \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u044C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445." },
+        { id: "rush", name: "\u0411\u0435\u0433\u0443\u0449\u0430\u044F \u0441\u0442\u0430\u044F", description: "\u0411\u0435\u0433\u0443\u043D\u044B \u0434\u0432\u0438\u0433\u0430\u044E\u0442\u0441\u044F \u043D\u0430 20% \u0431\u044B\u0441\u0442\u0440\u0435\u0435." },
+        { id: "iron", name: "\u0422\u044F\u0436\u0451\u043B\u044B\u0439 \u0441\u043B\u0435\u0434", description: "\u0413\u0440\u043E\u043C\u0438\u043B\u044B \u043F\u043E\u043B\u0443\u0447\u0430\u044E\u0442 \u043D\u0430 25% \u0431\u043E\u043B\u044C\u0448\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F." },
+        { id: "hunt", name: "\u041E\u0445\u043E\u0442\u0430", description: "\u0412 \u0432\u043E\u043B\u043D\u0430\u0445 \u0447\u0430\u0449\u0435 \u0432\u0441\u0442\u0440\u0435\u0447\u0430\u044E\u0442\u0441\u044F \u0431\u0435\u0433\u0443\u043D\u044B." }
+      ];
+      moscowDay = (time = Date.now()) => Math.floor((time + 108e5) / 864e5);
+    }
+  });
+
   // operations-ui.js
   function renderBriefing(root, save2, map, mode, onSelect) {
     const plan = sortiePlan(save2, map, mode), kills = 27 + map * 3, expected = expeditionReward(map, kills, kills * 2, true, stats(save2).loot * plan.reward);
@@ -599,7 +707,7 @@
     try {
       const view = await api2("operations");
       if (!root.isConnected) return;
-      root.innerHTML = `<div class="section-title"><h3>\u041F\u0440\u0438\u043A\u0430\u0437\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430</h3><span>${view.open ? "\u0414\u041E \u041F\u041E\u041B\u0423\u041D\u041E\u0427\u0418 \u041C\u0421\u041A" : "\u0421 3 \u0423\u0420\u041E\u0412\u041D\u042F"}</span></div><div class="operation-contracts">${view.contracts.map((c) => `<article class="operation-contract ${c.claimed ? "complete" : ""}"><span class="contract-stamp">${shelterIcon(c.id === "support" ? "raids" : c.id === "route" ? "map" : "daily")}</span><div><span class="eyebrow">${c.claimed ? "\u0412\u042B\u041F\u041E\u041B\u041D\u0415\u041D\u041E" : "\u0415\u0416\u0415\u0414\u041D\u0415\u0412\u041D\u0410\u042F \u0426\u0415\u041B\u042C"}</span><h3>${c.title}</h3><p>${c.description}</p><div class="op-progress" role="progressbar" aria-label="${c.title}" aria-valuemin="0" aria-valuemax="${c.goal}" aria-valuenow="${c.progress}"><i style="width:${c.progress / c.goal * 100}%"></i></div><small>${c.progress} / ${c.goal} \xB7 ${rewardText(c.reward)}</small></div><button class="${c.progress >= c.goal && !c.claimed && view.open ? "primary" : "secondary"}" data-contract="${c.id}" ${!view.open || c.claimed || c.progress < c.goal ? "disabled" : ""}>${c.claimed ? "\u041F\u041E\u041B\u0423\u0427\u0415\u041D\u041E" : !view.open ? "\u0421 3 \u0423\u0420\u041E\u0412\u041D\u042F" : c.progress < c.goal ? "\u0412 \u041F\u0420\u041E\u0426\u0415\u0421\u0421\u0415" : "\u0417\u0410\u0411\u0420\u0410\u0422\u042C"}</button></article>`).join("")}</div>`;
+      root.innerHTML = `<div class="section-title"><h3>\u041F\u0440\u0438\u043A\u0430\u0437\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430</h3><span>${view.open ? "\u0414\u041E \u041F\u041E\u041B\u0423\u041D\u041E\u0427\u0418 \u041C\u0421\u041A" : "\u0421 3 \u0423\u0420\u041E\u0412\u041D\u042F"}</span></div><div class="operation-contracts">${view.contracts.map((c) => `<article class="operation-contract ${c.claimed ? "complete" : ""}"><span class="contract-stamp">${shelterIcon(c.id === "support" ? "raids" : c.id === "route" ? "map" : "daily")}</span><div><span class="eyebrow">${c.claimed ? "\u0412\u042B\u041F\u041E\u041B\u041D\u0415\u041D\u041E" : "\u0415\u0416\u0415\u0414\u041D\u0415\u0412\u041D\u0410\u042F \u0426\u0415\u041B\u042C"}</span><h3>${c.title}</h3><p>${c.description}</p><div class="op-progress" role="progressbar" aria-label="${c.title}" aria-valuemin="0" aria-valuemax="${c.goal}" aria-valuenow="${c.progress}"><i style="width:${c.progress / c.goal * 100}%"></i></div><small>${c.progress} / ${c.goal} \xB7 ${rewardText2(c.reward)}</small></div><button class="${c.progress >= c.goal && !c.claimed && view.open ? "primary" : "secondary"}" data-contract="${c.id}" ${!view.open || c.claimed || c.progress < c.goal ? "disabled" : ""}>${c.claimed ? "\u041F\u041E\u041B\u0423\u0427\u0415\u041D\u041E" : !view.open ? "\u0421 3 \u0423\u0420\u041E\u0412\u041D\u042F" : c.progress < c.goal ? "\u0412 \u041F\u0420\u041E\u0426\u0415\u0421\u0421\u0415" : "\u0417\u0410\u0411\u0420\u0410\u0422\u042C"}</button></article>`).join("")}</div>`;
       root.querySelectorAll("[data-contract]").forEach((b) => b.onclick = async () => {
         b.disabled = true;
         try {
@@ -624,14 +732,14 @@
       pending.delete(root);
     }
   }
-  var fmt, rewardText, pending;
+  var fmt, rewardText2, pending;
   var init_operations_ui = __esm({
     "operations-ui.js"() {
       init_operations();
       init_balance();
       init_ui_icons();
       fmt = (n) => Math.round(n).toLocaleString("ru-RU");
-      rewardText = (r) => Object.entries(r).map(([key2, n]) => "+" + n + " " + { scrap: "\u0434\u0435\u0442.", xp: "XP", cloth: "\u0442\u043A\u0430\u043D\u0438", cores: "\u044F\u0434\u0440\u043E" }[key2]).join(" \xB7 ");
+      rewardText2 = (r) => Object.entries(r).map(([key2, n]) => "+" + n + " " + { scrap: "\u0434\u0435\u0442.", xp: "XP", cloth: "\u0442\u043A\u0430\u043D\u0438", cores: "\u044F\u0434\u0440\u043E" }[key2]).join(" \xB7 ");
       pending = /* @__PURE__ */ new WeakSet();
     }
   });
@@ -1331,8 +1439,15 @@
     ctx.putImageData(pixels, 0, 0);
     return c;
   }
-  async function loadArt() {
-    await Promise.all([Promise.all(Array.from({ length: 8 }, (_, i) => loadArtImage("assets/district-" + i + ".png").then((img) => environments[i] = img))), loadSprite("assets/characters.png").then((c) => spriteAtlas = c), loadSprite("assets/equipment.png").then((c) => equipmentAtlas = c), loadSprite("assets/armor-tiers.png").then((c) => armorAtlas = c), loadSprite("assets/items.png").then((c) => itemAtlas = c), loadSprite("assets/weapons-loot.png").then((c) => weaponAtlas = c), loadSprite("assets/arsenal-expanded.png").then((c) => expandedAtlas = c)]);
+  async function loadArt(onProgress = () => {
+  }) {
+    let done = 0;
+    const total = 14, track = (promise) => promise.then((value) => {
+      onProgress(++done, total);
+      return value;
+    });
+    onProgress(0, total);
+    await Promise.all([...Array.from({ length: 8 }, (_, i) => track(loadArtImage("assets/district-" + i + ".png").then((img) => environments[i] = img))), track(loadSprite("assets/characters.png").then((c) => spriteAtlas = c)), track(loadSprite("assets/equipment.png").then((c) => equipmentAtlas = c)), track(loadSprite("assets/armor-tiers.png").then((c) => armorAtlas = c)), track(loadSprite("assets/items.png").then((c) => itemAtlas = c)), track(loadSprite("assets/weapons-loot.png").then((c) => weaponAtlas = c)), track(loadSprite("assets/arsenal-expanded.png").then((c) => expandedAtlas = c))]);
   }
   function drawRig(g2, atlas, index, size, time, moving, running, type) {
     const sw = atlas.width / 3, sh = atlas.height / 2, sx = index % 3 * sw, sy = Math.floor(index / 3) * sh, k = size / sw, hip = sh * (type === "runner" ? 0.53 : 0.59), knee = sh * 0.77, phase = time * 8, swing = moving ? Math.sin(phase) * (running ? 0.25 : 0.13) : 0, bob = moving ? Math.abs(Math.sin(phase)) * 2 : 0, originX = -size * 0.5, originY = -size * 0.94 - bob;
@@ -1838,6 +1953,7 @@
     let m = MAPS[i];
     const plan = briefing();
     missionModes();
+    districtProgress();
     $("#map-name").textContent = m.name;
     $("#map-desc").textContent = m.desc;
     $("#mission").textContent = m.goal;
@@ -1880,11 +1996,45 @@
     });
   }
   function mapCards() {
-    $("#maps").innerHTML = MAPS.map((m, i) => `<button class="map-card ${i === selected ? "selected" : ""}" data-map="${i}" aria-label="${m.name}, ${unlocked(save, i) ? "\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E" : "\u0437\u0430\u043A\u0440\u044B\u0442\u043E"}"><canvas width="260" height="140"></canvas><span class="number">0${i + 1}</span><div class="map-info"><b>${m.name}</b><small>\u0417\u0410\u0427\u0418\u0421\u0422\u041A\u0418 ${save.districtRuns[i]} / 3<span class="status">${save.cleared.includes(i) ? "\u2713" : unlocked(save, i) ? "\u2192" : "\u0417\u0410\u041A\u0420\u042B\u0422\u041E"}</span></small></div></button>`).join("");
+    const campaign = campaignState(save);
+    $("#maps").innerHTML = campaign.districts.map((d) => '<button class="map-card ' + (d.index === selected ? "selected" : "") + '" data-map="' + d.index + '" aria-label="' + d.name + ", " + d.status + '"><canvas width="360" height="190"></canvas><span class="number">' + String(d.index + 1).padStart(2, "0") + '</span><div class="map-info"><span class="map-role">' + d.role + "</span><b>" + d.name + '</b><div class="map-level"><span>\u0423\u0420\u041E\u0412\u0415\u041D\u042C ' + d.level + "</span><em>" + d.status + '</em></div><div class="district-stages">' + [1, 2, 3].map((n) => '<i class="' + (d.runs >= n ? "done" : "") + '"></i>').join("") + '</div><div class="map-status"><span>' + d.runs + " / 3 \u0417\u0410\u0427\u0418\u0421\u0422\u041A\u0418</span><span>" + shelterIcon(d.done ? "leaderboard" : "raids") + "</span></div></div></button>").join("");
     document.querySelectorAll(".map-card").forEach((el, i) => {
-      scene(el.querySelector("canvas"), i);
-      el.onclick = () => selectMap(i);
+      scene(el.querySelector("canvas"), i, -1);
+      el.onclick = () => {
+        selectMap(i);
+        $(".hero").scrollIntoView({ block: "start" });
+      };
     });
+    let summary = $("#campaign-summary");
+    if (!summary) {
+      summary = document.createElement("section");
+      summary.id = "campaign-summary";
+      summary.className = "campaign-summary";
+      $(".hero").after(summary);
+    }
+    renderCampaignSummary(summary, save, (c) => {
+      selected = c.next.index;
+      if (c.action === "boss") navigate("raids");
+      else {
+        selectMap(selected);
+        $(".hero").scrollIntoView({ block: "start" });
+      }
+    }, (ready) => {
+      journalTab = ready ? "milestones" : "campaign";
+      navigate("guide");
+    });
+  }
+  function districtProgress() {
+    let root = $("#mission-progress");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "mission-progress";
+      root.className = "district-stages";
+      $("#deploy-hint").before(root);
+    }
+    const count2 = save.districtRuns[selected] || 0;
+    root.innerHTML = [1, 2, 3].map((n) => '<i class="' + (count2 >= n ? "done" : "") + '"></i>').join("");
+    root.setAttribute("aria-label", "\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0440\u0430\u0439\u043E\u043D\u0430: " + Math.min(3, count2) + " \u0438\u0437 3");
   }
   function renderInventory() {
     return '<div class="section-title"><h3>\u0421\u043A\u043B\u0430\u0434 \u0443\u0431\u0435\u0436\u0438\u0449\u0430</h3><span>\u041C\u0410\u0422\u0415\u0420\u0418\u0410\u041B\u042B \u0418 \u0411\u0420\u041E\u041D\u042F</span></div><div class="supply-grid">' + [[0, "\u0414\u0435\u0442\u0430\u043B\u0438", save.scrap, "\u041E\u0440\u0443\u0436\u0438\u0435, \u043C\u0430\u0448\u0438\u043D\u0430 \u0438 \u043C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0430\u044F"], [1, "\u042F\u0434\u0440\u0430", save.cores, "\u0420\u0435\u0439\u0434-\u0431\u043E\u0441\u0441\u044B \u0438 \u0435\u0436\u0435\u0434\u043D\u0435\u0432\u043D\u044B\u0435 \u043A\u043E\u043D\u0442\u0440\u0430\u043A\u0442\u044B"], [2, "\u0422\u043A\u0430\u043D\u044C", save.cloth || 0, "3\u201310 \u0437\u0430 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443 \xB7 6 \u0437\u0430 \u0431\u043E\u0441\u0441\u0430"]].map(([i, n, v, d]) => '<article class="supply">' + itemArt(i) + "<div><small>" + n + "</small><strong>" + v + "</strong><p>" + d + "</p></div></article>").join("") + '</div><div class="section-title"><h3>\u0417\u0430\u0449\u0438\u0442\u0430 \u0432\u044B\u0436\u0438\u0432\u0448\u0435\u0433\u043E</h3><span>\u041F\u041E\u0411\u0415\u0414\u042B \u041D\u0410\u0414 \u0411\u041E\u0421\u0421\u0410\u041C\u0418: ' + (save.bossKills || 0) + '</span></div><div class="armor-grid">' + ARMOR.map((a, i) => {
@@ -1940,7 +2090,7 @@
     }
     if (page === "raids") renderRaids();
     if (page === "settings") renderSettings();
-    if (page === "guide") $("#guide-page").innerHTML = `<div class="journal"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u041E\u0415 \u0420\u0423\u041A\u041E\u0412\u041E\u0414\u0421\u0422\u0412\u041E</span><h2>\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0433\u043E\u0440\u043E\u0434 \u0436\u0438\u0432\u044B\u043C</h2><h3>\u0412\u044B\u0431\u0435\u0440\u0438 \u0441\u0432\u043E\u0439 \u0440\u0438\u0441\u043A</h3><p>\u0420\u0430\u0437\u0432\u0435\u0434\u043A\u0430 \u0441\u0442\u043E\u0438\u0442 6 \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \u0438 \u0441\u043D\u0438\u0436\u0430\u0435\u0442 \u0443\u0433\u0440\u043E\u0437\u0443. \u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0430 \u2014 8. \u041F\u0440\u043E\u0440\u044B\u0432 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u0441 5 \u0443\u0440\u043E\u0432\u043D\u044F \u0438 \u0441\u0442\u043E\u0438\u0442 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438: \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435 \u0441\u0438\u043B\u044C\u043D\u0435\u0435, \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0432\u044B\u0448\u0435. \u041A\u0430\u0436\u0434\u044B\u0439 \u0440\u0435\u0436\u0438\u043C \u043F\u0440\u043E\u0445\u043E\u0434\u0438\u0442 \u0442\u0440\u0438 \u0432\u043E\u043B\u043D\u044B \u0438 \u0437\u0430\u0441\u0447\u0438\u0442\u044B\u0432\u0430\u0435\u0442 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443 \u0440\u0430\u0439\u043E\u043D\u0430.</p><h3>\u0427\u0438\u0442\u0430\u0439 \u043F\u0440\u043E\u0442\u0438\u0432\u043D\u0438\u043A\u0430</h3><p>\u041F\u0435\u0440\u0435\u0434 \u0443\u0434\u0430\u0440\u043E\u043C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0433\u043E \u043D\u0430 \u0437\u0435\u043C\u043B\u0435 \u043F\u043E\u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u0437\u043E\u043D\u0430 \u0430\u0442\u0430\u043A\u0438. \u0412\u044B\u0439\u0434\u0438 \u0438\u0437 \u043D\u0435\u0451 \u0431\u0435\u0433\u043E\u043C. \u0425\u043E\u0434\u043E\u043A\u0438 \u043C\u0435\u0434\u043B\u0435\u043D\u043D\u044B, \u0431\u0435\u0433\u0443\u043D\u044B \u0434\u043E\u0433\u043E\u043D\u044F\u044E\u0442, \u0433\u0440\u043E\u043C\u0438\u043B\u044B \u0431\u044C\u044E\u0442 \u043F\u043E \u0431\u043E\u043B\u044C\u0448\u0435\u0439 \u043F\u043B\u043E\u0449\u0430\u0434\u0438. \u0423\u0441\u043B\u043E\u0432\u0438\u044F \u0440\u0430\u0439\u043E\u043D\u0430 \u043C\u0435\u043D\u044F\u044E\u0442\u0441\u044F \u0432 \u043F\u043E\u043B\u043D\u043E\u0447\u044C \u041C\u0421\u041A; \u043F\u0435\u0440\u0432\u044B\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B \u0432\u0441\u0435\u0433\u0434\u0430 \u0441\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439.</p><h3>\u0421\u043E\u0445\u0440\u0430\u043D\u0438 \u043F\u0440\u0438\u043F\u0430\u0441\u044B</h3><p>\u0414\u0435\u0442\u0430\u043B\u0438 \u0432\u044B\u043F\u0430\u0434\u0430\u044E\u0442 \u0441 \u0448\u0430\u043D\u0441\u043E\u043C 33%. \u0410\u043F\u0442\u0435\u0447\u043A\u0438 \u2014 \u0441 \u0448\u0430\u043D\u0441\u043E\u043C 5%, \u043D\u0435 \u0431\u043E\u043B\u044C\u0448\u0435 \u0434\u0432\u0443\u0445 \u0437\u0430 \u0432\u044B\u043B\u0430\u0437\u043A\u0443; \u043F\u0440\u0438 \u043F\u043E\u043B\u043D\u043E\u043C \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u043E\u043D\u0438 \u043D\u0435 \u0440\u0430\u0441\u0445\u043E\u0434\u0443\u044E\u0442\u0441\u044F. \u041E\u0442\u0441\u0442\u0443\u043F\u043B\u0435\u043D\u0438\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 35% \u043D\u0430\u0439\u0434\u0435\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439. \u0411\u043E\u043D\u0443\u0441 \u041F\u0440\u043E\u0440\u044B\u0432\u0430 \u0432\u044B\u0434\u0430\u0451\u0442\u0441\u044F \u0442\u043E\u043B\u044C\u043A\u043E \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443.</p><h3>\u041E\u0431\u044A\u0435\u0434\u0438\u043D\u044F\u0439\u0441\u044F</h3><p>\u041F\u043E\u0441\u043B\u0435 \u0442\u0440\u0451\u0445 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A \u0438 \u043D\u0443\u0436\u043D\u043E\u0433\u043E \u0443\u0440\u043E\u0432\u043D\u044F \u043E\u0442\u043A\u0440\u043E\u0435\u0442\u0441\u044F \u0431\u043E\u0441\u0441. \u041D\u0430 \u0438\u0433\u0440\u043E\u043A\u0430 \u2014 \u043E\u0434\u0438\u043D \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0440\u0435\u0439\u0434. \u0423\u0440\u043E\u043D \u0434\u043E 300 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u0441\u0443\u043C\u043C\u0438\u0440\u0443\u0435\u0442\u0441\u044F, \u0434\u0430\u0436\u0435 \u0435\u0441\u043B\u0438 \u043E\u043D\u0438 \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432 \u0440\u0430\u0437\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F. \u0414\u0440\u0443\u0437\u044C\u044F VK \u0441\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0438\u0440\u0443\u044E\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043D\u0438\u044F \u0434\u043E\u0441\u0442\u0443\u043F\u0430. \u0422\u041E\u041F \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0435\u0442 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D\u043D\u044B\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442\u044B VK.</p><h3>\u0426\u0435\u043B\u044C \u043D\u0430 \u043A\u0430\u0436\u0434\u044B\u0439 \u0434\u0435\u043D\u044C</h3><p>\u0412\u043E\u0437\u0432\u0440\u0430\u0449\u0430\u0439 \u0440\u0430\u0439\u043E\u043D\u044B, \u0441\u043E\u0431\u0438\u0440\u0430\u0439 \u0441\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435 \u0438 \u043F\u043E\u043C\u043E\u0433\u0430\u0439 \u043E\u0442\u0440\u044F\u0434\u0443. \u041F\u0440\u0438\u043A\u0430\u0437\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u044E\u0442\u0441\u044F \u0441 3 \u0443\u0440\u043E\u0432\u043D\u044F. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u0432\u044B\u0434\u0430\u044E\u0442\u0441\u044F \u043E\u0434\u0438\u043D \u0440\u0430\u0437 \u0432 \u0434\u0435\u043D\u044C, \u043F\u0440\u043E\u043F\u0443\u0441\u043A\u0438 \u043D\u0435 \u043E\u0442\u043D\u0438\u043C\u0430\u044E\u0442 \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441. \u041F\u041A \u0438 \u0442\u0435\u043B\u0435\u0444\u043E\u043D \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u044E\u0442 \u043E\u0434\u0438\u043D \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438 \u0432\u0445\u043E\u0434\u0435 \u0447\u0435\u0440\u0435\u0437 \u0442\u043E\u0442 \u0436\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442 VK.</p></div>`;
+    if (page === "guide") renderJournal();
     document.querySelectorAll("[data-weapon-art]").forEach((c) => drawWeapon(c, Number(c.dataset.weaponArt)));
     if ($("#loadout-avatar")) {
       let c = $("#loadout-avatar");
@@ -1956,12 +2106,45 @@
       toast("\u041A\u043E\u043D\u0442\u0440\u0430\u043A\u0442 \u0437\u0430\u043A\u0440\u044B\u0442: +120 \u0434\u0435\u0442\u0430\u043B\u0435\u0439, +1 \u044F\u0434\u0440\u043E");
     });
   }
+  function renderJournal() {
+    const root = $("#guide-page");
+    root.innerHTML = '<div class="journal-tabs" role="tablist" aria-label="\u0420\u0430\u0437\u0434\u0435\u043B\u044B \u043F\u043E\u043B\u0435\u0432\u043E\u0433\u043E \u0436\u0443\u0440\u043D\u0430\u043B\u0430">' + [["campaign", "\u041A\u0410\u041C\u041F\u0410\u041D\u0418\u042F"], ["milestones", "\u0414\u041E\u0421\u0422\u0418\u0416\u0415\u041D\u0418\u042F"], ["help", "\u041F\u0410\u041C\u042F\u0422\u041A\u0410"]].map(([id, label2]) => '<button role="tab" id="journal-tab-' + id + '" aria-controls="journal-panel" aria-selected="' + (journalTab === id) + '" tabindex="' + (journalTab === id ? "0" : "-1") + '" data-journal="' + id + '">' + label2 + "</button>").join("") + '</div><div id="journal-panel" role="tabpanel" aria-labelledby="journal-tab-' + journalTab + '"></div>';
+    root.querySelectorAll("[data-journal]").forEach((b) => b.onclick = () => {
+      journalTab = b.dataset.journal;
+      renderJournal();
+      root.querySelector('[data-journal="' + journalTab + '"]').focus();
+    });
+    root.querySelector(".journal-tabs").onkeydown = (e) => {
+      const ids = ["campaign", "milestones", "help"], index = ids.indexOf(journalTab);
+      let next;
+      if (e.key === "ArrowRight") next = (index + 1) % 3;
+      else if (e.key === "ArrowLeft") next = (index + 2) % 3;
+      else if (e.key === "Home") next = 0;
+      else if (e.key === "End") next = 2;
+      else return;
+      e.preventDefault();
+      journalTab = ids[next];
+      renderJournal();
+      root.querySelector('[data-journal="' + journalTab + '"]').focus();
+    };
+    const panel = $("#journal-panel");
+    if (journalTab === "campaign") renderCampaignJournal(panel, save, (i) => {
+      selected = i;
+      navigate("map");
+    }, (i) => {
+      selected = i;
+      navigate("raids");
+    });
+    else if (journalTab === "milestones") renderMilestones(panel, api, toast, refresh);
+    else panel.innerHTML = `<div class="journal"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u041E\u0415 \u0420\u0423\u041A\u041E\u0412\u041E\u0414\u0421\u0422\u0412\u041E</span><h2>\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0433\u043E\u0440\u043E\u0434 \u0436\u0438\u0432\u044B\u043C</h2><h3>\u0412\u044B\u0431\u0435\u0440\u0438 \u0441\u0432\u043E\u0439 \u0440\u0438\u0441\u043A</h3><p>\u0420\u0430\u0437\u0432\u0435\u0434\u043A\u0430 \u0441\u0442\u043E\u0438\u0442 6 \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \u0438 \u0441\u043D\u0438\u0436\u0430\u0435\u0442 \u0443\u0433\u0440\u043E\u0437\u0443. \u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0430 \u2014 8. \u041F\u0440\u043E\u0440\u044B\u0432 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u0441 5 \u0443\u0440\u043E\u0432\u043D\u044F \u0438 \u0441\u0442\u043E\u0438\u0442 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438: \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435 \u0441\u0438\u043B\u044C\u043D\u0435\u0435, \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0432\u044B\u0448\u0435. \u041A\u0430\u0436\u0434\u044B\u0439 \u0440\u0435\u0436\u0438\u043C \u043F\u0440\u043E\u0445\u043E\u0434\u0438\u0442 \u0442\u0440\u0438 \u0432\u043E\u043B\u043D\u044B \u0438 \u0437\u0430\u0441\u0447\u0438\u0442\u044B\u0432\u0430\u0435\u0442 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443 \u0440\u0430\u0439\u043E\u043D\u0430.</p><h3>\u0427\u0438\u0442\u0430\u0439 \u043F\u0440\u043E\u0442\u0438\u0432\u043D\u0438\u043A\u0430</h3><p>\u041F\u0435\u0440\u0435\u0434 \u0443\u0434\u0430\u0440\u043E\u043C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0433\u043E \u043D\u0430 \u0437\u0435\u043C\u043B\u0435 \u043F\u043E\u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u0437\u043E\u043D\u0430 \u0430\u0442\u0430\u043A\u0438. \u0412\u044B\u0439\u0434\u0438 \u0438\u0437 \u043D\u0435\u0451 \u0431\u0435\u0433\u043E\u043C. \u0425\u043E\u0434\u043E\u043A\u0438 \u043C\u0435\u0434\u043B\u0435\u043D\u043D\u044B, \u0431\u0435\u0433\u0443\u043D\u044B \u0434\u043E\u0433\u043E\u043D\u044F\u044E\u0442, \u0433\u0440\u043E\u043C\u0438\u043B\u044B \u0431\u044C\u044E\u0442 \u043F\u043E \u0431\u043E\u043B\u044C\u0448\u0435\u0439 \u043F\u043B\u043E\u0449\u0430\u0434\u0438. \u0423\u0441\u043B\u043E\u0432\u0438\u044F \u0440\u0430\u0439\u043E\u043D\u0430 \u043C\u0435\u043D\u044F\u044E\u0442\u0441\u044F \u0432 \u043F\u043E\u043B\u043D\u043E\u0447\u044C \u041C\u0421\u041A; \u043F\u0435\u0440\u0432\u044B\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B \u0432\u0441\u0435\u0433\u0434\u0430 \u0441\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439.</p><h3>\u041D\u0435 \u0434\u0430\u0439 \u0441\u0435\u0431\u044F \u043E\u043A\u0440\u0443\u0436\u0438\u0442\u044C</h3><p>\u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0431\u043B\u0438\u0436\u0430\u0439\u0448\u0438\u0445 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440 \u0431\u0435\u0437 \u043D\u0430\u043D\u0435\u0441\u0435\u043D\u0438\u044F \u0443\u0440\u043E\u043D\u0430. \u041D\u0430\u0436\u043C\u0438 Q \u0438\u043B\u0438 \u0431\u043E\u0435\u0432\u0443\u044E \u043A\u043D\u043E\u043F\u043A\u0443: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434. \u0412 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430\u0445 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439 \u0438 \u043A\u0440\u0443\u043F\u043D\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438.</p><h3>\u0421\u043E\u0445\u0440\u0430\u043D\u0438 \u043F\u0440\u0438\u043F\u0430\u0441\u044B</h3><p>\u0414\u0435\u0442\u0430\u043B\u0438 \u0432\u044B\u043F\u0430\u0434\u0430\u044E\u0442 \u0441 \u0448\u0430\u043D\u0441\u043E\u043C 33%. \u0410\u043F\u0442\u0435\u0447\u043A\u0438 \u2014 \u0441 \u0448\u0430\u043D\u0441\u043E\u043C 5%, \u043D\u0435 \u0431\u043E\u043B\u044C\u0448\u0435 \u0434\u0432\u0443\u0445 \u0437\u0430 \u0432\u044B\u043B\u0430\u0437\u043A\u0443; \u043F\u0440\u0438 \u043F\u043E\u043B\u043D\u043E\u043C \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u043E\u043D\u0438 \u043D\u0435 \u0440\u0430\u0441\u0445\u043E\u0434\u0443\u044E\u0442\u0441\u044F. \u041E\u0442\u0441\u0442\u0443\u043F\u043B\u0435\u043D\u0438\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 35% \u043D\u0430\u0439\u0434\u0435\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439. \u0411\u043E\u043D\u0443\u0441 \u041F\u0440\u043E\u0440\u044B\u0432\u0430 \u0432\u044B\u0434\u0430\u0451\u0442\u0441\u044F \u0442\u043E\u043B\u044C\u043A\u043E \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443.</p><h3>\u041E\u0431\u044A\u0435\u0434\u0438\u043D\u044F\u0439\u0441\u044F</h3><p>\u041F\u043E\u0441\u043B\u0435 \u0442\u0440\u0451\u0445 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A \u0438 \u043D\u0443\u0436\u043D\u043E\u0433\u043E \u0443\u0440\u043E\u0432\u043D\u044F \u043E\u0442\u043A\u0440\u043E\u0435\u0442\u0441\u044F \u0431\u043E\u0441\u0441. \u041D\u0430 \u0438\u0433\u0440\u043E\u043A\u0430 \u2014 \u043E\u0434\u0438\u043D \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0440\u0435\u0439\u0434. \u0423\u0440\u043E\u043D \u0434\u043E 300 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u0441\u0443\u043C\u043C\u0438\u0440\u0443\u0435\u0442\u0441\u044F, \u0434\u0430\u0436\u0435 \u0435\u0441\u043B\u0438 \u043E\u043D\u0438 \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432 \u0440\u0430\u0437\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F. \u0414\u0440\u0443\u0437\u044C\u044F VK \u0441\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0438\u0440\u0443\u044E\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043D\u0438\u044F \u0434\u043E\u0441\u0442\u0443\u043F\u0430. \u0422\u041E\u041F \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0435\u0442 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D\u043D\u044B\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442\u044B VK.</p><h3>\u041E\u0441\u0442\u0430\u0432\u044C \u0441\u043B\u0435\u0434 \u0432 \u0433\u043E\u0440\u043E\u0434\u0435</h3><p>\u0412 \u0436\u0443\u0440\u043D\u0430\u043B\u0435 \u2014 \u043C\u0430\u0440\u0448\u0440\u0443\u0442 \u0432\u043E\u0441\u044C\u043C\u0438 \u0440\u0430\u0439\u043E\u043D\u043E\u0432 \u0438 14 \u043F\u043E\u0441\u0442\u043E\u044F\u043D\u043D\u044B\u0445 \u0434\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u0439. \u041F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u0431\u0435\u0440\u0451\u0442\u0441\u044F \u0438\u0437 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u043E\u0433\u043E \u043F\u0440\u043E\u0444\u0438\u043B\u044F; \u043A\u0430\u0436\u0434\u0443\u044E \u043D\u0430\u0433\u0440\u0430\u0434\u0443 \u043C\u043E\u0436\u043D\u043E \u043F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u043E\u0434\u0438\u043D \u0440\u0430\u0437. \u0414\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u044F \u043D\u0435 \u0434\u043E\u0431\u0430\u0432\u043B\u044F\u044E\u0442 XP.</p><h3>\u0426\u0435\u043B\u044C \u043D\u0430 \u043A\u0430\u0436\u0434\u044B\u0439 \u0434\u0435\u043D\u044C</h3><p>\u0412\u043E\u0437\u0432\u0440\u0430\u0449\u0430\u0439 \u0440\u0430\u0439\u043E\u043D\u044B, \u0441\u043E\u0431\u0438\u0440\u0430\u0439 \u0441\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435 \u0438 \u043F\u043E\u043C\u043E\u0433\u0430\u0439 \u043E\u0442\u0440\u044F\u0434\u0443. \u041F\u0440\u0438\u043A\u0430\u0437\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u044E\u0442\u0441\u044F \u0441 3 \u0443\u0440\u043E\u0432\u043D\u044F. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u0432\u044B\u0434\u0430\u044E\u0442\u0441\u044F \u043E\u0434\u0438\u043D \u0440\u0430\u0437 \u0432 \u0434\u0435\u043D\u044C, \u043F\u0440\u043E\u043F\u0443\u0441\u043A\u0438 \u043D\u0435 \u043E\u0442\u043D\u0438\u043C\u0430\u044E\u0442 \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441. \u041F\u041A \u0438 \u0442\u0435\u043B\u0435\u0444\u043E\u043D \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u044E\u0442 \u043E\u0434\u0438\u043D \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438 \u0432\u0445\u043E\u0434\u0435 \u0447\u0435\u0440\u0435\u0437 \u0442\u043E\u0442 \u0436\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442 VK.</p></div>`;
+  }
   function navigate(p) {
     page = p;
     document.querySelectorAll(".page").forEach((el) => el.hidden = el.id !== `${p}-page`);
     document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("active", b.dataset.page === p));
     $("#page-title").textContent = { map: "\u0413\u043E\u0440\u043E\u0434 \u0431\u043E\u043B\u044C\u0448\u0435 \u043D\u0435 \u0441\u043F\u0438\u0442.", gear: "\u0421\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435 \u0440\u0435\u0448\u0430\u0435\u0442.", garage: "\u0414\u043E\u043C \u043D\u0430 \u0447\u0435\u0442\u044B\u0440\u0451\u0445 \u043A\u043E\u043B\u0451\u0441\u0430\u0445.", daily: "\u041A\u0430\u0436\u0434\u044B\u0439 \u0434\u0435\u043D\u044C \u2014 \u043D\u043E\u0432\u0430\u044F \u0446\u0435\u043B\u044C.", guide: "\u0417\u043D\u0430\u043D\u0438\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 \u0436\u0438\u0437\u043D\u044C.", raids: "\u041E\u0434\u0438\u043D \u0431\u043E\u0441\u0441. \u041E\u0431\u0449\u0430\u044F \u0446\u0435\u043B\u044C.", leaderboard: "\u0413\u0435\u0440\u043E\u0438 \u0433\u043E\u0440\u043E\u0434\u0430.", friends: "\u0421\u0432\u043E\u0438 \u043D\u0435 \u0431\u0440\u043E\u0441\u0430\u044E\u0442.", conflict: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0433\u043E\u0440\u043E\u0434\u0443 \u0441\u0432\u0435\u0442.", clans: "\u0412\u044B\u0436\u0438\u0432\u0430\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u0435.", settings: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439 \u0441\u0432\u043E\u0439 \u0440\u0438\u0442\u043C." }[p];
     renderPage();
+    $("main").scrollTop = 0;
     if (p === "daily") bindAd($("#daily-page"), api, toast, refresh);
   }
   async function start() {
@@ -2456,7 +2639,7 @@
   }
   function renderSettings() {
     const el = $("#settings-page");
-    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["leftHanded", "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439", "\u0414\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043F\u0440\u0430\u0432\u0430, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440 \u0441\u043B\u0435\u0432\u0430."], ["largeControls", "\u041A\u0440\u0443\u043F\u043D\u044B\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438", "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u043A\u043D\u043E\u043F\u043A\u0438 \u0431\u043E\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>Q</kbd> \u2014 \u043E\u0442\u043F\u043E\u0440: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u0434\u0432\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F. \u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440; \u0443\u0440\u043E\u043D\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.8</span></div></div>';
+    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["leftHanded", "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439", "\u0414\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043F\u0440\u0430\u0432\u0430, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440 \u0441\u043B\u0435\u0432\u0430."], ["largeControls", "\u041A\u0440\u0443\u043F\u043D\u044B\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438", "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u043A\u043D\u043E\u043F\u043A\u0438 \u0431\u043E\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>Q</kbd> \u2014 \u043E\u0442\u043F\u043E\u0440: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u0434\u0432\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F. \u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440; \u0443\u0440\u043E\u043D\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.9</span></div></div>';
     el.insertAdjacentHTML("beforeend", '<button class="secondary" id="repeat-tutorial">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C \u041E\u0411\u0423\u0427\u0415\u041D\u0418\u0415</button>');
     el.querySelector("#repeat-tutorial").onclick = () => onboarding(navigate, true);
     const account = document.createElement("p");
@@ -2479,7 +2662,15 @@
     const connection = connect();
     let artTimer;
     try {
-      await Promise.race([loadArt(), new Promise((_, reject) => {
+      await Promise.race([loadArt((done, total) => {
+        const percent = Math.round(done / total * 100), bar = document.querySelector("#art-loading-screen .loading-track");
+        if (bar) {
+          bar.setAttribute("aria-valuenow", percent);
+          bar.firstElementChild.style.width = percent + "%";
+        }
+        const caption = $("#art-loading-caption");
+        if (caption) caption.textContent = "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430 \u0433\u043E\u0440\u043E\u0434\u0430 \xB7 " + percent + "%";
+      }), new Promise((_, reject) => {
         artTimer = setTimeout(() => reject(new Error("ART_TIMEOUT")), 6e4);
       })]);
     } catch (error) {
@@ -2513,9 +2704,11 @@
     if (launchValue("friend")) navigate("friends");
     else if (!invited) onboarding(navigate);
   }
-  var playerProfile, $, key, save, sortieMode, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
+  var playerProfile, $, key, save, journalTab, sortieMode, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
+      init_campaign();
+      init_campaign_ui();
       init_combat_tactics();
       init_operations();
       init_operations_ui();
@@ -2543,6 +2736,7 @@
         if ((v == null ? void 0 : v.version) === 1 && Array.isArray(v.owned) && Array.isArray(v.cleared)) save = { ...save, ...v };
       } catch (e) {
       }
+      journalTab = "campaign";
       sortieMode = "standard";
       selected = 0;
       page = "map";

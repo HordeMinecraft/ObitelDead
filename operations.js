@@ -1,4 +1,5 @@
 import {playerLevel,MAPS} from './balance.js';
+import {milestoneView,claimMilestone} from './campaign.js';
 export const SORTIE_MODES=[
  {id:'scout',name:'Разведка',level:1,cost:6,hp:.8,speed:.9,reward:.65,xp:.75,description:'Спокойный темп. Меньше награда, дешевле выход.'},
  {id:'standard',name:'Зачистка',level:1,cost:8,hp:1,speed:1,reward:1,xp:1,description:'Обычная угроза и награда. Основной путь по районам.'},
@@ -29,9 +30,10 @@ export function operationState(player,time=Date.now()){
 }
 export function operationView(player,time=Date.now()){
  const state=operationState(player,time),open=playerLevel(player.save)>=3;
- return {open,resetsAt:(state.day+1)*86400000-10800000,contracts:CONTRACTS.map(c=>({...c,progress:Math.min(c.goal,c.key==='maps'?state.maps.length:state[c.key]),claimed:state.claimed.includes(c.id)}))};
+ return {open,resetsAt:(state.day+1)*86400000-10800000,milestones:milestoneView(player.save),contracts:CONTRACTS.map(c=>({...c,progress:Math.min(c.goal,c.key==='maps'?state.maps.length:state[c.key]),claimed:state.claimed.includes(c.id)}))};
 }
 export function claimOperation(player,id,time=Date.now()){
+ if(typeof id==='string'&&id.startsWith('milestone:')){claimMilestone(player.save,id.slice(10));return operationView(player,time)}
  const view=operationView(player,time),contract=view.contracts.find(x=>x.id===id);
  if(!view.open||!contract||contract.claimed||contract.progress<contract.goal)throw Object.assign(new Error('Условия контракта ещё не выполнены'),{status:400});
  for(const [key,value]of Object.entries(contract.reward))player.save[key]=(player.save[key]||0)+value;
