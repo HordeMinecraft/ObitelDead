@@ -1,11 +1,11 @@
-import {SORTIE_MODES,sortiePlan} from './operations.js';
+import {sortiePlan} from './operations.js';
 import {playerLevel,stats,expeditionReward,runXP} from './balance.js';
 import {shelterIcon} from './ui-icons.js';
 const fmt=n=>Math.round(n).toLocaleString('ru-RU');
-export function renderBriefing(root,save,map,mode,onSelect){
+export function renderBriefing(root,save,map,mode){
  const plan=sortiePlan(save,map,mode),kills=27+map*3,expected=expeditionReward(map,kills,kills*2,true,stats(save).loot*plan.reward);
- root.innerHTML=`<div class="op-heading"><span class="eyebrow">ПЛАН ОПЕРАЦИИ</span><strong>${plan.condition.name}</strong><p>${plan.condition.description} ${map===0?'Первый квартал всегда спокойный.':'Условия меняются в полночь МСК.'}</p></div><div class="sortie-options" role="group" aria-label="Сложность вылазки">${SORTIE_MODES.map(m=>{const locked=playerLevel(save)<m.level;return `<button class="sortie-option ${m.id===mode?'selected':''}" data-mode="${m.id}" aria-pressed="${m.id===mode}" ${locked?'disabled':''}>${shelterIcon(m.id==='scout'?'map':m.id==='siege'?'conflict':'raids')}<span><b>${m.name}</b><small>${locked?'С '+m.level+' уровня':m.cost+' энергии · '+(m.reward===1?'обычная награда':Math.round(m.reward*100)+'% награды')}</small></span></button>`}).join('')}</div><div class="op-forecast"><span>~<b>${fmt(expected)}</b> деталей</span><span><b>${Math.round(runXP(kills,true,map,playerLevel(save))*plan.xp)}</b> XP</span><span><b>3</b> волны</span></div><p class="op-note">${plan.description} Расчёт деталей — средняя оценка, добыча случайна.</p>`;
- root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>onSelect(b.dataset.mode));return plan;
+ root.innerHTML=`<div class="op-heading"><span class="eyebrow">УСЛОВИЯ ВЫЛАЗКИ</span><strong>${plan.condition.name}</strong><p>${plan.condition.description} ${map===0?'Первый квартал всегда спокойный.':'Условия меняются в полночь МСК.'}</p></div><div class="op-forecast" aria-label="Ожидаемая награда"><span><b>~${fmt(expected)}</b> деталей</span><span><b>${Math.round(runXP(kills,true,map,playerLevel(save))*plan.xp)}</b> XP</span><span><b>3</b> волны</span></div><p class="op-note">${plan.name}: ${plan.description} Детали указаны приблизительно; добыча случайна.</p>`;
+ return plan;
 }
 const rewardText=r=>Object.entries(r).map(([key,n])=>'+'+n+' '+({scrap:'дет.',xp:'XP',cloth:'ткани',cores:'ядро'}[key])).join(' · ');
 const pending=new WeakSet();
