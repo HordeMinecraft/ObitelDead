@@ -1,0 +1,11 @@
+# Нулевая платформа — фон арены
+
+Создан 3 октября 2026 встроенным imagegen, новая генерация без входных изображений. Размер 1536×1024. Персонажи в изображение не включены: движок рисует существующего героя и отдельные исходные изображения боссов поверх фона.
+
+Файлы: `assets/arena-zero.png` (исходник, 2 913 673 байта), `assets/arena-zero.webp` (472 660 байт). WebP получен Pillow, quality=91, method=6; композиция и размеры сохранены. PNG используется при неподдерживаемом или отсутствующем WebP.
+
+Исходный результат инструмента сохранён по пути `C:/Users/user/.codex/generated_images/01a09c80-acb8-77f0-9718-6aba60b3d849/exec-b85882e7-efbf-4411-a0a2-ab49b31d2000.png`. Графика арены загружается при входе на арену, до списания энергии.
+
+## Переданный промпт
+
+Use case: stylized-concept. Asset type: finished widescreen 2D game background for Obitel Dead, abandoned underground boss arena called Zero Platform. Generate a brand-new 1536x1024 landscape background with no characters, no bosses, no interface and no text. High detail 16-bit pixel art painted entirely in clearly visible clean pixel clusters, comparable to premium gritty arcade zombie city pixel backgrounds. Fixed side-on three-quarter belt-scroller viewpoint, no isometric view, no overhead view. Underground metro maintenance hall: huge dark vaulted brick and reinforced concrete walls across upper 40%, rusted water pipes, ruined subway tunnel mouth on the right, emergency generator and broken rails along rear edge, amber industrial lamps, dim olive green and dark teal surfaces, puddles reflecting muted amber, damp tiles and accumulated rubble near edges. Crucial composition: lower 60% is a broad flat open tiled maintenance platform, uninterrupted walkable combat floor, readable neutral gray-green tiles; no large obstacles or raised platforms anywhere across the central floor. Floor horizon around 40% of frame height. Very subtle perspective with horizontal side-scrolling staging, depth comes from upper architecture. Fine environmental storytelling, believable metal and concrete texture, dramatic but clear lighting, tasteful muted colors, no photorealism, no vector geometry, no cartoon outlines, no logos, no watermark, no words, no sprites. This will be used directly as the gameplay background; keep it crisp and legible, with a wide arena floor for existing pixel characters.

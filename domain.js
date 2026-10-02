@@ -7,6 +7,7 @@ import {conflictAction} from './conflict-domain.js';
 import {clanAction} from './clans-domain.js';
 import {socialAction,ensureSocial,friendIds} from './friends-domain.js';
 import {activeRaid} from './raid-state.js';
+import {arenaAction,pendingArena} from './arena-domain.js';
 import {expeditionReward,freshSave,restoreEnergy,spendEnergy,RAID_COST,BOSS_COST,MAPS,WEAPONS,stats,unlocked,bossUnlocked,upgradeCost,runXP,raidDamage,ARMOR,armorUnlocked,migrateSave,playerLevel,raidProfile,weaponUnlocked} from './balance.js';
 
 const ONLINE_WINDOW=90_000;
@@ -34,7 +35,7 @@ export function createHandler(db,commit,id,services={}){
   const mine=rows.findIndex(x=>x.pid===uid),friends=new Set(friendIds(db,uid));
   return {updatedAt:t,total:rows.length,online:rows.filter(x=>x.online).length,meRank:mine<0?null:mine+1,players:rows.slice(0,100).map((x,i)=>({rank:i+1,code:x.code,name:x.name,avatar:x.avatar,photo:x.photo,level:x.level,xp:x.xp,kills:x.kills,bossKills:x.bossKills,online:x.online,me:x.pid===uid,friend:friends.has(x.pid),requested:db.players[x.pid].friendRequests.includes(uid)}))};
  }
- function viewRaid(r,uid){const active=activeRaid(db,uid);return {blockedBy:active&&active.id!==r.id?active.id:null,totalDamage:r.maxHp-r.hp,id:r.id,map:r.map,rare:!!r.rare,capacity:RAID_CAPACITY,reward:raidReward(r,r.members[uid]?.damage||0),estimatedDamage:raidHit(db.players[uid].save,r.map,r.rare),hp:r.hp,maxHp:r.maxHp,created:r.created,owner:r.owner===uid,members:Object.entries(r.members).map(([pid,v])=>({name:db.players[pid]?.name||'Выживший',damage:v.damage,me:pid===uid,claimed:!!v.claimed,online:online(db.players[pid])})),nextAttack:r.members[uid]?.nextAttack||0,joined:!!r.members[uid]}}
+ function viewRaid(r,uid){const active=activeRaid(db,uid);return {arenaVersion:1,arenaPending:pendingArena(db.players[uid],now())?.raidId===r.id,blockedBy:active&&active.id!==r.id?active.id:null,totalDamage:r.maxHp-r.hp,id:r.id,map:r.map,rare:!!r.rare,capacity:RAID_CAPACITY,reward:raidReward(r,r.members[uid]?.damage||0),estimatedDamage:raidHit(db.players[uid].save,r.map,r.rare),hp:r.hp,maxHp:r.maxHp,created:r.created,owner:r.owner===uid,members:Object.entries(r.members).map(([pid,v])=>({name:db.players[pid]?.name||'Выживший',avatar:db.players[pid]?.avatar||0,photo:vkPhoto(db.players[pid]?.vkPhoto),damage:v.damage,me:pid===uid,claimed:!!v.claimed,online:online(db.players[pid])})),nextAttack:r.members[uid]?.nextAttack||0,joined:!!r.members[uid]}}
  return async function handle(req,res,url){
   if(!url.pathname.startsWith('/api/'))return false;
   const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data))};
@@ -110,6 +111,7 @@ export function createHandler(db,commit,id,services={}){
     if(s.daily.kills<20||s.daily.claimed)err('Награда недоступна');s.scrap+=120;s.cores++;s.daily.claimed=true;
    }
    else if(req.method==='POST'&&path==='/api/run/start'){
+    if(pendingArena(p,now()))err('Сначала заверши бой на арене',409);
     const m=b.map;if(!Number.isInteger(m)||!MAPS[m]||!unlocked(s,m))err('Район закрыт');const plan=sortiePlan(s,m,b.mode||'standard');if(!spendEnergy(s,plan.cost))err('Недостаточно энергии');p.ticket={id:id(),map:m,started:now(),level:playerLevel(s),plan};result.ticket=p.ticket.id;result.plan=plan;
    }
    else if(req.method==='POST'&&path==='/api/run/end'){
@@ -124,6 +126,8 @@ export function createHandler(db,commit,id,services={}){
     p.ticket=null;result={reward,xp,win};p.lastResult={ticket:t.id,result};
    }
    else if(req.method==='GET'&&path==='/api/raids'){
+    const pending=pendingArena(p,now()),finished=pending&&db.raids[pending.raidId];
+    if(finished?.hp<=0&&finished.members[session])arenaAction(p,finished,session,{arena:'finish',ticket:pending.id,damage:0},id,now());
     const active=activeRaid(db,session);
     result={active:active?viewRaid(active,session):null,completed:Object.values(db.raids).filter(r=>r.hp<=0&&r.members[session]?.damage&&!r.members[session].claimed).map(r=>viewRaid(r,session))};
    }
@@ -138,11 +142,15 @@ export function createHandler(db,commit,id,services={}){
    else if(/^\/api\/raids\/[a-f0-9]{12}(\/join|\/attack|\/claim)?$/.test(path)){
     const parts=path.split('/'),r=db.raids[parts[3]];if(!r)err('Рейд не найден',404);const action=parts[4];
     const active=activeRaid(db,session);
-    if(req.method==='POST'&&['join','attack'].includes(action)&&active&&active.id!==r.id)err('Сначала победи активного босса: '+MAPS[active.map].boss,409);
+    if(req.method==='POST'&&['join','attack'].includes(action)&&b.arena!=='finish'&&active&&active.id!==r.id)err('Сначала победи активного босса: '+MAPS[active.map].boss,409);
     if(req.method==='POST'&&action==='join'){
      if(r.hp<=0)err('Босс уже повержен');if(!r.members[session]){if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(Object.keys(r.members).length>=RAID_CAPACITY)err('В рейде уже 300 игроков');r.members[session]={damage:0,nextAttack:0,claimed:false}}p.activeRaid=r.id;
     }else if(req.method==='POST'&&action==='attack'){
+     if(b.arena!==undefined){Object.assign(result,arenaAction(p,r,session,b,id,now()));}
+     else{
+     if(pendingArena(p,now()))err('Сначала заверши бой на арене',409);
      const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(r.hp<=0)err('Босс уже повержен');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,BOSS_COST))err('Недостаточно энергии');const damage=Math.min(r.hp,raidHit(s,r.map,r.rare));r.hp-=damage;member.damage+=damage;member.nextAttack=now()+raidProfile(r.map).cooldown;result.damage=damage;operationState(p).attacks++;
+     }
     }else if(req.method==='POST'&&action==='claim'){
      const member=r.members[session];if(!member||!member.damage||member.claimed||r.hp>0)err('Награда недоступна');member.claimed=true;const reward=raidReward(r,member.damage);for(const [key,value] of Object.entries(reward))s[key]+=value;s.bossKills++;if(!r.rare&&!s.cleared.includes(r.map))s.cleared.push(r.map);
     }else if(req.method!=='GET'||action)err('Метод не поддерживается',405);

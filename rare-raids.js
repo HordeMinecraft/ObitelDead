@@ -15,7 +15,7 @@ export const raidAllowed=(s,map,rare=false)=>bossUnlocked(s,map)&&(!rare||(s.cle
 export const raidHit=(s,map,rare=false)=>Math.max(1,Math.round(raidDamage(s)*(rare?RARE_RAIDS[map].multiplier:1-raidProfile(map).armor)));
 export function raidReward(r,damage){
  if(!damage)return {scrap:0,xp:0,cores:0,cloth:0};
- if(!r.rare)return {scrap:MAPS[r.map].reward*2,xp:45,cores:3,cloth:6};
+ if(!r.rare){const fraction=Math.min(1,damage/(r.maxHp*.25));return Object.fromEntries(Object.entries({scrap:MAPS[r.map].reward*2,xp:45,cores:3,cloth:6}).map(([k,v])=>[k,Math.floor(v*fraction)]));}
  const share=Math.min(1,Math.max(0,damage/r.maxHp));
  return Object.fromEntries(Object.entries(RARE_RAIDS[r.map].pool).map(([k,v])=>[k,Math.floor(v*share)]));
 }
