@@ -10,3 +10,8 @@
 @media(orientation:landscape) and (max-height:550px){.arena-run .battle-top>div{width:145px;max-width:145px;padding:8px;font-size:9px}.arena-run .battle-top small{font-size:8px}.arena-run .battle-top b{font-size:14px}.arena-run .battle-stats{top:102px}}
 
 @media(orientation:landscape) and (max-height:550px){.arena-run .hp-track{margin:6px 0}.arena-run .stamina-track{margin:6px 0}.arena-run #section-count{margin-top:7px}.arena-run #kill-label{margin-top:5px}}
+
+.left-handed .arena-run .battle-stats{left:auto;right:20px}
+@media(orientation:landscape) and (max-height:550px){.arena-run .stamina-title{margin:3px 0 6px}.arena-run #section-count{margin-top:4px;margin-bottom:4px;letter-spacing:.5px}.left-handed .arena-run .battle-stats{right:12px}}
+
+@media(orientation:landscape) and (max-height:550px){.arena-run .battle-stats{top:96px}}
