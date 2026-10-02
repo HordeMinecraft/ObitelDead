@@ -347,6 +347,179 @@
     }
   });
 
+  // vehicles.js
+  var VEHICLES, vehicleFor;
+  var init_vehicles = __esm({
+    "vehicles.js"() {
+      VEHICLES = [
+        ["nomad", "\u041A\u043E\u0447\u0435\u0432\u043D\u0438\u043A", "\u0412\u043D\u0435\u0434\u043E\u0440\u043E\u0436\u043D\u0438\u043A", 1, 0, 0, 0, 0, "\u041F\u0435\u0440\u0432\u0430\u044F \u043C\u043E\u0431\u0438\u043B\u044C\u043D\u0430\u044F \u0431\u0430\u0437\u0430. \u041D\u0430\u0434\u0451\u0436\u043D\u044B\u0439 \u043A\u0443\u0437\u043E\u0432 \u0438 \u0432\u0441\u0451 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C\u043E\u0435 \u0434\u043B\u044F \u0432\u044B\u043B\u0430\u0437\u043A\u0438."],
+        ["spark", "\u0418\u0441\u043A\u0440\u0430", "\u0425\u044D\u0442\u0447\u0431\u0435\u043A", 2, 1200, 2, 0, 3, "\u041B\u0451\u0433\u043A\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430 \u0434\u043B\u044F \u043A\u043E\u0440\u043E\u0442\u043A\u0438\u0445 \u0440\u0435\u0439\u0441\u043E\u0432 \u0437\u0430 \u043F\u0440\u0438\u043F\u0430\u0441\u0430\u043C\u0438."],
+        ["hauler", "\u0414\u043E\u0431\u044B\u0442\u0447\u0438\u043A", "\u041F\u0438\u043A\u0430\u043F", 4, 2600, 0, 3, 6, "\u041E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u043A\u0443\u0437\u043E\u0432 \u0438 \u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u044F \u0434\u043B\u044F \u0434\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0433\u043E \u0433\u0440\u0443\u0437\u0430."],
+        ["medic", "\u0421\u0430\u043D\u0438\u0442\u0430\u0440", "\u041C\u0435\u0434\u0438\u0446\u0438\u043D\u0441\u043A\u0438\u0439 \u0444\u0443\u0440\u0433\u043E\u043D", 6, 4400, 0, 8, 2, "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0434\u043B\u044F \u043E\u043F\u0430\u0441\u043D\u044B\u0445 \u0441\u043F\u0430\u0441\u0430\u0442\u0435\u043B\u044C\u043D\u044B\u0445 \u043C\u0430\u0440\u0448\u0440\u0443\u0442\u043E\u0432."],
+        ["dune", "\u0411\u0430\u0440\u0445\u0430\u043D", "\u0411\u0430\u0433\u0433\u0438", 10, 7200, 7, 0, 4, "\u041B\u0451\u0433\u043A\u0430\u044F \u0440\u0430\u043C\u0430 \u0438 \u043C\u043E\u0449\u043D\u0430\u044F \u043E\u0440\u0443\u0436\u0435\u0439\u043D\u0430\u044F \u044D\u043B\u0435\u043A\u0442\u0440\u043E\u0441\u0442\u0430\u043D\u0446\u0438\u044F."],
+        ["trail", "\u0421\u043B\u0435\u0434\u043E\u043F\u044B\u0442", "\u0423\u043D\u0438\u0432\u0435\u0440\u0441\u0430\u043B", 15, 10400, 3, 4, 8, "\u042D\u043A\u0441\u043F\u0435\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0431\u0430\u0433\u0430\u0436\u043D\u0438\u043A \u0434\u043B\u044F \u0434\u043E\u043B\u0433\u0438\u0445 \u0441\u0431\u043E\u0440\u043E\u0432 \u0440\u0435\u0441\u0443\u0440\u0441\u043E\u0432."],
+        ["interceptor", "\u041F\u0435\u0440\u0435\u0445\u0432\u0430\u0442\u0447\u0438\u043A", "\u041F\u0430\u0442\u0440\u0443\u043B\u044C\u043D\u044B\u0439 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u044C", 25, 16e3, 9, 4, 0, "\u0411\u043E\u0435\u0432\u043E\u0439 \u0432\u044B\u0435\u0437\u0434: \u0432\u044B\u0441\u043E\u043A\u0438\u0439 \u0443\u0440\u043E\u043D \u043F\u0440\u0438 \u043D\u0435\u0431\u043E\u043B\u044C\u0448\u043E\u043C \u0433\u0440\u0443\u0437\u043E\u0432\u043E\u043C \u043E\u0442\u0441\u0435\u043A\u0435."],
+        ["tow", "\u0422\u044F\u0433\u0430\u0447", "\u042D\u0432\u0430\u043A\u0443\u0430\u0442\u043E\u0440", 40, 23200, 2, 7, 10, "\u041B\u0435\u0431\u0451\u0434\u043A\u0430 \u0438 \u0433\u0440\u0443\u0437\u043E\u0432\u0430\u044F \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0430 \u0434\u043B\u044F \u0442\u044F\u0436\u0451\u043B\u044B\u0445 \u0442\u0440\u043E\u0444\u0435\u0435\u0432."],
+        ["ranger", "\u0415\u0433\u0435\u0440\u044C", "\u042D\u043A\u0441\u043F\u0435\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0434\u0436\u0438\u043F", 60, 32800, 7, 7, 7, "\u0421\u0431\u0430\u043B\u0430\u043D\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u0430\u044F \u0431\u0430\u0437\u0430 \u0434\u043B\u044F \u043B\u044E\u0431\u043E\u0433\u043E \u0440\u0430\u0439\u043E\u043D\u0430 \u0433\u043E\u0440\u043E\u0434\u0430."],
+        ["vault", "\u0421\u0435\u0439\u0444", "\u0411\u0440\u043E\u043D\u0435\u0444\u0443\u0440\u0433\u043E\u043D", 90, 46e3, 3, 13, 5, "\u0411\u0440\u043E\u043D\u0435\u043F\u043B\u0438\u0442\u044B \u0434\u043B\u044F \u0432\u044B\u0436\u0438\u0432\u0430\u043D\u0438\u044F \u043F\u043E\u0434 \u0434\u0430\u0432\u043B\u0435\u043D\u0438\u0435\u043C \u043E\u0440\u0434\u044B."],
+        ["engineer", "\u041C\u043E\u043D\u0442\u0430\u0436\u043D\u0438\u043A", "\u0421\u0435\u0440\u0432\u0438\u0441\u043D\u044B\u0439 \u0433\u0440\u0443\u0437\u043E\u0432\u0438\u043A", 130, 62e3, 5, 7, 13, "\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0430\u044F \u043D\u0430 \u043A\u043E\u043B\u0451\u0441\u0430\u0445. \u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u043F\u043E\u043B\u0435\u0437\u043D\u043E\u0439 \u0434\u043E\u0431\u044B\u0447\u0438."],
+        ["bastion", "\u0411\u0430\u0441\u0442\u0438\u043E\u043D", "\u0411\u0440\u043E\u043D\u0435\u0442\u0440\u0430\u043D\u0441\u043F\u043E\u0440\u0442\u0451\u0440", 200, 84e3, 10, 14, 3, "\u0428\u0435\u0441\u0442\u044C \u043A\u043E\u043B\u0451\u0441 \u0438 \u0442\u044F\u0436\u0451\u043B\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0434\u043B\u044F \u043F\u0435\u0440\u0435\u0434\u043E\u0432\u043E\u0439."],
+        ["command", "\u041A\u043E\u043C\u0435\u043D\u0434\u0430\u043D\u0442", "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0430\u0432\u0442\u043E\u0431\u0443\u0441", 300, 112e3, 12, 10, 10, "\u041F\u043E\u0434\u0432\u0438\u0436\u043D\u044B\u0439 \u0448\u0442\u0430\u0431 \u0434\u043B\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0438\u0440\u0430 \u0443\u0431\u0435\u0436\u0438\u0449\u0430."],
+        ["ark", "\u041A\u043E\u0432\u0447\u0435\u0433", "\u042D\u043A\u0441\u043F\u0435\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0433\u0440\u0443\u0437\u043E\u0432\u0438\u043A", 450, 152e3, 10, 15, 15, "\u0414\u0430\u043B\u044C\u043D\u0438\u0435 \u043C\u0430\u0440\u0448\u0440\u0443\u0442\u044B \u0438 \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0430\u0441 \u043F\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u0438."]
+      ].map(([id, name, type, level, cost, damage, hp, loot2, description], art2) => ({ id, name, type, level, cost, damage, hp, loot: loot2, description, art: art2 }));
+      for (const [id, name, type, base, votes] of [
+        ["silver", "\u0421\u0435\u0440\u0435\u0431\u0440\u044F\u043D\u044B\u0439 \u0441\u043B\u0435\u0434", "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u043A\u0443\u043F\u0435", 6, 25],
+        ["crimson", "\u0411\u0430\u0433\u0440\u043E\u0432\u044B\u0439 \u0437\u0430\u043A\u0430\u0442", "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u043C\u0430\u0441\u043B\u043A\u0430\u0440", 4, 20],
+        ["phantom", "\u0424\u0430\u043D\u0442\u043E\u043C", "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0440\u0430\u043B\u043B\u0438-\u043A\u0430\u0440", 8, 35],
+        ["arctic", "\u041F\u043E\u043B\u044F\u0440\u043D\u0438\u043A", "\u0410\u0440\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0439 \u0433\u0440\u0443\u0437\u043E\u0432\u0438\u043A", 10, 45],
+        ["sovereign", "\u0421\u0443\u0432\u0435\u0440\u0435\u043D", "\u0411\u0440\u043E\u043D\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0439 \u043B\u0438\u043C\u0443\u0437\u0438\u043D", 11, 55],
+        ["horizon", "\u0413\u043E\u0440\u0438\u0437\u043E\u043D\u0442", "\u041C\u043E\u0431\u0438\u043B\u044C\u043D\u0430\u044F \u043B\u0430\u0431\u043E\u0440\u0430\u0442\u043E\u0440\u0438\u044F", 13, 65]
+      ]) {
+        const v = VEHICLES[base];
+        VEHICLES.push({ ...v, id, name, type, cost: 0, votes, base, art: VEHICLES.length, description: "\u041E\u0441\u043E\u0431\u044B\u0439 \u043A\u0443\u0437\u043E\u0432. \u0411\u043E\u043D\u0443\u0441\u044B \u043A\u0430\u043A \u0443 \xAB" + v.name + "\xBB, \u0431\u0435\u0437 \u043F\u0440\u0435\u0438\u043C\u0443\u0449\u0435\u0441\u0442\u0432\u0430 \u0437\u0430 \u043E\u043F\u043B\u0430\u0442\u0443." });
+      }
+      vehicleFor = (s) => VEHICLES.find((v) => v.id === s.vehicle) || VEHICLES[0];
+    }
+  });
+
+  // balance.js
+  function restoreEnergy(s, now = Date.now()) {
+    var _a2, _b2;
+    s.energy = Math.min(ENERGY_MAX, Math.max(0, (_a2 = s.energy) != null ? _a2 : ENERGY_MAX));
+    s.energyAt = Math.min(now, (_b2 = s.energyAt) != null ? _b2 : now);
+    if (s.energy >= ENERGY_MAX) {
+      s.energyAt = now;
+      return s.energy;
+    }
+    const recovered = Math.floor((now - s.energyAt) / ENERGY_INTERVAL);
+    s.energy = Math.min(ENERGY_MAX, s.energy + recovered);
+    if (s.energy === ENERGY_MAX) s.energyAt = now;
+    else s.energyAt += recovered * ENERGY_INTERVAL;
+    return s.energy;
+  }
+  function sprintStep(stamina, exhausted, wantsRun, moving, dt) {
+    if (exhausted && stamina >= 30) exhausted = false;
+    const running = wantsRun && moving && !exhausted && stamina > 0;
+    stamina = Math.max(0, Math.min(100, stamina + (running ? -24 : 17) * dt));
+    if (stamina === 0) exhausted = true;
+    return { stamina, exhausted, running: running && stamina > 0, multiplier: running ? 1.65 : 1 };
+  }
+  function expeditionReward(map, kills, loot2, win, multiplier = 1) {
+    const bounded = Math.max(0, Math.min(Math.ceil(kills * 8 / 3), Math.floor(Number(loot2) || 0)));
+    return Math.round((win ? MAPS[map].reward / 3 + bounded : bounded * 0.35) * multiplier);
+  }
+  function expeditionDrop(random = Math.random, healthDropped = 0) {
+    const scrap = random() < EXPEDITION_LOOT.scrapChance ? EXPEDITION_LOOT.scrapMin + Math.floor(random() * (EXPEDITION_LOOT.scrapMax - EXPEDITION_LOOT.scrapMin + 1)) : 0;
+    const health = healthDropped < EXPEDITION_LOOT.healthLimit && random() < EXPEDITION_LOOT.healthChance;
+    return { scrap, health };
+  }
+  var MAPS, WEAPONS, MAX_LEVEL, weaponUnlocked, expeditionRank, ENERGY_MAX, raidProfile, ENERGY_INTERVAL, BOSS_COST, freshSave, bossUnlocked, xpForLevel, playerLevel, levelProgress, runXP, raidDamage, stats, upgradeCost, unlocked, enemyStats, ARMOR, armorUnlocked, EXPEDITION_LOOT;
+  var init_balance = __esm({
+    "balance.js"() {
+      init_vehicles();
+      MAPS = [
+        { name: "\u0422\u0438\u0445\u0438\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", desc: "\u0412 \u043E\u043A\u043D\u0430\u0445 \u0435\u0449\u0451 \u0433\u043E\u0440\u0438\u0442 \u0441\u0432\u0435\u0442. \u041D\u0430 \u0443\u043B\u0438\u0446\u0430\u0445 \u0443\u0436\u0435 \u043D\u0438\u043A\u043E\u0433\u043E \u0436\u0438\u0432\u043E\u0433\u043E.", goal: "\u0417\u0430\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u0436\u0438\u043B\u043E\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", boss: "\u0421\u043C\u043E\u0442\u0440\u0438\u0442\u0435\u043B\u044C", level: 1, palette: ["#6c7660", "#485340", "#8b8870", "#a4a080"], reward: 85, kind: "town" },
+        { name: "\u0410\u0417\u0421 \xAB\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F\xBB", desc: "\u0417\u0430\u043F\u0430\u0445 \u0431\u0435\u043D\u0437\u0438\u043D\u0430. \u041F\u0443\u0441\u0442\u044B\u0435 \u0431\u0430\u043A\u0438. \u0418 \u043A\u0442\u043E-\u0442\u043E \u0437\u0430 \u043A\u043E\u043B\u043E\u043D\u043A\u043E\u0439.", goal: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0437\u0430\u043F\u0430\u0441 \u0442\u043E\u043F\u043B\u0438\u0432\u0430", boss: "\u041F\u043E\u0434\u0436\u0438\u0433\u0430\u0442\u0435\u043B\u044C", level: 2, palette: ["#786953", "#514b3a", "#a38d65", "#c5a271"], reward: 110, kind: "gas" },
+        { name: "\u0413\u0440\u0443\u0437\u043E\u0432\u043E\u0439 \u0434\u0432\u043E\u0440", desc: "\u041A\u043E\u043D\u0442\u0435\u0439\u043D\u0435\u0440\u044B \u0437\u0430\u043F\u0435\u0440\u0442\u044B \u0438\u0437\u043D\u0443\u0442\u0440\u0438. \u0421\u0442\u0443\u043A \u043D\u0435 \u043F\u0440\u0435\u043A\u0440\u0430\u0449\u0430\u0435\u0442\u0441\u044F.", goal: "\u0412\u0441\u043A\u0440\u044B\u0442\u044C \u0441\u043A\u043B\u0430\u0434 \u0441\u043D\u0430\u0431\u0436\u0435\u043D\u0438\u044F", boss: "\u041A\u0440\u0430\u043D\u043E\u0432\u0449\u0438\u043A", level: 3, palette: ["#627272", "#3e5150", "#738886", "#98a5a0"], reward: 140, kind: "yard" },
+        { name: "\u0411\u043E\u043B\u044C\u043D\u0438\u0446\u0430 \u2116 6", desc: "\u041A\u0430\u0440\u0430\u043D\u0442\u0438\u043D \u0441\u043D\u044F\u0442. \u041F\u0430\u0446\u0438\u0435\u043D\u0442\u044B \u043E\u0441\u0442\u0430\u043B\u0438\u0441\u044C.", goal: "\u041D\u0430\u0439\u0442\u0438 \u043C\u0435\u0434\u0438\u0446\u0438\u043D\u0441\u043A\u0438\u0439 \u043C\u043E\u0434\u0443\u043B\u044C", boss: "\u0413\u043B\u0430\u0432\u0432\u0440\u0430\u0447", level: 4, palette: ["#687468", "#465b4f", "#8c9a84", "#b0b49b"], reward: 175, kind: "hospital" },
+        { name: "\u0427\u0451\u0440\u043D\u044B\u0439 \u043B\u0435\u0441", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B \u043F\u0440\u0438\u0448\u0451\u043B \u043E\u0442\u0441\u044E\u0434\u0430. \u0414\u0430\u043B\u044C\u0448\u0435 \u2014 \u0442\u0438\u0448\u0438\u043D\u0430.", goal: "\u041D\u0430\u0439\u0442\u0438 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0441\u0438\u0433\u043D\u0430\u043B\u0430", boss: "\u041A\u043E\u0440\u043D\u0435\u0432\u043E\u0439", level: 5, palette: ["#525f4a", "#354736", "#71825b", "#94a071"], reward: 220, kind: "forest" },
+        { name: "\u0417\u0430\u0442\u043E\u043F\u043B\u0435\u043D\u043D\u043E\u0435 \u043C\u0435\u0442\u0440\u043E", desc: "\u0412\u043E\u0434\u0430 \u0441\u043A\u0440\u044B\u0432\u0430\u0435\u0442 \u0440\u0435\u043B\u044C\u0441\u044B. \u0412 \u0442\u043E\u043D\u043D\u0435\u043B\u0435 \u0441\u043B\u044B\u0448\u0435\u043D \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043F\u043E\u0435\u0437\u0434.", goal: "\u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C \u0430\u0432\u0430\u0440\u0438\u0439\u043D\u044B\u0435 \u043D\u0430\u0441\u043E\u0441\u044B", boss: "\u041C\u0430\u0448\u0438\u043D\u0438\u0441\u0442", level: 6, palette: ["#334c50", "#23373c", "#75908b", "#b4bca2"], reward: 260, kind: "metro" },
+        { name: "\u041F\u0440\u043E\u043C\u0437\u043E\u043D\u0430 \xAB\u041F\u0435\u043F\u0435\u043B\xBB", desc: "\u041F\u0435\u0447\u0438 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u044E\u0442 \u0440\u0430\u0431\u043E\u0442\u0430\u0442\u044C \u0431\u0435\u0437 \u043B\u044E\u0434\u0435\u0439.", goal: "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0432\u0435\u0439\u0435\u0440", boss: "\u041F\u043B\u0430\u0432\u0438\u043B\u044C\u0449\u0438\u043A", level: 7, palette: ["#624535", "#382c26", "#a7794f", "#d9b47e"], reward: 305, kind: "factory" },
+        { name: "\u041F\u043E\u0440\u0442 \xAB\u0421\u0435\u0432\u0435\u0440\u043D\u044B\u0439\xBB", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043A\u043E\u0440\u0430\u0431\u043B\u044C \u043D\u0435 \u043F\u043E\u043A\u0438\u043D\u0443\u043B \u043F\u0440\u0438\u0447\u0430\u043B.", goal: "\u0417\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u044C \u0443\u0437\u0435\u043B \u0434\u0430\u043B\u044C\u043D\u0435\u0439 \u0441\u0432\u044F\u0437\u0438", boss: "\u0410\u0434\u043C\u0438\u0440\u0430\u043B", level: 8, palette: ["#354a5c", "#253647", "#728b9b", "#b2c2c3"], reward: 355, kind: "port" }
+      ];
+      WEAPONS = [{ name: "\u041F\u0438\u0441\u0442\u043E\u043B\u0435\u0442 \xAB\u0421\u0438\u0433\u043D\u0430\u043B\xBB", damage: 22, rate: 0.48, range: 370, cost: 0, description: "\u0422\u043E\u0447\u043D\u044B\u0439 \u0438 \u043D\u0430\u0434\u0451\u0436\u043D\u044B\u0439. \u0425\u043E\u0440\u043E\u0448 \u0434\u043B\u044F \u043F\u0435\u0440\u0432\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A." }, { name: "\u041A\u0430\u0440\u0430\u0431\u0438\u043D \xAB\u0420\u0443\u0431\u0435\u0436\xBB", damage: 15, rate: 0.28, range: 430, cost: 360, description: "\u0412\u044B\u0441\u043E\u043A\u0430\u044F \u0441\u043A\u043E\u0440\u043E\u0441\u0442\u0440\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C. \u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E." }, { name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A \xAB\u0413\u0440\u043E\u043C\xBB", damage: 13, rate: 0.82, range: 240, pellets: 5, cost: 440, description: "\u041F\u044F\u0442\u044C \u0434\u0440\u043E\u0431\u0438\u043D. \u041F\u043E\u0434\u043F\u0443\u0441\u043A\u0430\u0439 \u0431\u043B\u0438\u0436\u0435 \u0438 \u043E\u0442\u0445\u043E\u0434\u0438 \u0431\u0435\u0433\u043E\u043C." }];
+      WEAPONS.push(
+        { name: "\u0420\u0435\u0432\u043E\u043B\u044C\u0432\u0435\u0440 \xAB\u0421\u0443\u0434\u044C\u044F\xBB", damage: 42, rate: 0.72, range: 400, cost: 850, level: 4, art: 0, pose: 0, description: "\u041C\u043E\u0449\u043D\u044B\u0439 \u0442\u043E\u0447\u043D\u044B\u0439 \u0432\u044B\u0441\u0442\u0440\u0435\u043B, \u043C\u0435\u0434\u043B\u0435\u043D\u043D\u044B\u0439 \u0442\u0435\u043C\u043F." },
+        { name: "\u041F\u041F \xAB\u0428\u043E\u0440\u043E\u0445\xBB", damage: 12, rate: 0.18, range: 300, cost: 1500, level: 10, art: 1, pose: 1, description: "\u041A\u043E\u0440\u043E\u0442\u043A\u0438\u0435 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 \u0434\u043B\u044F \u0431\u043B\u0438\u0436\u043D\u0435\u0439 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u0438." },
+        { name: "\u0412\u0438\u043D\u0442\u043E\u0432\u043A\u0430 \xAB\u0412\u043E\u0440\u043E\u043D\xBB", damage: 84, rate: 1.15, range: 530, cost: 2800, level: 25, art: 2, pose: 1, description: "\u0414\u0430\u043B\u044C\u043D\u0438\u0439 \u0431\u043E\u0439. \u0414\u0435\u0440\u0436\u0438 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445 \u043D\u0430 \u0440\u0430\u0441\u0441\u0442\u043E\u044F\u043D\u0438\u0438." },
+        { name: "\u041F\u0443\u043B\u0435\u043C\u0451\u0442 \xAB\u041E\u043F\u043B\u043E\u0442\xBB", damage: 19, rate: 0.23, range: 390, cost: 5200, level: 60, art: 3, pose: 1, description: "\u041F\u043B\u043E\u0442\u043D\u044B\u0439 \u043E\u0433\u043E\u043D\u044C \u0434\u043B\u044F \u0437\u0430\u0442\u044F\u0436\u043D\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A." },
+        { name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A \xAB\u0420\u0430\u0437\u043B\u043E\u043C\xBB", damage: 18, rate: 0.95, range: 265, pellets: 5, cost: 9e3, level: 120, art: 4, pose: 2, description: "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u044B\u0439 \u0437\u0430\u0440\u044F\u0434. \u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0443\u0440\u043E\u043D\u0430 \u0432\u0431\u043B\u0438\u0437\u0438." },
+        { name: "\u0410\u0432\u0442\u043E\u043C\u0430\u0442 \xAB\u0412\u0435\u043A\u0442\u043E\u0440\xBB", damage: 24, rate: 0.24, range: 450, cost: 16e3, level: 250, art: 5, pose: 1, description: "\u0422\u043E\u0447\u043D\u043E\u0435 \u043E\u0440\u0443\u0436\u0438\u0435 \u0432\u0435\u0442\u0435\u0440\u0430\u043D\u0430." },
+        { name: "\xAB\u0412\u0435\u043A\u0442\u043E\u0440: \u041E\u0431\u0441\u0438\u0434\u0438\u0430\u043D\xBB", damage: 24, rate: 0.24, range: 450, cost: 0, level: 250, art: 5, pose: 1, votes: 35, sku: "weapon_obsidian", tint: 155, description: "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u043E\u0435 \u043E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u0435. \u0425\u0430\u0440\u0430\u043A\u0442\u0435\u0440\u0438\u0441\u0442\u0438\u043A\u0438 \u043E\u0431\u044B\u0447\u043D\u043E\u0433\u043E \xAB\u0412\u0435\u043A\u0442\u043E\u0440\u0430\xBB." }
+      );
+      MAX_LEVEL = 500;
+      weaponUnlocked = (s, i) => !!WEAPONS[i] && playerLevel(s) >= (WEAPONS[i].level || 1);
+      expeditionRank = (s) => Math.floor((playerLevel(s) - 1) / 25);
+      ENERGY_MAX = 60;
+      raidProfile = (map) => map === 5 ? { hp: 3900, cooldown: 35e3, armor: 0.1, trait: "\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0440\u0438\u0442\u043C: \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 35 \u0441\u0435\u043A\u0443\u043D\u0434. \u0411\u0440\u043E\u043D\u044F \u0441\u043D\u0438\u0436\u0430\u0435\u0442 \u0443\u0440\u043E\u043D \u043D\u0430 10%." } : map === 6 ? { hp: 4700, cooldown: 45e3, armor: 0.2, trait: "\u0421\u0442\u0430\u043B\u044C\u043D\u0430\u044F \u043A\u043E\u0436\u0430: \u0432\u0445\u043E\u0434\u044F\u0449\u0438\u0439 \u0443\u0440\u043E\u043D \u0441\u043D\u0438\u0436\u0435\u043D \u043D\u0430 20%." } : map === 7 ? { hp: 6200, cooldown: 5e4, armor: 0.05, trait: "\u041E\u0441\u0430\u0434\u0430: \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0430\u0441 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 50 \u0441\u0435\u043A\u0443\u043D\u0434." } : { hp: 750 * (1 + map * 0.7), cooldown: 45e3, armor: 0, trait: "\u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434." };
+      ENERGY_INTERVAL = 5 * 60 * 1e3;
+      BOSS_COST = 12;
+      freshSave = () => ({ version: 1, vehicle: "nomad", ownedVehicles: ["nomad"], armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: Array(MAPS.length).fill(0), energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
+      bossUnlocked = (s, i) => {
+        var _a2;
+        return unlocked(s, i) && (((_a2 = s.districtRuns) == null ? void 0 : _a2[i]) || 0) >= 3 && playerLevel(s) >= MAPS[i].level;
+      };
+      xpForLevel = (level) => level <= 20 ? Math.round(240 * (level - 1) + 90 * (level - 1) * (level - 2)) : xpForLevel(20) + 3660 * (level - 20) + 12 * (level - 20) * (level - 21);
+      playerLevel = (s) => {
+        let level = 1;
+        while (level < MAX_LEVEL && s.xp >= xpForLevel(level + 1)) level++;
+        return level;
+      };
+      levelProgress = (s) => {
+        const level = playerLevel(s);
+        if (level === MAX_LEVEL) return { level, current: 0, required: 0, percent: 100, max: true };
+        const start2 = xpForLevel(level), next = xpForLevel(level + 1);
+        return { level, current: Math.max(0, s.xp - start2), required: next - start2, percent: Math.min(100, (s.xp - start2) / (next - start2) * 100) };
+      };
+      runXP = (kills, win, map = 0, level = 1) => Math.round((Math.floor(kills * 1.5) + (win ? 24 + map * 8 : 0)) * (1 + Math.floor((Math.min(MAX_LEVEL, level) - 1) / 25) * 0.5));
+      raidDamage = (s) => Math.round(stats(s).damage * (WEAPONS[s.weapon].pellets || 1) / WEAPONS[s.weapon].rate * 5 * (WEAPONS[s.weapon].pellets ? 0.72 : 1));
+      stats = (s) => {
+        var _a2;
+        return { hp: Math.round((110 + s.armor * 8 + (((_a2 = ARMOR[s.armorTier || 0]) == null ? void 0 : _a2.hp) || 0)) * (1 + s.body * 0.04) * (1 + vehicleFor(s).hp / 100)), damage: WEAPONS[s.weapon].damage * (1 + s.weaponLevel * 0.08) * (1 + s.engine * 0.04) * (1 + vehicleFor(s).damage / 100), loot: (1 + s.trunk * 0.05) * (1 + vehicleFor(s).loot / 100), speed: 148 };
+      };
+      upgradeCost = (level) => Math.round(80 * Math.pow(1.42, level));
+      unlocked = (s, i) => i === 0 || s.cleared.includes(i - 1);
+      enemyStats = (map, wave, type, rank = 0) => ({ hp: (type === "boss" ? 230 : type === "tank" ? 86 : type === "runner" ? 28 : 40) * (1 + map * 0.32) * (1 + (wave - 1) * 0.15) * (1 + rank * 0.1), speed: type === "boss" ? 34 : type === "runner" ? 95 : type === "tank" ? 28 : 47, damage: (type === "boss" ? 23 : type === "tank" ? 17 : 10) * (1 + map * 0.16) * (1 + rank * 0.06) });
+      ARMOR = [
+        { name: "\u041E\u0434\u0435\u0436\u0434\u0430 \u0432\u044B\u0436\u0438\u0432\u0448\u0435\u0433\u043E", hp: 0, level: 1, bosses: 0, cost: 0, cloth: 0, cores: 0, icon: 3, description: "\u0422\u0432\u043E\u044F \u043F\u0440\u0438\u0432\u044B\u0447\u043D\u0430\u044F \u0444\u0443\u0442\u0431\u043E\u043B\u043A\u0430 \u0438 \u0431\u0440\u044E\u043A\u0438. \u0421\u0432\u043E\u0431\u043E\u0434\u0430 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F." },
+        { name: "\u0416\u0438\u043B\u0435\u0442 \xAB\u0411\u0430\u0440\u044C\u0435\u0440\xBB", hp: 28, level: 2, bosses: 1, cost: 320, cloth: 8, cores: 0, icon: 4, description: "\u041F\u043B\u0438\u0442\u044B, \u0440\u0435\u043C\u043D\u0438 \u0438 \u043F\u043E\u0434\u0441\u0443\u043C\u043A\u0438. \u041F\u0435\u0440\u0432\u0430\u044F \u0441\u0435\u0440\u044C\u0451\u0437\u043D\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430." },
+        { name: "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442 \xAB\u0414\u043E\u0437\u043E\u0440\xBB", hp: 60, level: 4, bosses: 3, cost: 780, cloth: 24, cores: 3, icon: 4, description: "\u041F\u043E\u043B\u0435\u0432\u0430\u044F \u043A\u0443\u0440\u0442\u043A\u0430, \u0443\u0441\u0438\u043B\u0435\u043D\u043D\u044B\u0439 \u0436\u0438\u043B\u0435\u0442 \u0438 \u0437\u0430\u0449\u0438\u0442\u0430 \u043F\u043B\u0435\u0447." },
+        { name: "\u0411\u0440\u043E\u043D\u044F \xAB\u0426\u0438\u0442\u0430\u0434\u0435\u043B\u044C\xBB", hp: 100, level: 6, bosses: 6, cost: 1600, cloth: 48, cores: 9, icon: 5, description: "\u0422\u044F\u0436\u0451\u043B\u044B\u0435 \u043F\u043B\u0430\u0441\u0442\u0438\u043D\u044B. \u041E\u0442\u043A\u0440\u044B\u0442\u043E\u0435 \u043B\u0438\u0446\u043E, \u0437\u043D\u0430\u043A\u043E\u043C\u044B\u0439 \u0441\u0438\u043B\u0443\u044D\u0442." }
+      ];
+      ARMOR.push(
+        { name: "\u0420\u0430\u0437\u0432\u0435\u0434\u0447\u0438\u043A \xAB\u0422\u0443\u043C\u0430\u043D\xBB", hp: 135, level: 25, bosses: 0, cost: 3e3, cloth: 70, cores: 12, icon: 4, pose: 2, description: "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u0430\u044F \u043F\u043E\u043B\u0435\u0432\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0440\u0430\u0437\u0432\u0435\u0434\u0447\u0438\u043A\u0430." },
+        { name: "\u042D\u043A\u0437\u043E\u043A\u0430\u0440\u043A\u0430\u0441 \xAB\u0411\u0430\u0441\u0442\u0438\u043E\u043D\xBB", hp: 180, level: 75, bosses: 0, cost: 6e3, cloth: 110, cores: 22, icon: 5, pose: 3, description: "\u0411\u0440\u043E\u043D\u0435\u043A\u0430\u0440\u043A\u0430\u0441 \u0434\u043B\u044F \u043E\u043F\u0430\u0441\u043D\u044B\u0445 \u0441\u0435\u043A\u0442\u043E\u0440\u043E\u0432." },
+        { name: "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442 \xAB\u0421\u0442\u0440\u0430\u0436\xBB", hp: 235, level: 200, bosses: 0, cost: 11e3, cloth: 180, cores: 40, icon: 5, pose: 3, description: "\u0417\u0430\u0449\u0438\u0442\u0430 \u043E\u043F\u044B\u0442\u043D\u043E\u0433\u043E \u043A\u043E\u043C\u0430\u043D\u0434\u0438\u0440\u0430." },
+        { name: "\u0414\u043E\u0441\u043F\u0435\u0445 \xAB\u041B\u0435\u0433\u0435\u043D\u0434\u0430\xBB", hp: 300, level: 400, bosses: 0, cost: 2e4, cloth: 260, cores: 65, icon: 5, pose: 3, description: "\u0412\u044B\u0441\u0448\u0438\u0439 \u043A\u043B\u0430\u0441\u0441 \u0437\u0430\u0449\u0438\u0442\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430." },
+        { name: "\xAB\u041B\u0435\u0433\u0435\u043D\u0434\u0430: \u042F\u043D\u0442\u0430\u0440\u044C\xBB", hp: 300, level: 400, bosses: 0, cost: 0, cloth: 0, cores: 0, icon: 5, pose: 3, votes: 45, sku: "armor_amber", description: "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u0430\u044F \u0431\u0440\u043E\u043D\u044F. \u0417\u0430\u0449\u0438\u0442\u0430 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \xAB\u041B\u0435\u0433\u0435\u043D\u0434\u044B\xBB." }
+      );
+      armorUnlocked = (s, i) => playerLevel(s) >= ARMOR[i].level || (s.bossKills || 0) >= ARMOR[i].bosses && ARMOR[i].bosses > 0 || i === 0;
+      EXPEDITION_LOOT = { scrapChance: 1 / 3, scrapMin: 4, scrapMax: 8, healthChance: 0.05, healthLimit: 2, heal: 28 };
+    }
+  });
+
+  // operations.js
+  function sortiePlan(save2, map, mode = "standard", time = Date.now()) {
+    const option = SORTIE_MODES.find((x) => x.id === mode);
+    if (!option || !MAPS[map] || playerLevel(save2) < option.level) throw Object.assign(new Error("\u0420\u0435\u0436\u0438\u043C \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D"), { status: 400 });
+    const day = moscowDay(time), condition = CONDITIONS[map === 0 ? 0 : (day + map) % CONDITIONS.length];
+    return { ...option, condition: { ...condition }, day };
+  }
+  function sortieEnemy(base, type, plan) {
+    return { ...base, hp: base.hp * plan.hp * (type === "tank" && plan.condition.id === "iron" ? 1.25 : 1), speed: base.speed * plan.speed * (type === "runner" && plan.condition.id === "rush" ? 1.2 : 1) };
+  }
+  function sortieEnemyType(index, condition) {
+    return index % 5 === 4 ? "tank" : index % (condition.id === "hunt" ? 2 : 3) === (condition.id === "hunt" ? 1 : 2) ? "runner" : "walker";
+  }
+  var SORTIE_MODES, CONDITIONS, moscowDay;
+  var init_operations = __esm({
+    "operations.js"() {
+      init_balance();
+      SORTIE_MODES = [
+        { id: "scout", name: "\u0420\u0430\u0437\u0432\u0435\u0434\u043A\u0430", level: 1, cost: 6, hp: 0.8, speed: 0.9, reward: 0.65, xp: 0.75, description: "\u0421\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439 \u0442\u0435\u043C\u043F. \u041C\u0435\u043D\u044C\u0448\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u0430, \u0434\u0435\u0448\u0435\u0432\u043B\u0435 \u0432\u044B\u0445\u043E\u0434." },
+        { id: "standard", name: "\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0430", level: 1, cost: 8, hp: 1, speed: 1, reward: 1, xp: 1, description: "\u041E\u0431\u044B\u0447\u043D\u0430\u044F \u0443\u0433\u0440\u043E\u0437\u0430 \u0438 \u043D\u0430\u0433\u0440\u0430\u0434\u0430. \u041E\u0441\u043D\u043E\u0432\u043D\u043E\u0439 \u043F\u0443\u0442\u044C \u043F\u043E \u0440\u0430\u0439\u043E\u043D\u0430\u043C." },
+        { id: "siege", name: "\u041F\u0440\u043E\u0440\u044B\u0432", level: 5, cost: 12, hp: 1.4, speed: 1.12, reward: 1.65, xp: 1.4, description: "\u0416\u0438\u0432\u0443\u0447\u0438\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0411\u043E\u043B\u044C\u0448\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0437\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u0443\u044E \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443." }
+      ];
+      CONDITIONS = [
+        { id: "quiet", name: "\u0422\u0438\u0445\u0438\u0435 \u0443\u043B\u0438\u0446\u044B", description: "\u041E\u0431\u044B\u0447\u043D\u0430\u044F \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u044C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445." },
+        { id: "rush", name: "\u0411\u0435\u0433\u0443\u0449\u0430\u044F \u0441\u0442\u0430\u044F", description: "\u0411\u0435\u0433\u0443\u043D\u044B \u0434\u0432\u0438\u0433\u0430\u044E\u0442\u0441\u044F \u043D\u0430 20% \u0431\u044B\u0441\u0442\u0440\u0435\u0435." },
+        { id: "iron", name: "\u0422\u044F\u0436\u0451\u043B\u044B\u0439 \u0441\u043B\u0435\u0434", description: "\u0413\u0440\u043E\u043C\u0438\u043B\u044B \u043F\u043E\u043B\u0443\u0447\u0430\u044E\u0442 \u043D\u0430 25% \u0431\u043E\u043B\u044C\u0448\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F." },
+        { id: "hunt", name: "\u041E\u0445\u043E\u0442\u0430", description: "\u0412 \u0432\u043E\u043B\u043D\u0430\u0445 \u0447\u0430\u0449\u0435 \u0432\u0441\u0442\u0440\u0435\u0447\u0430\u044E\u0442\u0441\u044F \u0431\u0435\u0433\u0443\u043D\u044B." }
+      ];
+      moscowDay = (time = Date.now()) => Math.floor((time + 108e5) / 864e5);
+    }
+  });
+
   // ui-icons.js
   var paths, icon, insignia, standardIcon, shelterIcon;
   var init_ui_icons = __esm({
@@ -368,6 +541,59 @@
       };
       standardIcon = icon;
       shelterIcon = (name) => insignia[name] ? '<svg class="ui-icon shelter-insignia" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + insignia[name] + "</svg>" : standardIcon(name);
+    }
+  });
+
+  // operations-ui.js
+  function renderBriefing(root, save2, map, mode, onSelect) {
+    const plan = sortiePlan(save2, map, mode), kills = 27 + map * 3, expected = expeditionReward(map, kills, kills * 2, true, stats(save2).loot * plan.reward);
+    root.innerHTML = `<div class="op-heading"><span class="eyebrow">\u041F\u041B\u0410\u041D \u041E\u041F\u0415\u0420\u0410\u0426\u0418\u0418</span><strong>${plan.condition.name}</strong><p>${plan.condition.description} ${map === 0 ? "\u041F\u0435\u0440\u0432\u044B\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B \u0432\u0441\u0435\u0433\u0434\u0430 \u0441\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439." : "\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u043C\u0435\u043D\u044F\u044E\u0442\u0441\u044F \u0432 \u043F\u043E\u043B\u043D\u043E\u0447\u044C \u041C\u0421\u041A."}</p></div><div class="sortie-options" role="group" aria-label="\u0421\u043B\u043E\u0436\u043D\u043E\u0441\u0442\u044C \u0432\u044B\u043B\u0430\u0437\u043A\u0438">${SORTIE_MODES.map((m) => {
+      const locked = playerLevel(save2) < m.level;
+      return `<button class="sortie-option ${m.id === mode ? "selected" : ""}" data-mode="${m.id}" aria-pressed="${m.id === mode}" ${locked ? "disabled" : ""}>${shelterIcon(m.id === "scout" ? "map" : m.id === "siege" ? "conflict" : "raids")}<span><b>${m.name}</b><small>${locked ? "\u0421 " + m.level + " \u0443\u0440\u043E\u0432\u043D\u044F" : m.cost + " \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \xB7 " + (m.reward === 1 ? "\u043E\u0431\u044B\u0447\u043D\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430" : Math.round(m.reward * 100) + "% \u043D\u0430\u0433\u0440\u0430\u0434\u044B")}</small></span></button>`;
+    }).join("")}</div><div class="op-forecast"><span>~<b>${fmt(expected)}</b> \u0434\u0435\u0442\u0430\u043B\u0435\u0439</span><span><b>${Math.round(runXP(kills, true, map, playerLevel(save2)) * plan.xp)}</b> XP</span><span><b>3</b> \u0432\u043E\u043B\u043D\u044B</span></div><p class="op-note">${plan.description} \u0420\u0430\u0441\u0447\u0451\u0442 \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u2014 \u0441\u0440\u0435\u0434\u043D\u044F\u044F \u043E\u0446\u0435\u043D\u043A\u0430, \u0434\u043E\u0431\u044B\u0447\u0430 \u0441\u043B\u0443\u0447\u0430\u0439\u043D\u0430.</p>`;
+    root.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => onSelect(b.dataset.mode));
+    return plan;
+  }
+  async function renderOperations(root, api2, toast2, onUpdate) {
+    if (pending.has(root)) return;
+    pending.add(root);
+    try {
+      const view = await api2("operations");
+      if (!root.isConnected) return;
+      root.innerHTML = `<div class="section-title"><h3>\u041F\u0440\u0438\u043A\u0430\u0437\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430</h3><span>${view.open ? "\u0414\u041E \u041F\u041E\u041B\u0423\u041D\u041E\u0427\u0418 \u041C\u0421\u041A" : "\u0421 3 \u0423\u0420\u041E\u0412\u041D\u042F"}</span></div><div class="operation-contracts">${view.contracts.map((c) => `<article class="operation-contract ${c.claimed ? "complete" : ""}"><span class="contract-stamp">${shelterIcon(c.id === "support" ? "raids" : c.id === "route" ? "map" : "daily")}</span><div><span class="eyebrow">${c.claimed ? "\u0412\u042B\u041F\u041E\u041B\u041D\u0415\u041D\u041E" : "\u0415\u0416\u0415\u0414\u041D\u0415\u0412\u041D\u0410\u042F \u0426\u0415\u041B\u042C"}</span><h3>${c.title}</h3><p>${c.description}</p><div class="op-progress" role="progressbar" aria-label="${c.title}" aria-valuemin="0" aria-valuemax="${c.goal}" aria-valuenow="${c.progress}"><i style="width:${c.progress / c.goal * 100}%"></i></div><small>${c.progress} / ${c.goal} \xB7 ${rewardText(c.reward)}</small></div><button class="${c.progress >= c.goal && !c.claimed && view.open ? "primary" : "secondary"}" data-contract="${c.id}" ${!view.open || c.claimed || c.progress < c.goal ? "disabled" : ""}>${c.claimed ? "\u041F\u041E\u041B\u0423\u0427\u0415\u041D\u041E" : !view.open ? "\u0421 3 \u0423\u0420\u041E\u0412\u041D\u042F" : c.progress < c.goal ? "\u0412 \u041F\u0420\u041E\u0426\u0415\u0421\u0421\u0415" : "\u0417\u0410\u0411\u0420\u0410\u0422\u042C"}</button></article>`).join("")}</div>`;
+      root.querySelectorAll("[data-contract]").forEach((b) => b.onclick = async () => {
+        b.disabled = true;
+        try {
+          await api2("operations/claim", { id: b.dataset.contract });
+          toast2("\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430");
+          onUpdate();
+        } catch (e) {
+          b.disabled = false;
+          toast2(e.message);
+        }
+      });
+    } catch (e) {
+      if (root.isConnected) {
+        root.textContent = "\u041F\u0440\u0438\u043A\u0430\u0437\u044B \u043D\u0435 \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043D\u044B: " + e.message;
+        const b = document.createElement("button");
+        b.className = "secondary";
+        b.textContent = "\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C";
+        b.onclick = () => renderOperations(root, api2, toast2, onUpdate);
+        root.append(b);
+      }
+    } finally {
+      pending.delete(root);
+    }
+  }
+  var fmt, rewardText, pending;
+  var init_operations_ui = __esm({
+    "operations-ui.js"() {
+      init_operations();
+      init_balance();
+      init_ui_icons();
+      fmt = (n) => Math.round(n).toLocaleString("ru-RU");
+      rewardText = (r) => Object.entries(r).map(([key2, n]) => "+" + n + " " + { scrap: "\u0434\u0435\u0442.", xp: "XP", cloth: "\u0442\u043A\u0430\u043D\u0438", cores: "\u044F\u0434\u0440\u043E" }[key2]).join(" \xB7 ");
+      pending = /* @__PURE__ */ new WeakSet();
     }
   });
 
@@ -432,7 +658,7 @@
     });
     const syncTitle = () => {
       var _a2;
-      title.textContent = (((_a2 = aside.querySelector("nav button.active")) == null ? void 0 : _a2.innerText) || "\u0423\u0431\u0435\u0436\u0438\u0449\u0435").replace(/\s*\d+\s*$/, "").trim();
+      title.textContent = (((_a2 = aside.querySelector("nav button.active")) == null ? void 0 : _a2.textContent) || "\u0423\u0431\u0435\u0436\u0438\u0449\u0435").replace(/\s*\d+\s*$/, "").trim();
     };
     new MutationObserver(syncTitle).observe(document.querySelector("#page-title"), { childList: true, subtree: true, characterData: true });
     const resize = () => {
@@ -449,143 +675,6 @@
     "landscape-ui.js"() {
       init_ui_icons();
       query = "(orientation: landscape) and (max-height: 550px)";
-    }
-  });
-
-  // vehicles.js
-  var VEHICLES, vehicleFor;
-  var init_vehicles = __esm({
-    "vehicles.js"() {
-      VEHICLES = [
-        ["nomad", "\u041A\u043E\u0447\u0435\u0432\u043D\u0438\u043A", "\u0412\u043D\u0435\u0434\u043E\u0440\u043E\u0436\u043D\u0438\u043A", 1, 0, 0, 0, 0, "\u041F\u0435\u0440\u0432\u0430\u044F \u043C\u043E\u0431\u0438\u043B\u044C\u043D\u0430\u044F \u0431\u0430\u0437\u0430. \u041D\u0430\u0434\u0451\u0436\u043D\u044B\u0439 \u043A\u0443\u0437\u043E\u0432 \u0438 \u0432\u0441\u0451 \u043D\u0435\u043E\u0431\u0445\u043E\u0434\u0438\u043C\u043E\u0435 \u0434\u043B\u044F \u0432\u044B\u043B\u0430\u0437\u043A\u0438."],
-        ["spark", "\u0418\u0441\u043A\u0440\u0430", "\u0425\u044D\u0442\u0447\u0431\u0435\u043A", 2, 1200, 2, 0, 3, "\u041B\u0451\u0433\u043A\u0430\u044F \u043C\u0430\u0448\u0438\u043D\u0430 \u0434\u043B\u044F \u043A\u043E\u0440\u043E\u0442\u043A\u0438\u0445 \u0440\u0435\u0439\u0441\u043E\u0432 \u0437\u0430 \u043F\u0440\u0438\u043F\u0430\u0441\u0430\u043C\u0438."],
-        ["hauler", "\u0414\u043E\u0431\u044B\u0442\u0447\u0438\u043A", "\u041F\u0438\u043A\u0430\u043F", 4, 2600, 0, 3, 6, "\u041E\u0442\u043A\u0440\u044B\u0442\u044B\u0439 \u043A\u0443\u0437\u043E\u0432 \u0438 \u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u044F \u0434\u043B\u044F \u0434\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0433\u043E \u0433\u0440\u0443\u0437\u0430."],
-        ["medic", "\u0421\u0430\u043D\u0438\u0442\u0430\u0440", "\u041C\u0435\u0434\u0438\u0446\u0438\u043D\u0441\u043A\u0438\u0439 \u0444\u0443\u0440\u0433\u043E\u043D", 6, 4400, 0, 8, 2, "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0434\u043B\u044F \u043E\u043F\u0430\u0441\u043D\u044B\u0445 \u0441\u043F\u0430\u0441\u0430\u0442\u0435\u043B\u044C\u043D\u044B\u0445 \u043C\u0430\u0440\u0448\u0440\u0443\u0442\u043E\u0432."],
-        ["dune", "\u0411\u0430\u0440\u0445\u0430\u043D", "\u0411\u0430\u0433\u0433\u0438", 10, 7200, 7, 0, 4, "\u041B\u0451\u0433\u043A\u0430\u044F \u0440\u0430\u043C\u0430 \u0438 \u043C\u043E\u0449\u043D\u0430\u044F \u043E\u0440\u0443\u0436\u0435\u0439\u043D\u0430\u044F \u044D\u043B\u0435\u043A\u0442\u0440\u043E\u0441\u0442\u0430\u043D\u0446\u0438\u044F."],
-        ["trail", "\u0421\u043B\u0435\u0434\u043E\u043F\u044B\u0442", "\u0423\u043D\u0438\u0432\u0435\u0440\u0441\u0430\u043B", 15, 10400, 3, 4, 8, "\u042D\u043A\u0441\u043F\u0435\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0431\u0430\u0433\u0430\u0436\u043D\u0438\u043A \u0434\u043B\u044F \u0434\u043E\u043B\u0433\u0438\u0445 \u0441\u0431\u043E\u0440\u043E\u0432 \u0440\u0435\u0441\u0443\u0440\u0441\u043E\u0432."],
-        ["interceptor", "\u041F\u0435\u0440\u0435\u0445\u0432\u0430\u0442\u0447\u0438\u043A", "\u041F\u0430\u0442\u0440\u0443\u043B\u044C\u043D\u044B\u0439 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u044C", 25, 16e3, 9, 4, 0, "\u0411\u043E\u0435\u0432\u043E\u0439 \u0432\u044B\u0435\u0437\u0434: \u0432\u044B\u0441\u043E\u043A\u0438\u0439 \u0443\u0440\u043E\u043D \u043F\u0440\u0438 \u043D\u0435\u0431\u043E\u043B\u044C\u0448\u043E\u043C \u0433\u0440\u0443\u0437\u043E\u0432\u043E\u043C \u043E\u0442\u0441\u0435\u043A\u0435."],
-        ["tow", "\u0422\u044F\u0433\u0430\u0447", "\u042D\u0432\u0430\u043A\u0443\u0430\u0442\u043E\u0440", 40, 23200, 2, 7, 10, "\u041B\u0435\u0431\u0451\u0434\u043A\u0430 \u0438 \u0433\u0440\u0443\u0437\u043E\u0432\u0430\u044F \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0430 \u0434\u043B\u044F \u0442\u044F\u0436\u0451\u043B\u044B\u0445 \u0442\u0440\u043E\u0444\u0435\u0435\u0432."],
-        ["ranger", "\u0415\u0433\u0435\u0440\u044C", "\u042D\u043A\u0441\u043F\u0435\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0434\u0436\u0438\u043F", 60, 32800, 7, 7, 7, "\u0421\u0431\u0430\u043B\u0430\u043D\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u0430\u044F \u0431\u0430\u0437\u0430 \u0434\u043B\u044F \u043B\u044E\u0431\u043E\u0433\u043E \u0440\u0430\u0439\u043E\u043D\u0430 \u0433\u043E\u0440\u043E\u0434\u0430."],
-        ["vault", "\u0421\u0435\u0439\u0444", "\u0411\u0440\u043E\u043D\u0435\u0444\u0443\u0440\u0433\u043E\u043D", 90, 46e3, 3, 13, 5, "\u0411\u0440\u043E\u043D\u0435\u043F\u043B\u0438\u0442\u044B \u0434\u043B\u044F \u0432\u044B\u0436\u0438\u0432\u0430\u043D\u0438\u044F \u043F\u043E\u0434 \u0434\u0430\u0432\u043B\u0435\u043D\u0438\u0435\u043C \u043E\u0440\u0434\u044B."],
-        ["engineer", "\u041C\u043E\u043D\u0442\u0430\u0436\u043D\u0438\u043A", "\u0421\u0435\u0440\u0432\u0438\u0441\u043D\u044B\u0439 \u0433\u0440\u0443\u0437\u043E\u0432\u0438\u043A", 130, 62e3, 5, 7, 13, "\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0430\u044F \u043D\u0430 \u043A\u043E\u043B\u0451\u0441\u0430\u0445. \u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u043F\u043E\u043B\u0435\u0437\u043D\u043E\u0439 \u0434\u043E\u0431\u044B\u0447\u0438."],
-        ["bastion", "\u0411\u0430\u0441\u0442\u0438\u043E\u043D", "\u0411\u0440\u043E\u043D\u0435\u0442\u0440\u0430\u043D\u0441\u043F\u043E\u0440\u0442\u0451\u0440", 200, 84e3, 10, 14, 3, "\u0428\u0435\u0441\u0442\u044C \u043A\u043E\u043B\u0451\u0441 \u0438 \u0442\u044F\u0436\u0451\u043B\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0434\u043B\u044F \u043F\u0435\u0440\u0435\u0434\u043E\u0432\u043E\u0439."],
-        ["command", "\u041A\u043E\u043C\u0435\u043D\u0434\u0430\u043D\u0442", "\u041A\u043E\u043C\u0430\u043D\u0434\u043D\u044B\u0439 \u0430\u0432\u0442\u043E\u0431\u0443\u0441", 300, 112e3, 12, 10, 10, "\u041F\u043E\u0434\u0432\u0438\u0436\u043D\u044B\u0439 \u0448\u0442\u0430\u0431 \u0434\u043B\u044F \u043A\u043E\u043C\u0430\u043D\u0434\u0438\u0440\u0430 \u0443\u0431\u0435\u0436\u0438\u0449\u0430."],
-        ["ark", "\u041A\u043E\u0432\u0447\u0435\u0433", "\u042D\u043A\u0441\u043F\u0435\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0433\u0440\u0443\u0437\u043E\u0432\u0438\u043A", 450, 152e3, 10, 15, 15, "\u0414\u0430\u043B\u044C\u043D\u0438\u0435 \u043C\u0430\u0440\u0448\u0440\u0443\u0442\u044B \u0438 \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0430\u0441 \u043F\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u0438."]
-      ].map(([id, name, type, level, cost, damage, hp, loot2, description], art2) => ({ id, name, type, level, cost, damage, hp, loot: loot2, description, art: art2 }));
-      for (const [id, name, type, base, votes] of [
-        ["silver", "\u0421\u0435\u0440\u0435\u0431\u0440\u044F\u043D\u044B\u0439 \u0441\u043B\u0435\u0434", "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u043A\u0443\u043F\u0435", 6, 25],
-        ["crimson", "\u0411\u0430\u0433\u0440\u043E\u0432\u044B\u0439 \u0437\u0430\u043A\u0430\u0442", "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u043C\u0430\u0441\u043B\u043A\u0430\u0440", 4, 20],
-        ["phantom", "\u0424\u0430\u043D\u0442\u043E\u043C", "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0439 \u0440\u0430\u043B\u043B\u0438-\u043A\u0430\u0440", 8, 35],
-        ["arctic", "\u041F\u043E\u043B\u044F\u0440\u043D\u0438\u043A", "\u0410\u0440\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0439 \u0433\u0440\u0443\u0437\u043E\u0432\u0438\u043A", 10, 45],
-        ["sovereign", "\u0421\u0443\u0432\u0435\u0440\u0435\u043D", "\u0411\u0440\u043E\u043D\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0439 \u043B\u0438\u043C\u0443\u0437\u0438\u043D", 11, 55],
-        ["horizon", "\u0413\u043E\u0440\u0438\u0437\u043E\u043D\u0442", "\u041C\u043E\u0431\u0438\u043B\u044C\u043D\u0430\u044F \u043B\u0430\u0431\u043E\u0440\u0430\u0442\u043E\u0440\u0438\u044F", 13, 65]
-      ]) {
-        const v = VEHICLES[base];
-        VEHICLES.push({ ...v, id, name, type, cost: 0, votes, base, art: VEHICLES.length, description: "\u041E\u0441\u043E\u0431\u044B\u0439 \u043A\u0443\u0437\u043E\u0432. \u0411\u043E\u043D\u0443\u0441\u044B \u043A\u0430\u043A \u0443 \xAB" + v.name + "\xBB, \u0431\u0435\u0437 \u043F\u0440\u0435\u0438\u043C\u0443\u0449\u0435\u0441\u0442\u0432\u0430 \u0437\u0430 \u043E\u043F\u043B\u0430\u0442\u0443." });
-      }
-      vehicleFor = (s) => VEHICLES.find((v) => v.id === s.vehicle) || VEHICLES[0];
-    }
-  });
-
-  // balance.js
-  function restoreEnergy(s, now = Date.now()) {
-    var _a2, _b2;
-    s.energy = Math.min(ENERGY_MAX, Math.max(0, (_a2 = s.energy) != null ? _a2 : ENERGY_MAX));
-    s.energyAt = Math.min(now, (_b2 = s.energyAt) != null ? _b2 : now);
-    if (s.energy >= ENERGY_MAX) {
-      s.energyAt = now;
-      return s.energy;
-    }
-    const recovered = Math.floor((now - s.energyAt) / ENERGY_INTERVAL);
-    s.energy = Math.min(ENERGY_MAX, s.energy + recovered);
-    if (s.energy === ENERGY_MAX) s.energyAt = now;
-    else s.energyAt += recovered * ENERGY_INTERVAL;
-    return s.energy;
-  }
-  function sprintStep(stamina, exhausted, wantsRun, moving, dt) {
-    if (exhausted && stamina >= 30) exhausted = false;
-    const running = wantsRun && moving && !exhausted && stamina > 0;
-    stamina = Math.max(0, Math.min(100, stamina + (running ? -24 : 17) * dt));
-    if (stamina === 0) exhausted = true;
-    return { stamina, exhausted, running: running && stamina > 0, multiplier: running ? 1.65 : 1 };
-  }
-  function expeditionDrop(random = Math.random, healthDropped = 0) {
-    const scrap = random() < EXPEDITION_LOOT.scrapChance ? EXPEDITION_LOOT.scrapMin + Math.floor(random() * (EXPEDITION_LOOT.scrapMax - EXPEDITION_LOOT.scrapMin + 1)) : 0;
-    const health = healthDropped < EXPEDITION_LOOT.healthLimit && random() < EXPEDITION_LOOT.healthChance;
-    return { scrap, health };
-  }
-  var MAPS, WEAPONS, MAX_LEVEL, weaponUnlocked, expeditionRank, ENERGY_MAX, raidProfile, ENERGY_INTERVAL, RAID_COST, BOSS_COST, freshSave, bossUnlocked, xpForLevel, playerLevel, levelProgress, raidDamage, stats, upgradeCost, unlocked, enemyStats, ARMOR, armorUnlocked, EXPEDITION_LOOT;
-  var init_balance = __esm({
-    "balance.js"() {
-      init_vehicles();
-      MAPS = [
-        { name: "\u0422\u0438\u0445\u0438\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", desc: "\u0412 \u043E\u043A\u043D\u0430\u0445 \u0435\u0449\u0451 \u0433\u043E\u0440\u0438\u0442 \u0441\u0432\u0435\u0442. \u041D\u0430 \u0443\u043B\u0438\u0446\u0430\u0445 \u0443\u0436\u0435 \u043D\u0438\u043A\u043E\u0433\u043E \u0436\u0438\u0432\u043E\u0433\u043E.", goal: "\u0417\u0430\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u0436\u0438\u043B\u043E\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B", boss: "\u0421\u043C\u043E\u0442\u0440\u0438\u0442\u0435\u043B\u044C", level: 1, palette: ["#6c7660", "#485340", "#8b8870", "#a4a080"], reward: 85, kind: "town" },
-        { name: "\u0410\u0417\u0421 \xAB\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F\xBB", desc: "\u0417\u0430\u043F\u0430\u0445 \u0431\u0435\u043D\u0437\u0438\u043D\u0430. \u041F\u0443\u0441\u0442\u044B\u0435 \u0431\u0430\u043A\u0438. \u0418 \u043A\u0442\u043E-\u0442\u043E \u0437\u0430 \u043A\u043E\u043B\u043E\u043D\u043A\u043E\u0439.", goal: "\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0437\u0430\u043F\u0430\u0441 \u0442\u043E\u043F\u043B\u0438\u0432\u0430", boss: "\u041F\u043E\u0434\u0436\u0438\u0433\u0430\u0442\u0435\u043B\u044C", level: 2, palette: ["#786953", "#514b3a", "#a38d65", "#c5a271"], reward: 110, kind: "gas" },
-        { name: "\u0413\u0440\u0443\u0437\u043E\u0432\u043E\u0439 \u0434\u0432\u043E\u0440", desc: "\u041A\u043E\u043D\u0442\u0435\u0439\u043D\u0435\u0440\u044B \u0437\u0430\u043F\u0435\u0440\u0442\u044B \u0438\u0437\u043D\u0443\u0442\u0440\u0438. \u0421\u0442\u0443\u043A \u043D\u0435 \u043F\u0440\u0435\u043A\u0440\u0430\u0449\u0430\u0435\u0442\u0441\u044F.", goal: "\u0412\u0441\u043A\u0440\u044B\u0442\u044C \u0441\u043A\u043B\u0430\u0434 \u0441\u043D\u0430\u0431\u0436\u0435\u043D\u0438\u044F", boss: "\u041A\u0440\u0430\u043D\u043E\u0432\u0449\u0438\u043A", level: 3, palette: ["#627272", "#3e5150", "#738886", "#98a5a0"], reward: 140, kind: "yard" },
-        { name: "\u0411\u043E\u043B\u044C\u043D\u0438\u0446\u0430 \u2116 6", desc: "\u041A\u0430\u0440\u0430\u043D\u0442\u0438\u043D \u0441\u043D\u044F\u0442. \u041F\u0430\u0446\u0438\u0435\u043D\u0442\u044B \u043E\u0441\u0442\u0430\u043B\u0438\u0441\u044C.", goal: "\u041D\u0430\u0439\u0442\u0438 \u043C\u0435\u0434\u0438\u0446\u0438\u043D\u0441\u043A\u0438\u0439 \u043C\u043E\u0434\u0443\u043B\u044C", boss: "\u0413\u043B\u0430\u0432\u0432\u0440\u0430\u0447", level: 4, palette: ["#687468", "#465b4f", "#8c9a84", "#b0b49b"], reward: 175, kind: "hospital" },
-        { name: "\u0427\u0451\u0440\u043D\u044B\u0439 \u043B\u0435\u0441", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0441\u0438\u0433\u043D\u0430\u043B \u043F\u0440\u0438\u0448\u0451\u043B \u043E\u0442\u0441\u044E\u0434\u0430. \u0414\u0430\u043B\u044C\u0448\u0435 \u2014 \u0442\u0438\u0448\u0438\u043D\u0430.", goal: "\u041D\u0430\u0439\u0442\u0438 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0441\u0438\u0433\u043D\u0430\u043B\u0430", boss: "\u041A\u043E\u0440\u043D\u0435\u0432\u043E\u0439", level: 5, palette: ["#525f4a", "#354736", "#71825b", "#94a071"], reward: 220, kind: "forest" },
-        { name: "\u0417\u0430\u0442\u043E\u043F\u043B\u0435\u043D\u043D\u043E\u0435 \u043C\u0435\u0442\u0440\u043E", desc: "\u0412\u043E\u0434\u0430 \u0441\u043A\u0440\u044B\u0432\u0430\u0435\u0442 \u0440\u0435\u043B\u044C\u0441\u044B. \u0412 \u0442\u043E\u043D\u043D\u0435\u043B\u0435 \u0441\u043B\u044B\u0448\u0435\u043D \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043F\u043E\u0435\u0437\u0434.", goal: "\u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C \u0430\u0432\u0430\u0440\u0438\u0439\u043D\u044B\u0435 \u043D\u0430\u0441\u043E\u0441\u044B", boss: "\u041C\u0430\u0448\u0438\u043D\u0438\u0441\u0442", level: 6, palette: ["#334c50", "#23373c", "#75908b", "#b4bca2"], reward: 260, kind: "metro" },
-        { name: "\u041F\u0440\u043E\u043C\u0437\u043E\u043D\u0430 \xAB\u041F\u0435\u043F\u0435\u043B\xBB", desc: "\u041F\u0435\u0447\u0438 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0430\u044E\u0442 \u0440\u0430\u0431\u043E\u0442\u0430\u0442\u044C \u0431\u0435\u0437 \u043B\u044E\u0434\u0435\u0439.", goal: "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0432\u0435\u0439\u0435\u0440", boss: "\u041F\u043B\u0430\u0432\u0438\u043B\u044C\u0449\u0438\u043A", level: 7, palette: ["#624535", "#382c26", "#a7794f", "#d9b47e"], reward: 305, kind: "factory" },
-        { name: "\u041F\u043E\u0440\u0442 \xAB\u0421\u0435\u0432\u0435\u0440\u043D\u044B\u0439\xBB", desc: "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043A\u043E\u0440\u0430\u0431\u043B\u044C \u043D\u0435 \u043F\u043E\u043A\u0438\u043D\u0443\u043B \u043F\u0440\u0438\u0447\u0430\u043B.", goal: "\u0417\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u044C \u0443\u0437\u0435\u043B \u0434\u0430\u043B\u044C\u043D\u0435\u0439 \u0441\u0432\u044F\u0437\u0438", boss: "\u0410\u0434\u043C\u0438\u0440\u0430\u043B", level: 8, palette: ["#354a5c", "#253647", "#728b9b", "#b2c2c3"], reward: 355, kind: "port" }
-      ];
-      WEAPONS = [{ name: "\u041F\u0438\u0441\u0442\u043E\u043B\u0435\u0442 \xAB\u0421\u0438\u0433\u043D\u0430\u043B\xBB", damage: 22, rate: 0.48, range: 370, cost: 0, description: "\u0422\u043E\u0447\u043D\u044B\u0439 \u0438 \u043D\u0430\u0434\u0451\u0436\u043D\u044B\u0439. \u0425\u043E\u0440\u043E\u0448 \u0434\u043B\u044F \u043F\u0435\u0440\u0432\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A." }, { name: "\u041A\u0430\u0440\u0430\u0431\u0438\u043D \xAB\u0420\u0443\u0431\u0435\u0436\xBB", damage: 15, rate: 0.28, range: 430, cost: 360, description: "\u0412\u044B\u0441\u043E\u043A\u0430\u044F \u0441\u043A\u043E\u0440\u043E\u0441\u0442\u0440\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C. \u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E." }, { name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A \xAB\u0413\u0440\u043E\u043C\xBB", damage: 13, rate: 0.82, range: 240, pellets: 5, cost: 440, description: "\u041F\u044F\u0442\u044C \u0434\u0440\u043E\u0431\u0438\u043D. \u041F\u043E\u0434\u043F\u0443\u0441\u043A\u0430\u0439 \u0431\u043B\u0438\u0436\u0435 \u0438 \u043E\u0442\u0445\u043E\u0434\u0438 \u0431\u0435\u0433\u043E\u043C." }];
-      WEAPONS.push(
-        { name: "\u0420\u0435\u0432\u043E\u043B\u044C\u0432\u0435\u0440 \xAB\u0421\u0443\u0434\u044C\u044F\xBB", damage: 42, rate: 0.72, range: 400, cost: 850, level: 4, art: 0, pose: 0, description: "\u041C\u043E\u0449\u043D\u044B\u0439 \u0442\u043E\u0447\u043D\u044B\u0439 \u0432\u044B\u0441\u0442\u0440\u0435\u043B, \u043C\u0435\u0434\u043B\u0435\u043D\u043D\u044B\u0439 \u0442\u0435\u043C\u043F." },
-        { name: "\u041F\u041F \xAB\u0428\u043E\u0440\u043E\u0445\xBB", damage: 12, rate: 0.18, range: 300, cost: 1500, level: 10, art: 1, pose: 1, description: "\u041A\u043E\u0440\u043E\u0442\u043A\u0438\u0435 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 \u0434\u043B\u044F \u0431\u043B\u0438\u0436\u043D\u0435\u0439 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u0438." },
-        { name: "\u0412\u0438\u043D\u0442\u043E\u0432\u043A\u0430 \xAB\u0412\u043E\u0440\u043E\u043D\xBB", damage: 84, rate: 1.15, range: 530, cost: 2800, level: 25, art: 2, pose: 1, description: "\u0414\u0430\u043B\u044C\u043D\u0438\u0439 \u0431\u043E\u0439. \u0414\u0435\u0440\u0436\u0438 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445 \u043D\u0430 \u0440\u0430\u0441\u0441\u0442\u043E\u044F\u043D\u0438\u0438." },
-        { name: "\u041F\u0443\u043B\u0435\u043C\u0451\u0442 \xAB\u041E\u043F\u043B\u043E\u0442\xBB", damage: 19, rate: 0.23, range: 390, cost: 5200, level: 60, art: 3, pose: 1, description: "\u041F\u043B\u043E\u0442\u043D\u044B\u0439 \u043E\u0433\u043E\u043D\u044C \u0434\u043B\u044F \u0437\u0430\u0442\u044F\u0436\u043D\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A." },
-        { name: "\u0414\u0440\u043E\u0431\u043E\u0432\u0438\u043A \xAB\u0420\u0430\u0437\u043B\u043E\u043C\xBB", damage: 18, rate: 0.95, range: 265, pellets: 5, cost: 9e3, level: 120, art: 4, pose: 2, description: "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u044B\u0439 \u0437\u0430\u0440\u044F\u0434. \u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0443\u0440\u043E\u043D\u0430 \u0432\u0431\u043B\u0438\u0437\u0438." },
-        { name: "\u0410\u0432\u0442\u043E\u043C\u0430\u0442 \xAB\u0412\u0435\u043A\u0442\u043E\u0440\xBB", damage: 24, rate: 0.24, range: 450, cost: 16e3, level: 250, art: 5, pose: 1, description: "\u0422\u043E\u0447\u043D\u043E\u0435 \u043E\u0440\u0443\u0436\u0438\u0435 \u0432\u0435\u0442\u0435\u0440\u0430\u043D\u0430." },
-        { name: "\xAB\u0412\u0435\u043A\u0442\u043E\u0440: \u041E\u0431\u0441\u0438\u0434\u0438\u0430\u043D\xBB", damage: 24, rate: 0.24, range: 450, cost: 0, level: 250, art: 5, pose: 1, votes: 35, sku: "weapon_obsidian", tint: 155, description: "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u043E\u0435 \u043E\u0444\u043E\u0440\u043C\u043B\u0435\u043D\u0438\u0435. \u0425\u0430\u0440\u0430\u043A\u0442\u0435\u0440\u0438\u0441\u0442\u0438\u043A\u0438 \u043E\u0431\u044B\u0447\u043D\u043E\u0433\u043E \xAB\u0412\u0435\u043A\u0442\u043E\u0440\u0430\xBB." }
-      );
-      MAX_LEVEL = 500;
-      weaponUnlocked = (s, i) => !!WEAPONS[i] && playerLevel(s) >= (WEAPONS[i].level || 1);
-      expeditionRank = (s) => Math.floor((playerLevel(s) - 1) / 25);
-      ENERGY_MAX = 60;
-      raidProfile = (map) => map === 5 ? { hp: 3900, cooldown: 35e3, armor: 0.1, trait: "\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0440\u0438\u0442\u043C: \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 35 \u0441\u0435\u043A\u0443\u043D\u0434. \u0411\u0440\u043E\u043D\u044F \u0441\u043D\u0438\u0436\u0430\u0435\u0442 \u0443\u0440\u043E\u043D \u043D\u0430 10%." } : map === 6 ? { hp: 4700, cooldown: 45e3, armor: 0.2, trait: "\u0421\u0442\u0430\u043B\u044C\u043D\u0430\u044F \u043A\u043E\u0436\u0430: \u0432\u0445\u043E\u0434\u044F\u0449\u0438\u0439 \u0443\u0440\u043E\u043D \u0441\u043D\u0438\u0436\u0435\u043D \u043D\u0430 20%." } : map === 7 ? { hp: 6200, cooldown: 5e4, armor: 0.05, trait: "\u041E\u0441\u0430\u0434\u0430: \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0430\u0441 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 50 \u0441\u0435\u043A\u0443\u043D\u0434." } : { hp: 750 * (1 + map * 0.7), cooldown: 45e3, armor: 0, trait: "\u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434." };
-      ENERGY_INTERVAL = 5 * 60 * 1e3;
-      RAID_COST = 8;
-      BOSS_COST = 12;
-      freshSave = () => ({ version: 1, vehicle: "nomad", ownedVehicles: ["nomad"], armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: Array(MAPS.length).fill(0), energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
-      bossUnlocked = (s, i) => {
-        var _a2;
-        return unlocked(s, i) && (((_a2 = s.districtRuns) == null ? void 0 : _a2[i]) || 0) >= 3 && playerLevel(s) >= MAPS[i].level;
-      };
-      xpForLevel = (level) => level <= 20 ? Math.round(240 * (level - 1) + 90 * (level - 1) * (level - 2)) : xpForLevel(20) + 3660 * (level - 20) + 12 * (level - 20) * (level - 21);
-      playerLevel = (s) => {
-        let level = 1;
-        while (level < MAX_LEVEL && s.xp >= xpForLevel(level + 1)) level++;
-        return level;
-      };
-      levelProgress = (s) => {
-        const level = playerLevel(s);
-        if (level === MAX_LEVEL) return { level, current: 0, required: 0, percent: 100, max: true };
-        const start2 = xpForLevel(level), next = xpForLevel(level + 1);
-        return { level, current: Math.max(0, s.xp - start2), required: next - start2, percent: Math.min(100, (s.xp - start2) / (next - start2) * 100) };
-      };
-      raidDamage = (s) => Math.round(stats(s).damage * (WEAPONS[s.weapon].pellets || 1) / WEAPONS[s.weapon].rate * 5 * (WEAPONS[s.weapon].pellets ? 0.72 : 1));
-      stats = (s) => {
-        var _a2;
-        return { hp: Math.round((110 + s.armor * 8 + (((_a2 = ARMOR[s.armorTier || 0]) == null ? void 0 : _a2.hp) || 0)) * (1 + s.body * 0.04) * (1 + vehicleFor(s).hp / 100)), damage: WEAPONS[s.weapon].damage * (1 + s.weaponLevel * 0.08) * (1 + s.engine * 0.04) * (1 + vehicleFor(s).damage / 100), loot: (1 + s.trunk * 0.05) * (1 + vehicleFor(s).loot / 100), speed: 148 };
-      };
-      upgradeCost = (level) => Math.round(80 * Math.pow(1.42, level));
-      unlocked = (s, i) => i === 0 || s.cleared.includes(i - 1);
-      enemyStats = (map, wave, type, rank = 0) => ({ hp: (type === "boss" ? 230 : type === "tank" ? 86 : type === "runner" ? 28 : 40) * (1 + map * 0.32) * (1 + (wave - 1) * 0.15) * (1 + rank * 0.1), speed: type === "boss" ? 34 : type === "runner" ? 95 : type === "tank" ? 28 : 47, damage: (type === "boss" ? 23 : type === "tank" ? 17 : 10) * (1 + map * 0.16) * (1 + rank * 0.06) });
-      ARMOR = [
-        { name: "\u041E\u0434\u0435\u0436\u0434\u0430 \u0432\u044B\u0436\u0438\u0432\u0448\u0435\u0433\u043E", hp: 0, level: 1, bosses: 0, cost: 0, cloth: 0, cores: 0, icon: 3, description: "\u0422\u0432\u043E\u044F \u043F\u0440\u0438\u0432\u044B\u0447\u043D\u0430\u044F \u0444\u0443\u0442\u0431\u043E\u043B\u043A\u0430 \u0438 \u0431\u0440\u044E\u043A\u0438. \u0421\u0432\u043E\u0431\u043E\u0434\u0430 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F." },
-        { name: "\u0416\u0438\u043B\u0435\u0442 \xAB\u0411\u0430\u0440\u044C\u0435\u0440\xBB", hp: 28, level: 2, bosses: 1, cost: 320, cloth: 8, cores: 0, icon: 4, description: "\u041F\u043B\u0438\u0442\u044B, \u0440\u0435\u043C\u043D\u0438 \u0438 \u043F\u043E\u0434\u0441\u0443\u043C\u043A\u0438. \u041F\u0435\u0440\u0432\u0430\u044F \u0441\u0435\u0440\u044C\u0451\u0437\u043D\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430." },
-        { name: "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442 \xAB\u0414\u043E\u0437\u043E\u0440\xBB", hp: 60, level: 4, bosses: 3, cost: 780, cloth: 24, cores: 3, icon: 4, description: "\u041F\u043E\u043B\u0435\u0432\u0430\u044F \u043A\u0443\u0440\u0442\u043A\u0430, \u0443\u0441\u0438\u043B\u0435\u043D\u043D\u044B\u0439 \u0436\u0438\u043B\u0435\u0442 \u0438 \u0437\u0430\u0449\u0438\u0442\u0430 \u043F\u043B\u0435\u0447." },
-        { name: "\u0411\u0440\u043E\u043D\u044F \xAB\u0426\u0438\u0442\u0430\u0434\u0435\u043B\u044C\xBB", hp: 100, level: 6, bosses: 6, cost: 1600, cloth: 48, cores: 9, icon: 5, description: "\u0422\u044F\u0436\u0451\u043B\u044B\u0435 \u043F\u043B\u0430\u0441\u0442\u0438\u043D\u044B. \u041E\u0442\u043A\u0440\u044B\u0442\u043E\u0435 \u043B\u0438\u0446\u043E, \u0437\u043D\u0430\u043A\u043E\u043C\u044B\u0439 \u0441\u0438\u043B\u0443\u044D\u0442." }
-      ];
-      ARMOR.push(
-        { name: "\u0420\u0430\u0437\u0432\u0435\u0434\u0447\u0438\u043A \xAB\u0422\u0443\u043C\u0430\u043D\xBB", hp: 135, level: 25, bosses: 0, cost: 3e3, cloth: 70, cores: 12, icon: 4, pose: 2, description: "\u0423\u0441\u0438\u043B\u0435\u043D\u043D\u0430\u044F \u043F\u043E\u043B\u0435\u0432\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430 \u0440\u0430\u0437\u0432\u0435\u0434\u0447\u0438\u043A\u0430." },
-        { name: "\u042D\u043A\u0437\u043E\u043A\u0430\u0440\u043A\u0430\u0441 \xAB\u0411\u0430\u0441\u0442\u0438\u043E\u043D\xBB", hp: 180, level: 75, bosses: 0, cost: 6e3, cloth: 110, cores: 22, icon: 5, pose: 3, description: "\u0411\u0440\u043E\u043D\u0435\u043A\u0430\u0440\u043A\u0430\u0441 \u0434\u043B\u044F \u043E\u043F\u0430\u0441\u043D\u044B\u0445 \u0441\u0435\u043A\u0442\u043E\u0440\u043E\u0432." },
-        { name: "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442 \xAB\u0421\u0442\u0440\u0430\u0436\xBB", hp: 235, level: 200, bosses: 0, cost: 11e3, cloth: 180, cores: 40, icon: 5, pose: 3, description: "\u0417\u0430\u0449\u0438\u0442\u0430 \u043E\u043F\u044B\u0442\u043D\u043E\u0433\u043E \u043A\u043E\u043C\u0430\u043D\u0434\u0438\u0440\u0430." },
-        { name: "\u0414\u043E\u0441\u043F\u0435\u0445 \xAB\u041B\u0435\u0433\u0435\u043D\u0434\u0430\xBB", hp: 300, level: 400, bosses: 0, cost: 2e4, cloth: 260, cores: 65, icon: 5, pose: 3, description: "\u0412\u044B\u0441\u0448\u0438\u0439 \u043A\u043B\u0430\u0441\u0441 \u0437\u0430\u0449\u0438\u0442\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430." },
-        { name: "\xAB\u041B\u0435\u0433\u0435\u043D\u0434\u0430: \u042F\u043D\u0442\u0430\u0440\u044C\xBB", hp: 300, level: 400, bosses: 0, cost: 0, cloth: 0, cores: 0, icon: 5, pose: 3, votes: 45, sku: "armor_amber", description: "\u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u0430\u044F \u0431\u0440\u043E\u043D\u044F. \u0417\u0430\u0449\u0438\u0442\u0430 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \xAB\u041B\u0435\u0433\u0435\u043D\u0434\u044B\xBB." }
-      );
-      armorUnlocked = (s, i) => playerLevel(s) >= ARMOR[i].level || (s.bossKills || 0) >= ARMOR[i].bosses && ARMOR[i].bosses > 0 || i === 0;
-      EXPEDITION_LOOT = { scrapChance: 1 / 3, scrapMin: 4, scrapMax: 8, healthChance: 0.05, healthLimit: 2, heal: 28 };
     }
   });
 
@@ -634,8 +723,8 @@
  ${!raid2 ? `<label class="raid-select" for="raid-map">\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430</label><select id="raid-map" class="boss-select">${MAPS.map((v, i) => `<option value="${i}" ${map === i ? "selected" : ""}>${v.boss}${rare ? " \xB7 \u0443\u0440. " + RARE_RAIDS[i].level : ""}</option>`).join("")}</select>` : ""}
  <article class="boss-encounter ${rare ? "is-rare" : ""}">
  <div class="boss-stage" style="--boss-scene:url('assets/district-${map}.png')"><span class="boss-rarity">${rare ? "\u0420\u0415\u0414\u041A\u0418\u0419" : "\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410"} \xB7 ${escape(m.name)}</span><img class="boss-character" src="assets/boss-${BOSS_ART[map]}.png" alt="${escape(m.boss)} \u2014 ${roles[map]}" width="512" height="512" decoding="async"><span class="boss-stage-caption">${roles[map]}</span></div>
- <div class="boss-brief"><span class="eyebrow">${raid2 ? "\u041E\u0411\u0429\u0418\u0419 \u0420\u0415\u0419\u0414" : "\u0414\u041E\u0421\u042C\u0415 \u041F\u0420\u041E\u0422\u0418\u0412\u041D\u0418\u041A\u0410"}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt(hp)}</b><span>/ ${fmt(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt(hp)} \u0438\u0437 ${fmt(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div>
- ${raid2 ? `<p class="raid-total">\u041E\u0411\u0429\u0418\u0419 \u0423\u0420\u041E\u041D: <b>${fmt((_e = raid2.totalDamage) != null ? _e : maxHp - hp)}</b> \xB7 \u0422\u0412\u041E\u0419: <b>${fmt(mine == null ? void 0 : mine.damage)}</b></p><p class="page-intro">${raid2.blockedBy ? "\u0423 \u0442\u0435\u0431\u044F \u0443\u0436\u0435 \u0435\u0441\u0442\u044C \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0431\u043E\u0441\u0441. \u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u0435\u0433\u043E, \u0447\u0442\u043E\u0431\u044B \u0432\u0441\u0442\u0443\u043F\u0438\u0442\u044C \u0432 \u044D\u0442\u043E\u0442 \u0440\u0435\u0439\u0434." : hp > 0 ? "\u0410\u0442\u0430\u043A\u0438 \u0432\u0441\u0435\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u0443\u043C\u0435\u043D\u044C\u0448\u0430\u044E\u0442 \u043E\u0434\u043D\u043E \u043E\u0431\u0449\u0435\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435." : "\u041E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430! \u0417\u0430\u0431\u0435\u0440\u0438 \u0441\u0432\u043E\u044E \u043D\u0430\u0433\u0440\u0430\u0434\u0443."}</p>` : ""}<div class="boss-facts"><div><span>\u0422\u0432\u043E\u044F \u0430\u0442\u0430\u043A\u0430</span><b>${fmt(hit)}</b></div><div><span>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438</span><b>${party.length} / ${capacity}</b></div><div><span>\u041F\u043E\u0432\u0442\u043E\u0440</span><b>${raidProfile(map).cooldown / 1e3} \u0441\u0435\u043A</b></div></div>
+ <div class="boss-brief"><span class="eyebrow">${raid2 ? "\u041E\u0411\u0429\u0418\u0419 \u0420\u0415\u0419\u0414" : "\u0414\u041E\u0421\u042C\u0415 \u041F\u0420\u041E\u0422\u0418\u0412\u041D\u0418\u041A\u0410"}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt2(hp)}</b><span>/ ${fmt2(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt2(hp)} \u0438\u0437 ${fmt2(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div>
+ ${raid2 ? `<p class="raid-total">\u041E\u0411\u0429\u0418\u0419 \u0423\u0420\u041E\u041D: <b>${fmt2((_e = raid2.totalDamage) != null ? _e : maxHp - hp)}</b> \xB7 \u0422\u0412\u041E\u0419: <b>${fmt2(mine == null ? void 0 : mine.damage)}</b></p><p class="page-intro">${raid2.blockedBy ? "\u0423 \u0442\u0435\u0431\u044F \u0443\u0436\u0435 \u0435\u0441\u0442\u044C \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0431\u043E\u0441\u0441. \u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u0435\u0433\u043E, \u0447\u0442\u043E\u0431\u044B \u0432\u0441\u0442\u0443\u043F\u0438\u0442\u044C \u0432 \u044D\u0442\u043E\u0442 \u0440\u0435\u0439\u0434." : hp > 0 ? "\u0410\u0442\u0430\u043A\u0438 \u0432\u0441\u0435\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u0443\u043C\u0435\u043D\u044C\u0448\u0430\u044E\u0442 \u043E\u0434\u043D\u043E \u043E\u0431\u0449\u0435\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435." : "\u041E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430! \u0417\u0430\u0431\u0435\u0440\u0438 \u0441\u0432\u043E\u044E \u043D\u0430\u0433\u0440\u0430\u0434\u0443."}</p>` : ""}<div class="boss-facts"><div><span>\u0422\u0432\u043E\u044F \u0430\u0442\u0430\u043A\u0430</span><b>${fmt2(hit)}</b></div><div><span>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438</span><b>${party.length} / ${capacity}</b></div><div><span>\u041F\u043E\u0432\u0442\u043E\u0440</span><b>${raidProfile(map).cooldown / 1e3} \u0441\u0435\u043A</b></div></div>
  ${!raid2 ? `<p class="boss-access">\u0423\u0440\u043E\u0432\u0435\u043D\u044C ${rare ? profile.level : m.level} \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438${rare ? " \xB7 \u043F\u043E\u0431\u0435\u0434\u0430 \u043D\u0430\u0434 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \u0432\u0435\u0440\u0441\u0438\u0435\u0439" : ""}<br><span>${allowed ? "\u0414\u043E\u0441\u0442\u0443\u043F \u043E\u0442\u043A\u0440\u044B\u0442" : "\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u0435\u0449\u0451 \u043D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u044B"}</span></p><button class="primary boss-action" id="create-raid" ${!allowed ? "disabled" : ""}>\u0410\u041A\u0422\u0418\u0412\u0418\u0420\u041E\u0412\u0410\u0422\u042C \u041E\u0411\u0429\u0415\u0413\u041E \u0411\u041E\u0421\u0421\u0410</button>` : `<button class="primary boss-action" id="raid-attack">\u0410\u0422\u0410\u041A\u041E\u0412\u0410\u0422\u042C</button>${!raid2.joined && hp > 0 ? `<button class="secondary boss-action" id="join-raid" ${raid2.blockedBy || !allowed || party.length >= capacity ? "disabled" : ""}>${!allowed ? "\u041D\u0423\u0416\u0415\u041D \u041F\u0420\u041E\u0413\u0420\u0415\u0421\u0421" : party.length >= capacity ? "\u041E\u0422\u0420\u042F\u0414 \u0417\u0410\u041F\u041E\u041B\u041D\u0415\u041D" : "\u041F\u0420\u0418\u0421\u041E\u0415\u0414\u0418\u041D\u0418\u0422\u042C\u0421\u042F"}</button>` : ""}`}
  </div></article>
  <section class="raid-loot"><div class="section-title"><h3>${raid2 ? "\u0422\u0432\u043E\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B" : rare ? "\u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434 \u0440\u0435\u0439\u0434\u0430" : "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443"}</h3></div><div class="raid-rewards">${rewards(raid2 ? reward : rare ? profile.pool : reward)}</div>${rare ? "<p>\u0424\u043E\u043D\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u043D\u0430\u043D\u0435\u0441\u0451\u043D\u043D\u043E\u043C\u0443 \u0443\u0440\u043E\u043D\u0443. \u0411\u0435\u0437 \u0443\u0447\u0430\u0441\u0442\u0438\u044F \u0432 \u0430\u0442\u0430\u043A\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u044B \u043D\u0435\u0442.</p>" : ""}${raid2 && hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423</button>' : ""}</section>
@@ -659,7 +748,7 @@
       const paint = () => {
         const page2 = Math.min(Number(root.dataset.partyPage), Math.max(0, pages - 1));
         root.dataset.partyPage = page2;
-        root.querySelector(".party-list").innerHTML = sorted.slice(page2 * 20, page2 * 20 + 20).map((p) => `<div><span>${escape(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</span><b>${fmt(p.damage)} \u0443\u0440\u043E\u043D\u0430</b>${p.claimed ? "<small>\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</small>" : ""}</div>`).join("");
+        root.querySelector(".party-list").innerHTML = sorted.slice(page2 * 20, page2 * 20 + 20).map((p) => `<div><span>${escape(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</span><b>${fmt2(p.damage)} \u0443\u0440\u043E\u043D\u0430</b>${p.claimed ? "<small>\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</small>" : ""}</div>`).join("");
         const nav = root.querySelector(".party-pagination");
         nav.innerHTML = pages > 1 ? `<button class="secondary" ${page2 === 0 ? "disabled" : ""}>\u2190</button><span>${page2 + 1} / ${pages}</span><button class="secondary" ${page2 === pages - 1 ? "disabled" : ""}>\u2192</button>` : "";
         const buttons = nav.querySelectorAll("button");
@@ -680,16 +769,16 @@
       tickRaid(root, raid2, save2, offset);
     }
   }
-  var BOSS_ART, roles, fmt, escape, rewards;
+  var BOSS_ART, roles, fmt2, escape, rewards;
   var init_raid_view = __esm({
     "raid-view.js"() {
       init_balance();
       init_rare_raids();
       BOSS_ART = ["watcher", "arsonist", "crane", "doctor", "root", "driver", "smelter", "admiral"];
       roles = ["\u0425\u0440\u0430\u043D\u0438\u0442\u0435\u043B\u044C \u043F\u0443\u0441\u0442\u044B\u0445 \u0434\u043E\u043C\u043E\u0432", "\u041E\u0433\u043E\u043D\u044C \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u0439 \u0437\u0430\u043F\u0440\u0430\u0432\u043A\u0438", "\u0425\u043E\u0437\u044F\u0438\u043D \u0433\u0440\u0443\u0437\u043E\u0432\u043E\u0433\u043E \u0434\u0432\u043E\u0440\u0430", "\u041A\u0430\u0440\u0430\u043D\u0442\u0438\u043D \u043D\u0435 \u043E\u043A\u043E\u043D\u0447\u0435\u043D", "\u0421\u0435\u0440\u0434\u0446\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0433\u043E \u043B\u0435\u0441\u0430", "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0440\u0435\u0439\u0441", "\u0416\u0430\u0440 \u043C\u0451\u0440\u0442\u0432\u044B\u0445 \u043F\u0435\u0447\u0435\u0439", "\u041A\u043E\u043C\u0430\u043D\u0434\u0438\u0440 \u0437\u0430\u0442\u043E\u043D\u0443\u0432\u0448\u0435\u0433\u043E \u0444\u043B\u043E\u0442\u0430"];
-      fmt = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
+      fmt2 = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
       escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-      rewards = (r) => Object.entries({ scrap: "\u0414\u0435\u0442\u0430\u043B\u0438", xp: "\u041E\u043F\u044B\u0442", cores: "\u042F\u0434\u0440\u0430", cloth: "\u0422\u043A\u0430\u043D\u044C" }).map(([k, name]) => "<div><strong>" + fmt(r[k]) + "</strong><span>" + name + "</span></div>").join("");
+      rewards = (r) => Object.entries({ scrap: "\u0414\u0435\u0442\u0430\u043B\u0438", xp: "\u041E\u043F\u044B\u0442", cores: "\u042F\u0434\u0440\u0430", cloth: "\u0422\u043A\u0430\u043D\u044C" }).map(([k, name]) => "<div><strong>" + fmt2(r[k]) + "</strong><span>" + name + "</span></div>").join("");
     }
   });
 
@@ -963,8 +1052,8 @@
   function friendsUI(root, api2, toast2, openRaid) {
     async function render() {
       var _a2;
-      if (pending.has(root)) return;
-      pending.add(root);
+      if (pending2.has(root)) return;
+      pending2.add(root);
       try {
         let data = await api2("friends");
         if (data.account === "vk" && canSyncVKFriendsSilently() && !autoSyncAttempted) {
@@ -1014,12 +1103,12 @@
         root.innerHTML = '<div class="settings-card"><p>' + esc3(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
         root.querySelector("button").onclick = render;
       } finally {
-        pending.delete(root);
+        pending2.delete(root);
       }
     }
     render();
   }
-  var esc3, portrait, autoSyncAttempted, pending;
+  var esc3, portrait, autoSyncAttempted, pending2;
   var init_friends_ui = __esm({
     "friends-ui.js"() {
       init_vk_profile();
@@ -1029,18 +1118,18 @@
       esc3 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
       portrait = (p) => '<span class="friend-avatar avatar-' + (Number(p.avatar) || 0) + '" aria-hidden="true">' + (vkPhoto(p.photo) ? '<img src="' + esc3(vkPhoto(p.photo)) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : AVATARS[p.avatar] || AVATARS[0]) + "</span>";
       autoSyncAttempted = false;
-      pending = /* @__PURE__ */ new WeakSet();
+      pending2 = /* @__PURE__ */ new WeakSet();
     }
   });
 
   // leaderboard-ui.js
   function leaderboardUI(root, api2, toast2) {
     async function render() {
-      if (pending2.has(root)) return;
-      pending2.add(root);
+      if (pending3.has(root)) return;
+      pending3.add(root);
       try {
         const d = await api2("leaderboard");
-        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u041E\u041F 100 \xB7 \u0412\u042B\u0416\u0418\u0412\u0428\u0418\u0415</span><h2>\u0413\u0435\u0440\u043E\u0438 \u0433\u043E\u0440\u043E\u0434\u0430</h2><p>\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E \u043E\u043F\u044B\u0442\u0443. \u041F\u0440\u0438 \u0440\u0430\u0432\u0435\u043D\u0441\u0442\u0432\u0435 \u2014 \u043F\u043E\u0431\u0435\u0434\u044B \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u0430\u043C\u0438 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0418\u0433\u0440\u0430\u0439 \u0438 \u0440\u0430\u0437\u0432\u0438\u0432\u0430\u0439\u0441\u044F: \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0435 \u043F\u043E\u0441\u043B\u0435 \u0432\u0445\u043E\u0434\u0430 \u0447\u0435\u0440\u0435\u0437 VK. \u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043A\u0430\u0436\u0434\u044B\u0435 4 \u0441\u0435\u043A\u0443\u043D\u0434\u044B.</p><div class="leader-summary"><strong>\u0422\u0432\u043E\u0451 \u043C\u0435\u0441\u0442\u043E: ${d.meRank ? "#" + d.meRank : "\u2014"}</strong><span>\u0418\u0433\u0440\u043E\u043A\u043E\u0432 VK: ${fmt2(d.total)} \xB7 \u0412 \u0441\u0435\u0442\u0438: ${fmt2(d.online)}</span><button class="secondary" id="top-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div></div><div class="social-list leaderboard-list">${d.players.map((p) => `<article class="friend-person rank-${p.rank <= 3 ? p.rank : "other"} ${p.me ? "is-me" : ""}"><strong class="rank-number">#${p.rank}</strong>${portrait(p)}<span class="friend-person-info"><b>${esc4(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</b><small>\u0423\u0440. ${p.level} \xB7 ${fmt2(p.xp)} XP \xB7 \u0411\u043E\u0441\u0441\u044B: ${fmt2(p.bossKills)}</small></span>${p.me ? '<span class="rank-status">\u0422\u0412\u041E\u0419 \u041F\u0420\u041E\u0424\u0418\u041B\u042C</span>' : p.friend ? '<span class="rank-status">\u0412 \u0414\u0420\u0423\u0417\u042C\u042F\u0425</span>' : `<button class="secondary" data-add="${p.code}" ${p.requested ? "disabled" : ""}>${p.requested ? "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410" : "\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F"}</button>`}</article>`).join("") || '<p class="page-intro">\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D\u043D\u044B\u0445 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 VK \u043F\u043E\u043A\u0430 \u043D\u0435\u0442. \u0412\u043E\u0439\u0434\u0438 \u0447\u0435\u0440\u0435\u0437 VK, \u0447\u0442\u043E\u0431\u044B \u0443\u0447\u0430\u0441\u0442\u0432\u043E\u0432\u0430\u0442\u044C \u0432 \u0440\u0435\u0439\u0442\u0438\u043D\u0433\u0435.</p>'}</div>`;
+        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u041E\u041F 100 \xB7 \u0412\u042B\u0416\u0418\u0412\u0428\u0418\u0415</span><h2>\u0413\u0435\u0440\u043E\u0438 \u0433\u043E\u0440\u043E\u0434\u0430</h2><p>\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E \u043E\u043F\u044B\u0442\u0443. \u041F\u0440\u0438 \u0440\u0430\u0432\u0435\u043D\u0441\u0442\u0432\u0435 \u2014 \u043F\u043E\u0431\u0435\u0434\u044B \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u0430\u043C\u0438 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0418\u0433\u0440\u0430\u0439 \u0438 \u0440\u0430\u0437\u0432\u0438\u0432\u0430\u0439\u0441\u044F: \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0435 \u043F\u043E\u0441\u043B\u0435 \u0432\u0445\u043E\u0434\u0430 \u0447\u0435\u0440\u0435\u0437 VK. \u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043A\u0430\u0436\u0434\u044B\u0435 4 \u0441\u0435\u043A\u0443\u043D\u0434\u044B.</p><div class="leader-summary"><strong>\u0422\u0432\u043E\u0451 \u043C\u0435\u0441\u0442\u043E: ${d.meRank ? "#" + d.meRank : "\u2014"}</strong><span>\u0418\u0433\u0440\u043E\u043A\u043E\u0432 VK: ${fmt3(d.total)} \xB7 \u0412 \u0441\u0435\u0442\u0438: ${fmt3(d.online)}</span><button class="secondary" id="top-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div></div><div class="social-list leaderboard-list">${d.players.map((p) => `<article class="friend-person rank-${p.rank <= 3 ? p.rank : "other"} ${p.me ? "is-me" : ""}"><strong class="rank-number">#${p.rank}</strong>${portrait(p)}<span class="friend-person-info"><b>${esc4(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</b><small>\u0423\u0440. ${p.level} \xB7 ${fmt3(p.xp)} XP \xB7 \u0411\u043E\u0441\u0441\u044B: ${fmt3(p.bossKills)}</small></span>${p.me ? '<span class="rank-status">\u0422\u0412\u041E\u0419 \u041F\u0420\u041E\u0424\u0418\u041B\u042C</span>' : p.friend ? '<span class="rank-status">\u0412 \u0414\u0420\u0423\u0417\u042C\u042F\u0425</span>' : `<button class="secondary" data-add="${p.code}" ${p.requested ? "disabled" : ""}>${p.requested ? "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410" : "\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F"}</button>`}</article>`).join("") || '<p class="page-intro">\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D\u043D\u044B\u0445 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 VK \u043F\u043E\u043A\u0430 \u043D\u0435\u0442. \u0412\u043E\u0439\u0434\u0438 \u0447\u0435\u0440\u0435\u0437 VK, \u0447\u0442\u043E\u0431\u044B \u0443\u0447\u0430\u0441\u0442\u0432\u043E\u0432\u0430\u0442\u044C \u0432 \u0440\u0435\u0439\u0442\u0438\u043D\u0433\u0435.</p>'}</div>`;
         root.querySelector("#top-refresh").onclick = render;
         root.querySelectorAll("[data-add]").forEach((b) => b.onclick = async () => {
           b.disabled = true;
@@ -1057,18 +1146,18 @@
         root.innerHTML = '<div class="settings-card"><p>' + esc4(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
         root.querySelector("button").onclick = render;
       } finally {
-        pending2.delete(root);
+        pending3.delete(root);
       }
     }
     render();
   }
-  var esc4, fmt2, pending2;
+  var esc4, fmt3, pending3;
   var init_leaderboard_ui = __esm({
     "leaderboard-ui.js"() {
       init_friends_ui();
       esc4 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-      fmt2 = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
-      pending2 = /* @__PURE__ */ new WeakSet();
+      fmt3 = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
+      pending3 = /* @__PURE__ */ new WeakSet();
     }
   });
 
@@ -1660,7 +1749,7 @@
   function energyHud() {
     restoreEnergy(save, Date.now() + serverOffset);
     $("#energy").textContent = save.energy;
-    if (page === "map") $("#deploy").disabled = !networkReady || !unlocked(save, selected) || save.energy < RAID_COST;
+    if (page === "map") $("#deploy").disabled = !networkReady || !unlocked(save, selected) || save.energy < sortiePlan(save, selected, sortieMode).cost;
     let left = ENERGY_INTERVAL - (Date.now() + serverOffset - save.energyAt);
     $("#energy-clock").textContent = save.energy >= ENERGY_MAX ? "\u0417\u0410\u041F\u0410\u0421 \u041F\u041E\u041B\u041E\u041D" : "+1 \u0447\u0435\u0440\u0435\u0437 " + Math.max(0, Math.ceil(left / 6e4)) + " \u043C\u0438\u043D";
   }
@@ -1703,16 +1792,48 @@
   function selectMap(i) {
     selected = i;
     let m = MAPS[i];
+    const plan = briefing();
+    missionModes();
     $("#map-name").textContent = m.name;
     $("#map-desc").textContent = m.desc;
     $("#mission").textContent = m.goal;
-    $("#map-threat").textContent = `\u0423\u0413\u0420\u041E\u0417\u0410 ${["I", "II", "III", "IV", "V"][i]}`;
-    $("#deploy").disabled = !networkReady || !unlocked(save, i) || save.energy < RAID_COST;
-    $("#deploy-hint").textContent = !unlocked(save, i) ? "\u041F\u041E\u0411\u0415\u0414\u0418 \u0411\u041E\u0421\u0421\u0410 \u041F\u0420\u0415\u0414\u042B\u0414\u0423\u0429\u0415\u0413\u041E \u0420\u0410\u0419\u041E\u041D\u0410" : save.energy < RAID_COST ? "\u041D\u0415\u0414\u041E\u0421\u0422\u0410\u0422\u041E\u0427\u041D\u041E \u042D\u041D\u0415\u0420\u0413\u0418\u0418 \xB7 +1 \u041A\u0410\u0416\u0414\u042B\u0415 5 \u041C\u0418\u041D\u0423\u0422" : `\u0417\u0410\u0427\u0418\u0421\u0422\u041E\u041A: ${save.districtRuns[i]} / 3 \u0414\u041E \u0411\u041E\u0421\u0421\u0410`;
+    $("#map-threat").textContent = `\u0423\u0413\u0420\u041E\u0417\u0410 ${["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][i]}`;
+    $("#deploy").disabled = !networkReady || !unlocked(save, i) || save.energy < plan.cost;
+    $("#deploy").innerHTML = plan.name.toUpperCase() + " \xB7 " + plan.cost + " \u03DF <span>\u2197</span>";
+    $("#deploy-hint").textContent = !unlocked(save, i) ? "\u041F\u041E\u0411\u0415\u0414\u0418 \u0411\u041E\u0421\u0421\u0410 \u041F\u0420\u0415\u0414\u042B\u0414\u0423\u0429\u0415\u0413\u041E \u0420\u0410\u0419\u041E\u041D\u0410" : save.energy < plan.cost ? "\u041D\u0415\u0414\u041E\u0421\u0422\u0410\u0422\u041E\u0427\u041D\u041E \u042D\u041D\u0415\u0420\u0413\u0418\u0418 \xB7 +1 \u041A\u0410\u0416\u0414\u042B\u0415 5 \u041C\u0418\u041D\u0423\u0422" : `\u0417\u0410\u0427\u0418\u0421\u0422\u041E\u041A: ${save.districtRuns[i]} / 3 \u0414\u041E \u0411\u041E\u0421\u0421\u0410`;
     $("#boss-open").disabled = !bossUnlocked(save, i);
     $("#boss-progress").textContent = bossUnlocked(save, i) ? "\u0411\u041E\u0421\u0421 \u0414\u041E\u0421\u0422\u0423\u041F\u0415\u041D" : `\u041D\u0423\u0416\u041D\u041E 3 \u0417\u0410\u0427\u0418\u0421\u0422\u041A\u0418 \u0418 \u0423\u0420\u041E\u0412\u0415\u041D\u042C ${MAPS[i].level}`;
     scene($("#scene"), i);
     document.querySelectorAll(".map-card").forEach((el, j) => el.classList.toggle("selected", i === j));
+  }
+  function missionModes() {
+    let root = $("#mission-modes");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "mission-modes";
+      root.className = "mission-modes";
+      root.setAttribute("role", "group");
+      root.setAttribute("aria-label", "\u0420\u0435\u0436\u0438\u043C \u0432\u044B\u0445\u043E\u0434\u0430");
+      $("#deploy").before(root);
+    }
+    root.innerHTML = SORTIE_MODES.map((m) => '<button class="' + (m.id === sortieMode ? "selected" : "") + '" data-sortie="' + m.id + '" aria-pressed="' + (m.id === sortieMode) + '" ' + (playerLevel(save) < m.level ? "disabled" : "") + ">" + m.name + "<small>" + (playerLevel(save) < m.level ? "\u0423\u0440. " + m.level : m.cost + " \u044D\u043D\u0435\u0440\u0433\u0438\u0438") + "</small></button>").join("");
+    root.querySelectorAll("[data-sortie]").forEach((b) => b.onclick = () => {
+      sortieMode = b.dataset.sortie;
+      selectMap(selected);
+    });
+  }
+  function briefing() {
+    let root = $("#operation-briefing");
+    if (!root) {
+      root = document.createElement("section");
+      root.id = "operation-briefing";
+      root.className = "operation-briefing";
+      $(".hero").after(root);
+    }
+    return renderBriefing(root, save, selected, sortieMode, (value) => {
+      sortieMode = value;
+      selectMap(selected);
+    });
   }
   function mapCards() {
     $("#maps").innerHTML = MAPS.map((m, i) => `<button class="map-card ${i === selected ? "selected" : ""}" data-map="${i}" aria-label="${m.name}, ${unlocked(save, i) ? "\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E" : "\u0437\u0430\u043A\u0440\u044B\u0442\u043E"}"><canvas width="260" height="140"></canvas><span class="number">0${i + 1}</span><div class="map-info"><b>${m.name}</b><small>\u0417\u0410\u0427\u0418\u0421\u0422\u041A\u0418 ${save.districtRuns[i]} / 3<span class="status">${save.cleared.includes(i) ? "\u2713" : unlocked(save, i) ? "\u2192" : "\u0417\u0410\u041A\u0420\u042B\u0422\u041E"}</span></small></div></button>`).join("");
@@ -1770,11 +1891,12 @@
     }
     if (page === "garage") garageUI($("#garage-page"), save, playerLevel(save), [upgrade("engine", "\u0413\u0435\u043D\u0435\u0440\u0430\u0442\u043E\u0440", `+4% \u0443\u0440\u043E\u043D\u0430 \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.engine * 4}%.`), upgrade("body", "\u0411\u0440\u043E\u043D\u0435\u043A\u043E\u0440\u043F\u0443\u0441", `+4% \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.body * 4}%.`), upgrade("trunk", "\u0413\u0440\u0443\u0437\u043E\u0432\u043E\u0439 \u043E\u0442\u0441\u0435\u043A", `+5% \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u0437\u0430 \u0432\u044B\u043B\u0430\u0437\u043A\u0443 \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.trunk * 5}%.`)].join(""), (id) => action(() => api("vehicle", { vehicle: id })), renderPage);
     if (page === "daily") {
-      $("#daily-page").innerHTML = adCard() + `<p class="page-intro">\u041E\u0434\u043D\u0430 \u043F\u043E\u043D\u044F\u0442\u043D\u0430\u044F \u0446\u0435\u043B\u044C \u043D\u0430 \u0434\u0435\u043D\u044C. \u041A\u043E\u043D\u0442\u0440\u0430\u043A\u0442 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u0432 00:00 \u043F\u043E \u041C\u043E\u0441\u043A\u0432\u0435. \u041F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043D\u044B\u0439 \u0434\u0435\u043D\u044C \u043D\u0435 \u043E\u0442\u043D\u0438\u043C\u0430\u0435\u0442 \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435.</p><div class="item-grid">${item("\u25A4", "\u0413\u043E\u0440\u043E\u0434 \u0434\u043E\u043B\u0436\u0435\u043D \u0441\u0442\u0430\u0442\u044C \u0442\u0438\u0448\u0435", `\u0421\u0415\u0413\u041E\u0414\u041D\u042F \xB7 ${Math.min(save.daily.kills, 20)} / 20`, `\u0423\u0441\u0442\u0440\u0430\u043D\u0438 20 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445 \u0432 \u043B\u044E\u0431\u044B\u0445 \u0440\u0430\u0439\u043E\u043D\u0430\u0445. \u041D\u0430\u0433\u0440\u0430\u0434\u0430: 120 \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u0438 1 \u044F\u0434\u0440\u043E.`, `<button class="primary" id="claim" ${save.daily.claimed || save.daily.kills < 20 ? "disabled" : ""}>${save.daily.claimed ? "\u041D\u0410\u0413\u0420\u0410\u0414\u0410 \u041F\u041E\u041B\u0423\u0427\u0415\u041D\u0410" : save.daily.kills < 20 ? "\u041A\u041E\u041D\u0422\u0420\u0410\u041A\u0422 \u0412 \u041F\u0420\u041E\u0426\u0415\u0421\u0421\u0415" : "\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423"}</button>`)}${item("\u25C7", "\u0422\u0440\u043E\u0444\u0435\u0438 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0439 \u0437\u043E\u043D\u044B", `${save.cores} \u042F\u0414\u0415\u0420`, `\u042F\u0434\u0440\u043E \u0432\u044B\u0434\u0430\u0451\u0442\u0441\u044F \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443 \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u043E\u043C. \u041F\u043E\u0442\u0440\u0430\u0442\u044C \u044F\u0434\u0440\u0430 \u043D\u0430 \u0441\u043E\u0437\u0434\u0430\u043D\u0438\u0435 \u0440\u0435\u0434\u043A\u043E\u0439 \u0431\u0440\u043E\u043D\u0438.`, "")}</div>`;
+      $("#daily-page").innerHTML = adCard() + `<p class="page-intro">\u0412\u044B\u0431\u0438\u0440\u0430\u0439 \u0437\u0430\u0434\u0430\u0447\u0438 \u0438 \u043F\u043B\u0430\u043D\u0438\u0440\u0443\u0439 \u0432\u044B\u043B\u0430\u0437\u043A\u0438. \u041A\u043E\u043D\u0442\u0440\u0430\u043A\u0442 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u0432 00:00 \u043F\u043E \u041C\u043E\u0441\u043A\u0432\u0435. \u041F\u0440\u043E\u043F\u0443\u0449\u0435\u043D\u043D\u044B\u0439 \u0434\u0435\u043D\u044C \u043D\u0435 \u043E\u0442\u043D\u0438\u043C\u0430\u0435\u0442 \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435.</p><div class="item-grid">${item("\u25A4", "\u0413\u043E\u0440\u043E\u0434 \u0434\u043E\u043B\u0436\u0435\u043D \u0441\u0442\u0430\u0442\u044C \u0442\u0438\u0448\u0435", `\u0421\u0415\u0413\u041E\u0414\u041D\u042F \xB7 ${Math.min(save.daily.kills, 20)} / 20`, `\u0423\u0441\u0442\u0440\u0430\u043D\u0438 20 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445 \u0432 \u043B\u044E\u0431\u044B\u0445 \u0440\u0430\u0439\u043E\u043D\u0430\u0445. \u041D\u0430\u0433\u0440\u0430\u0434\u0430: 120 \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \u0438 1 \u044F\u0434\u0440\u043E.`, `<button class="primary" id="claim" ${save.daily.claimed || save.daily.kills < 20 ? "disabled" : ""}>${save.daily.claimed ? "\u041D\u0410\u0413\u0420\u0410\u0414\u0410 \u041F\u041E\u041B\u0423\u0427\u0415\u041D\u0410" : save.daily.kills < 20 ? "\u041A\u041E\u041D\u0422\u0420\u0410\u041A\u0422 \u0412 \u041F\u0420\u041E\u0426\u0415\u0421\u0421\u0415" : "\u0417\u0410\u0411\u0420\u0410\u0422\u042C \u041D\u0410\u0413\u0420\u0410\u0414\u0423"}</button>`)}${item("\u25C7", "\u0422\u0440\u043E\u0444\u0435\u0438 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0439 \u0437\u043E\u043D\u044B", `${save.cores} \u042F\u0414\u0415\u0420`, `\u042F\u0434\u0440\u043E \u0432\u044B\u0434\u0430\u0451\u0442\u0441\u044F \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443 \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u043E\u043C. \u041F\u043E\u0442\u0440\u0430\u0442\u044C \u044F\u0434\u0440\u0430 \u043D\u0430 \u0441\u043E\u0437\u0434\u0430\u043D\u0438\u0435 \u0440\u0435\u0434\u043A\u043E\u0439 \u0431\u0440\u043E\u043D\u0438.`, "")}</div><div id="operation-contracts"></div>`;
+      renderOperations($("#operation-contracts"), api, toast, refresh);
     }
     if (page === "raids") renderRaids();
     if (page === "settings") renderSettings();
-    if (page === "guide") $("#guide-page").innerHTML = `<div class="journal"><h3>\u0422\u0432\u043E\u0439 \u043F\u0435\u0440\u0432\u044B\u0439 \u0432\u044B\u0445\u043E\u0434</h3><p>\u0412\u044B\u0431\u0435\u0440\u0438 \u0440\u0430\u0439\u043E\u043D \u0438 \u043D\u0430\u0447\u043D\u0438 \u0432\u044B\u043B\u0430\u0437\u043A\u0443. \u041F\u0435\u0440\u0435\u043C\u0435\u0449\u0430\u0439\u0441\u044F WASD \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0430\u043C\u0438; \u043D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439 \u043B\u0435\u0432\u044B\u0439 \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A. \u041E\u0440\u0443\u0436\u0438\u0435 \u0441\u0430\u043C\u043E \u0441\u0442\u0440\u0435\u043B\u044F\u0435\u0442 \u0432 \u0431\u043B\u0438\u0436\u0430\u0439\u0448\u0435\u0433\u043E \u0432\u0440\u0430\u0433\u0430 \u0432 \u0440\u0430\u0434\u0438\u0443\u0441\u0435. \u0423\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0439 Shift, \u043F\u0440\u043E\u0431\u0435\u043B \u0438\u043B\u0438 \u043A\u043D\u043E\u043F\u043A\u0443 \xAB\u0411\u0435\u0436\u0430\u0442\u044C\xBB: \u0441\u043A\u043E\u0440\u043E\u0441\u0442\u044C \u0432\u044B\u0448\u0435 \u043D\u0430 65%, \u0440\u0430\u0441\u0445\u043E\u0434\u0443\u0435\u0442\u0441\u044F \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u044C. \u0411\u0435\u0433 \u043D\u0435 \u0434\u0430\u0451\u0442 \u043D\u0435\u0443\u044F\u0437\u0432\u0438\u043C\u043E\u0441\u0442\u044C. \u041F\u043E\u0441\u043B\u0435 \u0438\u0441\u0442\u043E\u0449\u0435\u043D\u0438\u044F \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438 30%.</p><h3>\u041D\u0438\u043A\u043E\u0433\u0434\u0430 \u043D\u0435 \u0441\u0442\u043E\u0439 \u043D\u0430 \u043C\u0435\u0441\u0442\u0435</h3><p>\u0425\u043E\u0434\u043E\u043A\u0438 \u043C\u0435\u0434\u043B\u0435\u043D\u043D\u0435\u0435, \u0431\u0435\u0433\u0443\u043D\u044B \u0431\u044B\u0441\u0442\u0440\u0435\u0435, \u0433\u0440\u043E\u043C\u0438\u043B\u044B \u0436\u0438\u0432\u0443\u0447\u0435\u0435. \u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0430 \u0441\u0442\u043E\u0438\u0442 8 \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \u0438 \u0437\u0430\u0432\u0435\u0440\u0448\u0430\u0435\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0442\u0440\u0451\u0445 \u0432\u043E\u043B\u043D. \u041F\u043E\u0441\u043B\u0435 \u0432\u043E\u043B\u043D\u044B \u043E\u0442\u0440\u044F\u0434 \u043F\u0440\u043E\u0434\u0432\u0438\u0433\u0430\u0435\u0442\u0441\u044F \u043D\u0430 \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0443\u0447\u0430\u0441\u0442\u043E\u043A \u0443\u043B\u0438\u0446\u044B. \u0411\u043E\u0441\u0441 \u0441\u0430\u043C \u043D\u0435 \u043F\u043E\u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F. \u0410\u043F\u0442\u0435\u0447\u043A\u0438 \u0438 \u0434\u0435\u0442\u0430\u043B\u0438 \u043D\u0443\u0436\u043D\u043E \u043F\u043E\u0434\u0431\u0438\u0440\u0430\u0442\u044C.</p><h3>\u0412\u0435\u0440\u043D\u0438\u0441\u044C \u0441\u0438\u043B\u044C\u043D\u0435\u0435</h3><p>\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u043F\u0440\u0438\u043D\u043E\u0441\u044F\u0442 \u0434\u0435\u0442\u0430\u043B\u0438 \u0438 \u043E\u043F\u044B\u0442. \u041F\u043E\u0441\u043B\u0435 \u0442\u0440\u0451\u0445 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A \u0438 \u0434\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u044F \u0440\u0435\u043A\u043E\u043C\u0435\u043D\u0434\u0443\u0435\u043C\u043E\u0433\u043E \u0443\u0440\u043E\u0432\u043D\u044F \u043E\u0442\u043A\u0440\u043E\u0435\u0442\u0441\u044F \u0440\u0435\u0439\u0434-\u0431\u043E\u0441\u0441. \u0421\u043E\u0437\u0434\u0430\u0439 \u0440\u0435\u0439\u0434, \u043F\u043E\u0434\u0435\u043B\u0438\u0441\u044C \u0441\u0441\u044B\u043B\u043A\u043E\u0439, \u0430\u0442\u0430\u043A\u0443\u0439\u0442\u0435 \u0432 \u0440\u0430\u0437\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F: \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u043E\u0431\u0449\u0435\u0435. \u0410\u0442\u0430\u043A\u0430 \u0441\u0442\u043E\u0438\u0442 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438. \u041F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B \u0437\u0430\u0431\u0435\u0440\u0438 \u043D\u0430\u0433\u0440\u0430\u0434\u0443 \u2014 \u044D\u0442\u043E \u043E\u0442\u043A\u0440\u043E\u0435\u0442 \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0440\u0430\u0439\u043E\u043D. \u041F\u0440\u0438 \u043E\u0442\u0441\u0442\u0443\u043F\u043B\u0435\u043D\u0438\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F 35% \u043F\u043E\u0434\u043E\u0431\u0440\u0430\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439.</p><h3>\u041E \u043F\u0440\u043E\u0442\u043E\u0442\u0438\u043F\u0435</h3><p>\u041F\u044F\u0442\u044C \u0440\u0430\u0439\u043E\u043D\u043E\u0432 \u0441 \u0434\u0435\u0442\u0430\u043B\u044C\u043D\u044B\u043C\u0438 \u0444\u043E\u043D\u0430\u043C\u0438, \u043F\u0438\u043A\u0441\u0435\u043B\u044C\u043D\u044B\u0435 \u043F\u0435\u0440\u0441\u043E\u043D\u0430\u0436\u0438, \u0442\u0440\u0438 \u043E\u0440\u0443\u0436\u0438\u044F, \u0431\u0440\u043E\u043D\u044F, \u043C\u0430\u0448\u0438\u043D\u0430, \u044D\u043D\u0435\u0440\u0433\u0438\u044F, \u043A\u043E\u043D\u0442\u0440\u0430\u043A\u0442\u044B \u0438 \u0430\u0441\u0438\u043D\u0445\u0440\u043E\u043D\u043D\u044B\u0435 \u0440\u0435\u0439\u0434\u044B. \u041F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u0445\u0440\u0430\u043D\u0438\u0442\u0441\u044F \u043D\u0430 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u043E\u043C \u0441\u0435\u0440\u0432\u0435\u0440\u0435. \u0415\u0441\u0442\u044C \u0433\u043E\u0441\u0442\u0435\u0432\u044B\u0435 \u043F\u0440\u043E\u0444\u0438\u043B\u0438 \u0438 \u0441\u0441\u044B\u043B\u043A\u0438 \u043D\u0430 \u0440\u0435\u0439\u0434. \u0412\u0445\u043E\u0434 \u0438 \u0434\u0440\u0443\u0437\u044C\u044F \u0412\u041A, \u0438\u043D\u0442\u0435\u0440\u043D\u0435\u0442-\u0440\u0430\u0437\u043C\u0435\u0449\u0435\u043D\u0438\u0435, \u0440\u0435\u043A\u043B\u0430\u043C\u0430 \u0438 \u043F\u043B\u0430\u0442\u0435\u0436\u0438 \u0435\u0449\u0451 \u043D\u0435 \u043F\u043E\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u044B. \u0410\u043D\u0438\u043C\u0430\u0446\u0438\u044F \u043F\u0435\u0440\u0441\u043E\u043D\u0430\u0436\u0435\u0439 \u043F\u043E\u043A\u0430 \u043E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u0430.</p></div>`;
+    if (page === "guide") $("#guide-page").innerHTML = `<div class="journal"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u041E\u0415 \u0420\u0423\u041A\u041E\u0412\u041E\u0414\u0421\u0422\u0412\u041E</span><h2>\u0412\u0435\u0440\u043D\u0443\u0442\u044C \u0433\u043E\u0440\u043E\u0434 \u0436\u0438\u0432\u044B\u043C</h2><h3>\u0412\u044B\u0431\u0435\u0440\u0438 \u0441\u0432\u043E\u0439 \u0440\u0438\u0441\u043A</h3><p>\u0420\u0430\u0437\u0432\u0435\u0434\u043A\u0430 \u0441\u0442\u043E\u0438\u0442 6 \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \u0438 \u0441\u043D\u0438\u0436\u0430\u0435\u0442 \u0443\u0433\u0440\u043E\u0437\u0443. \u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0430 \u2014 8. \u041F\u0440\u043E\u0440\u044B\u0432 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u0441 5 \u0443\u0440\u043E\u0432\u043D\u044F \u0438 \u0441\u0442\u043E\u0438\u0442 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438: \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435 \u0441\u0438\u043B\u044C\u043D\u0435\u0435, \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0432\u044B\u0448\u0435. \u041A\u0430\u0436\u0434\u044B\u0439 \u0440\u0435\u0436\u0438\u043C \u043F\u0440\u043E\u0445\u043E\u0434\u0438\u0442 \u0442\u0440\u0438 \u0432\u043E\u043B\u043D\u044B \u0438 \u0437\u0430\u0441\u0447\u0438\u0442\u044B\u0432\u0430\u0435\u0442 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443 \u0440\u0430\u0439\u043E\u043D\u0430.</p><h3>\u0427\u0438\u0442\u0430\u0439 \u043F\u0440\u043E\u0442\u0438\u0432\u043D\u0438\u043A\u0430</h3><p>\u041F\u0435\u0440\u0435\u0434 \u0443\u0434\u0430\u0440\u043E\u043C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0433\u043E \u043D\u0430 \u0437\u0435\u043C\u043B\u0435 \u043F\u043E\u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u0437\u043E\u043D\u0430 \u0430\u0442\u0430\u043A\u0438. \u0412\u044B\u0439\u0434\u0438 \u0438\u0437 \u043D\u0435\u0451 \u0431\u0435\u0433\u043E\u043C. \u0425\u043E\u0434\u043E\u043A\u0438 \u043C\u0435\u0434\u043B\u0435\u043D\u043D\u044B, \u0431\u0435\u0433\u0443\u043D\u044B \u0434\u043E\u0433\u043E\u043D\u044F\u044E\u0442, \u0433\u0440\u043E\u043C\u0438\u043B\u044B \u0431\u044C\u044E\u0442 \u043F\u043E \u0431\u043E\u043B\u044C\u0448\u0435\u0439 \u043F\u043B\u043E\u0449\u0430\u0434\u0438. \u0423\u0441\u043B\u043E\u0432\u0438\u044F \u0440\u0430\u0439\u043E\u043D\u0430 \u043C\u0435\u043D\u044F\u044E\u0442\u0441\u044F \u0432 \u043F\u043E\u043B\u043D\u043E\u0447\u044C \u041C\u0421\u041A; \u043F\u0435\u0440\u0432\u044B\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B \u0432\u0441\u0435\u0433\u0434\u0430 \u0441\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439.</p><h3>\u0421\u043E\u0445\u0440\u0430\u043D\u0438 \u043F\u0440\u0438\u043F\u0430\u0441\u044B</h3><p>\u0414\u0435\u0442\u0430\u043B\u0438 \u0432\u044B\u043F\u0430\u0434\u0430\u044E\u0442 \u0441 \u0448\u0430\u043D\u0441\u043E\u043C 33%. \u0410\u043F\u0442\u0435\u0447\u043A\u0438 \u2014 \u0441 \u0448\u0430\u043D\u0441\u043E\u043C 5%, \u043D\u0435 \u0431\u043E\u043B\u044C\u0448\u0435 \u0434\u0432\u0443\u0445 \u0437\u0430 \u0432\u044B\u043B\u0430\u0437\u043A\u0443; \u043F\u0440\u0438 \u043F\u043E\u043B\u043D\u043E\u043C \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u043E\u043D\u0438 \u043D\u0435 \u0440\u0430\u0441\u0445\u043E\u0434\u0443\u044E\u0442\u0441\u044F. \u041E\u0442\u0441\u0442\u0443\u043F\u043B\u0435\u043D\u0438\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442 35% \u043D\u0430\u0439\u0434\u0435\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439. \u0411\u043E\u043D\u0443\u0441 \u041F\u0440\u043E\u0440\u044B\u0432\u0430 \u0432\u044B\u0434\u0430\u0451\u0442\u0441\u044F \u0442\u043E\u043B\u044C\u043A\u043E \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443.</p><h3>\u041E\u0431\u044A\u0435\u0434\u0438\u043D\u044F\u0439\u0441\u044F</h3><p>\u041F\u043E\u0441\u043B\u0435 \u0442\u0440\u0451\u0445 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A \u0438 \u043D\u0443\u0436\u043D\u043E\u0433\u043E \u0443\u0440\u043E\u0432\u043D\u044F \u043E\u0442\u043A\u0440\u043E\u0435\u0442\u0441\u044F \u0431\u043E\u0441\u0441. \u041D\u0430 \u0438\u0433\u0440\u043E\u043A\u0430 \u2014 \u043E\u0434\u0438\u043D \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0440\u0435\u0439\u0434. \u0423\u0440\u043E\u043D \u0434\u043E 300 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u0441\u0443\u043C\u043C\u0438\u0440\u0443\u0435\u0442\u0441\u044F, \u0434\u0430\u0436\u0435 \u0435\u0441\u043B\u0438 \u043E\u043D\u0438 \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0432 \u0440\u0430\u0437\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F. \u0414\u0440\u0443\u0437\u044C\u044F VK \u0441\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0438\u0440\u0443\u044E\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043D\u0438\u044F \u0434\u043E\u0441\u0442\u0443\u043F\u0430. \u0422\u041E\u041F \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0435\u0442 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D\u043D\u044B\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442\u044B VK.</p><h3>\u0426\u0435\u043B\u044C \u043D\u0430 \u043A\u0430\u0436\u0434\u044B\u0439 \u0434\u0435\u043D\u044C</h3><p>\u0412\u043E\u0437\u0432\u0440\u0430\u0449\u0430\u0439 \u0440\u0430\u0439\u043E\u043D\u044B, \u0441\u043E\u0431\u0438\u0440\u0430\u0439 \u0441\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435 \u0438 \u043F\u043E\u043C\u043E\u0433\u0430\u0439 \u043E\u0442\u0440\u044F\u0434\u0443. \u041F\u0440\u0438\u043A\u0430\u0437\u044B \u0443\u0431\u0435\u0436\u0438\u0449\u0430 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u044E\u0442\u0441\u044F \u0441 3 \u0443\u0440\u043E\u0432\u043D\u044F. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u0432\u044B\u0434\u0430\u044E\u0442\u0441\u044F \u043E\u0434\u0438\u043D \u0440\u0430\u0437 \u0432 \u0434\u0435\u043D\u044C, \u043F\u0440\u043E\u043F\u0443\u0441\u043A\u0438 \u043D\u0435 \u043E\u0442\u043D\u0438\u043C\u0430\u044E\u0442 \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441. \u041F\u041A \u0438 \u0442\u0435\u043B\u0435\u0444\u043E\u043D \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u044E\u0442 \u043E\u0434\u0438\u043D \u043F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438 \u0432\u0445\u043E\u0434\u0435 \u0447\u0435\u0440\u0435\u0437 \u0442\u043E\u0442 \u0436\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442 VK.</p></div>`;
     document.querySelectorAll("[data-weapon-art]").forEach((c) => drawWeapon(c, Number(c.dataset.weaponArt)));
     if ($("#loadout-avatar")) {
       let c = $("#loadout-avatar");
@@ -1800,9 +1922,9 @@
   }
   async function start() {
     if (!unlocked(save, selected)) return;
-    let data = await api("run/start", { map: selected });
+    let data = await api("run/start", { map: selected, mode: sortieMode });
     let st = stats(save);
-    run = { ticket: data.ticket, rank: expeditionRank(save), map: selected, hp: st.hp, maxHp: st.hp, x: 430, y: 410, face: 1, time: 0, wave: 0, enemies: [], shots: [], drops: [], particles: [], kills: 0, loot: 0, healthDropped: 0, shotCd: 0.2, stamina: 100, exhausted: false, running: false, anim: 0, moving: false, travel: 0, transition: null, invulnerable: 0, paused: false, ended: false, next: 1, boss: false, damage: st.damage, speed: st.speed, lootMult: st.loot };
+    run = { ticket: data.ticket, plan: data.plan || sortiePlan(save, selected, sortieMode), rank: expeditionRank(save), map: selected, hp: st.hp, maxHp: st.hp, x: 430, y: 410, face: 1, time: 0, wave: 0, enemies: [], shots: [], drops: [], particles: [], kills: 0, loot: 0, healthDropped: 0, shotCd: 0.2, stamina: 100, exhausted: false, running: false, anim: 0, moving: false, travel: 0, transition: null, invulnerable: 0, paused: false, ended: false, next: 1, boss: false, damage: st.damage, speed: st.speed, lootMult: st.loot };
     background(bg.getContext("2d"), selected);
     sprintHeld = false;
     keys.clear();
@@ -1823,7 +1945,7 @@
     if (r.wave <= 3) {
       let n = 5 + r.wave * 2 + r.map;
       for (let i = 0; i < n; i++) {
-        let type = i % 5 === 4 ? "tank" : i % 3 === 2 ? "runner" : "walker";
+        let type = sortieEnemyType(i, r.plan.condition);
         spawn(type, i);
       }
       $("#wave-label").textContent = `\u0412\u041E\u041B\u041D\u0410 ${r.wave} / 3`;
@@ -1834,7 +1956,7 @@
   function spawn(type, i) {
     let r = run, side = i % 4;
     let x = side === 0 ? 30 : side === 1 ? 930 : 100 + Math.random() * 760, y = side === 2 ? 260 : side === 3 ? 540 : 285 + Math.random() * 220;
-    let st = enemyStats(r.map, Math.min(r.wave, 3), type, r.rank);
+    let st = sortieEnemy(enemyStats(r.map, Math.min(r.wave, 3), type, r.rank), type, r.plan);
     r.enemies.push({ x, y, type, ...st, maxHp: st.hp, cd: 1.8, flash: 0, attack: null });
   }
   function setSprint(value) {
@@ -1958,22 +2080,21 @@
         e.attack.t -= dt;
         if (e.attack.t <= 0) {
           if (Math.hypot(e.attack.x - r.x, e.attack.y - r.y) < e.attack.radius && r.invulnerable <= 0) {
-            r.hp -= e.damage * 1.6;
+            r.hp -= e.damage * (e.type === "boss" ? 1.6 : 1);
             r.invulnerable = 0.65;
           }
           burst(e.attack.x, e.attack.y, "#d2a270", 18);
-          if (r.map === 3) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.03);
-          if (r.map === 4 && r.enemies.length < 9) spawn("runner", Math.floor(r.time));
+          if (e.type === "boss" && r.map === 3) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.03);
+          if (e.type === "boss" && r.map === 4 && r.enemies.length < 9) spawn("runner", Math.floor(r.time));
           e.attack = null;
         }
       } else if (dist > 22) {
         e.x += (r.x - e.x) / dist * e.speed * dt;
         e.y += (r.y - e.y) / dist * e.speed * 0.8 * dt;
       }
-      if (dist < 25 && r.invulnerable <= 0) {
-        r.hp -= e.damage;
-        r.invulnerable = 0.65;
-        burst(r.x, r.y, "#cf9b71", 6);
+      if (e.type !== "boss" && dist < 40 && e.cd <= 0 && !e.attack) {
+        e.attack = { x: r.x, y: r.y, t: e.type === "runner" ? 0.38 : 0.65, radius: e.type === "tank" ? 42 : 30 };
+        e.cd = e.type === "runner" ? 1.4 : 2;
       }
     }
     for (let s of r.shots) {
@@ -2025,6 +2146,8 @@
   }
   function updateHud() {
     let r = run;
+    $("#game").classList.toggle("critical-health", r.hp / r.maxHp < 0.25);
+    $("#battle-condition").textContent = r.plan.name + " \xB7 " + r.plan.condition.name;
     $("#hp-label").textContent = `${Math.max(0, Math.ceil(r.hp))} / ${r.maxHp}`;
     $("#hp-bar").style.width = `${Math.max(0, r.hp / r.maxHp * 100)}%`;
     $("#kill-label").textContent = `${r.kills} \u0423\u0421\u0422\u0420\u0410\u041D\u0415\u041D\u041E \xB7 ${r.loot} \u0414\u0415\u0422.`;
@@ -2120,6 +2243,7 @@
           $("#game").hidden = true;
           $("#overlay").hidden = true;
           document.body.classList.remove("in-battle");
+          $("#game").classList.remove("critical-health");
           run = null;
           refresh();
         };
@@ -2294,9 +2418,11 @@
     if (launchValue("friend")) navigate("friends");
     else if (!invited) onboarding(navigate);
   }
-  var playerProfile, $, key, save, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
+  var playerProfile, $, key, save, sortieMode, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
+      init_operations();
+      init_operations_ui();
       init_ui_icons();
       init_landscape_ui();
       init_raid_view();
@@ -2321,6 +2447,7 @@
         if ((v == null ? void 0 : v.version) === 1 && Array.isArray(v.owned) && Array.isArray(v.cleared)) save = { ...save, ...v };
       } catch (e) {
       }
+      sortieMode = "standard";
       selected = 0;
       page = "map";
       run = null;

@@ -12,7 +12,7 @@ export function initLandscape(){
  toggle.onclick=()=>change(!open);shade.onclick=()=>{change(false);toggle.focus()};
  aside.addEventListener('click',e=>{if(e.target.closest('nav button')&&media.matches){change(false);main.scrollTop=0;toggle.focus();}});
  document.addEventListener('keydown',e=>{if(!open)return;if(e.key==='Escape'){e.preventDefault();change(false);toggle.focus();}if(e.key==='Tab'){const items=[toggle,...aside.querySelectorAll('nav button:not(:disabled)')],i=items.indexOf(document.activeElement),next=e.shiftKey?(i<=0?items.length-1:i-1):(i+1)%items.length;e.preventDefault();items[next].focus();}});
- const syncTitle=()=>{title.textContent=(aside.querySelector('nav button.active')?.innerText||'Убежище').replace(/\s*\d+\s*$/,'').trim();};
+ const syncTitle=()=>{title.textContent=(aside.querySelector('nav button.active')?.textContent||'Убежище').replace(/\s*\d+\s*$/,'').trim();};
  new MutationObserver(syncTitle).observe(document.querySelector('#page-title'),{childList:true,subtree:true,characterData:true});
  const resize=()=>{change(false);if(media.matches)header.append(resources);else marker.after(resources);syncTitle();};
  media.addEventListener('change',resize);resize();

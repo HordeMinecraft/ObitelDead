@@ -1,3 +1,4 @@
+import {sortiePlan,sortiePayout,operationState,operationView,claimOperation} from './operations.js';
 import {vkPhoto,rankedPlayers} from './vk-profile.js';
 import {RARE_RAIDS,RAID_CAPACITY,raidAllowed,raidHit,raidReward} from './rare-raids.js';
 import {purchaseVehicle} from './vehicles.js';
@@ -74,6 +75,8 @@ export function createHandler(db,commit,id,services={}){
    }
    else if(req.method==='GET'&&path==='/api/online')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='POST'&&path==='/api/online/ping')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
+   else if(req.method==='GET'&&path==='/api/operations')result=operationView(p);
+   else if(req.method==='POST'&&path==='/api/operations/claim')result=claimOperation(p,b.id);
    else if(req.method==='GET'&&path==='/api/leaderboard')result=leaderboard(session);
    else if(req.method==='POST'&&/^\/api\/ads\/(start|claim|cancel|status)$/.test(path))result=adAction(p,path.split('/').pop(),b,id);
    else if(path.startsWith('/api/conflict'))result=conflictAction(db,session,path,req.method,b);
@@ -107,7 +110,7 @@ export function createHandler(db,commit,id,services={}){
     if(s.daily.kills<20||s.daily.claimed)err('Награда недоступна');s.scrap+=120;s.cores++;s.daily.claimed=true;
    }
    else if(req.method==='POST'&&path==='/api/run/start'){
-    const m=b.map;if(!Number.isInteger(m)||!MAPS[m]||!unlocked(s,m))err('Район закрыт');if(!spendEnergy(s,RAID_COST))err('Недостаточно энергии');p.ticket={id:id(),map:m,started:now(),level:playerLevel(s)};result.ticket=p.ticket.id;
+    const m=b.map;if(!Number.isInteger(m)||!MAPS[m]||!unlocked(s,m))err('Район закрыт');const plan=sortiePlan(s,m,b.mode||'standard');if(!spendEnergy(s,plan.cost))err('Недостаточно энергии');p.ticket={id:id(),map:m,started:now(),level:playerLevel(s),plan};result.ticket=p.ticket.id;result.plan=plan;
    }
    else if(req.method==='POST'&&path==='/api/run/end'){
     if(p.lastResult?.ticket===b.ticket){send(200,{...p.lastResult.result,save:s,serverTime:now()});return true}
@@ -115,8 +118,9 @@ export function createHandler(db,commit,id,services={}){
     const maxKills=27+t.map*3,kills=Math.max(0,Math.min(maxKills,Math.floor(Number(b.kills)||0)));
     const win=b.win===true&&kills===maxKills&&now()-t.started>18000;
     const loot=Math.max(0,Math.min(kills*8,Math.floor(Number(b.loot)||0)));
-    const reward=expeditionReward(t.map,kills,loot,win,stats(s).loot),xp=runXP(kills,win,t.map,t.level||1);
-    s.scrap+=reward;s.cloth+=win?3+t.map:0;s.xp+=xp;s.kills+=kills;s.daily.kills+=kills;if(win)s.districtRuns[t.map]++;
+    const plan=t.plan||sortiePlan(s,t.map,'standard',t.started),payout=sortiePayout(plan,win);
+    const reward=expeditionReward(t.map,kills,loot,win,stats(s).loot*payout.reward),xp=Math.round(runXP(kills,win,t.map,t.level||1)*payout.xp);
+    s.scrap+=reward;s.cloth+=win?3+t.map:0;s.xp+=xp;s.kills+=kills;s.daily.kills+=kills;if(win){s.districtRuns[t.map]++;const op=operationState(p);op.wins++;if(!op.maps.includes(t.map))op.maps.push(t.map);}
     p.ticket=null;result={reward,xp,win};p.lastResult={ticket:t.id,result};
    }
    else if(req.method==='GET'&&path==='/api/raids'){
@@ -138,7 +142,7 @@ export function createHandler(db,commit,id,services={}){
     if(req.method==='POST'&&action==='join'){
      if(r.hp<=0)err('Босс уже повержен');if(!r.members[session]){if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(Object.keys(r.members).length>=RAID_CAPACITY)err('В рейде уже 300 игроков');r.members[session]={damage:0,nextAttack:0,claimed:false}}p.activeRaid=r.id;
     }else if(req.method==='POST'&&action==='attack'){
-     const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(r.hp<=0)err('Босс уже повержен');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,BOSS_COST))err('Недостаточно энергии');const damage=Math.min(r.hp,raidHit(s,r.map,r.rare));r.hp-=damage;member.damage+=damage;member.nextAttack=now()+raidProfile(r.map).cooldown;result.damage=damage;
+     const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(r.hp<=0)err('Босс уже повержен');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,BOSS_COST))err('Недостаточно энергии');const damage=Math.min(r.hp,raidHit(s,r.map,r.rare));r.hp-=damage;member.damage+=damage;member.nextAttack=now()+raidProfile(r.map).cooldown;result.damage=damage;operationState(p).attacks++;
     }else if(req.method==='POST'&&action==='claim'){
      const member=r.members[session];if(!member||!member.damage||member.claimed||r.hp>0)err('Награда недоступна');member.claimed=true;const reward=raidReward(r,member.damage);for(const [key,value] of Object.entries(reward))s[key]+=value;s.bossKills++;if(!r.rare&&!s.cleared.includes(r.map))s.cleared.push(r.map);
     }else if(req.method!=='GET'||action)err('Метод не поддерживается',405);
