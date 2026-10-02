@@ -1,20 +1,38 @@
-const paths={"leaderboard":"M7 3h10v7a5 5 0 0 1-10 0z M7 5H3v3a4 4 0 0 0 4 4 M17 5h4v3a4 4 0 0 1-4 4 M12 15v5 M7 21h10","map": "M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2z M9 3v16 M15 5v16", "gear": "M4 14l3-3 3 3 8-8 2 2-8 8 2 3-3 2-3-3-3 1-2-2z", "garage": "M4 15V9l3-5h10l3 5v6 M3 10h18v7H3z M6 17v3 M18 17v3 M6 13h2 M16 13h2", "daily": "M7 4H4v17h16V4h-3 M8 2h8v5H8z M8 11h8 M8 15h6", "raids": "M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z M9 9l6 6 M15 9l-6 6", "guide": "M3 4h7l2 2 2-2h7v15h-7l-2 2-2-2H3z M12 6v15", "settings": "M9 3h6l1 4 4 1v8l-4 1-1 4H9l-1-4-4-1V8l4-1z M15 12a3 3 0 1 0-6 0 3 3 0 0 0 6 0", "friends": "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M2 21v-3a6 6 0 0 1 12 0v3 M17 4a4 4 0 0 1 0 8 M18 15a5 5 0 0 1 4 5v1", "clans": "M5 3v18 M5 4h14l-3 5 3 5H5 M2 21h6", "conflict": "M4 3l6 2 10 14-2 2L4 7z M20 3l-6 2-3 4 M9 13l-5 6 2 2 5-5 M2 17l6 5 M16 22l6-5", "medical": "M9 3h6v6h6v6h-6v6H9v-6H3V9h6z", "energy": "M14 2L4 14h7l-1 8 10-13h-7z", "diamond": "M12 2l9 10-9 10L3 12z M3 12h18 M12 2l-4 10 4 10 4-10z", "skull": "M6 16C0 6 6 2 12 2s12 4 6 14v5H6z M8 10h1v2H8z M15 10h1v2h-1z M10 21v-4 M14 21v-4", "star": "M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z", "menu": "M4 6h16 M4 12h16 M4 18h16", "close": "M6 6l12 12 M18 6L6 18", "pause": "M8 4v16 M16 4v16"};
-export const icon=name=>'<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="'+(paths[name]||paths.medical)+'"/></svg>';
-
-// Original shelter insignia: stamped brass silhouettes with dark cut-outs.
-const insignia={
- repulse:'<path d="M12 1l9 5v8l-9 9-9-9V6z"/><path class="icon-cut" d="M7 7h10v7l-5 5-5-5z"/><path class="icon-light" d="M10 6h4v5h4l-6 6-6-6h4z"/>',
- map:'<path d="M3 4l6-2 6 3 6-2v17l-6 2-6-3-6 2z"/><path class="icon-cut" d="M8 5h2v11H8zm6 3h2v11h-2z"/><path class="icon-light" d="M4 11h3v2H4zm13-3h3v2h-3z"/><path class="icon-mark" d="M10 10l3-4 3 4-3 4z"/>',
- gear:'<path d="M2 9h4l3-4h12v5h-6l-2 4H9l-2 7H3l3-10H2z"/><path class="icon-cut" d="M11 7h8v1h-8zM8 11h4v1H8z"/><path class="icon-light" d="M16 13h4v8h-4zm1-3h2v2h-2z"/>',
- garage:'<path d="M3 10l3-6h12l3 6v8h-3v3h-4v-3H9v3H5v-3H2v-8z"/><path class="icon-cut" d="M7 6h9l2 4H5zm-3 7h4v2H4zm12 0h4v2h-4z"/><path class="icon-light" d="M10 12h4v5h-4z"/>',
- daily:'<path d="M5 3h14v19H5zM9 1h6v5H9z"/><path class="icon-cut" d="M8 8h8v2H8zm0 4h5v2H8zm0 4h3v2H8z"/><path class="icon-mark" d="M15 13l6 3-1 5-4 2-4-4z"/>',
- raids:'<path d="M12 1l9 4v9l-9 9-9-9V5z"/><path class="icon-cut" d="M7 7l5-2 5 2v7l-3 2v3h-4v-3l-3-2z"/><path class="icon-light" d="M8 9l3 1v3H8zm5 1l3-1v4h-3zm-2 5h2v2h-2z"/>',
- guide:'<path d="M3 3h8l2 2 2-2h6v17h-7l-2 2-2-2H3z"/><path class="icon-cut" d="M11 6h2v13h-2zM5 6h4v2H5zm0 4h4v1H5zm0 3h4v1H5z"/><path class="icon-mark" d="M16 6h3v9l-2-2-1 2z"/>',
- leaderboard:'<path d="M9 2h6l2 5-2 8H9L7 7zm1 14h4v3h5v3H5v-3h5zM3 4h3v8l3 3-2 2-4-5zm15 0h3v8l-4 5-2-2 3-3z"/><path class="icon-cut" d="M12 5l1 3 2 1-2 2v2h-2v-2L9 9l2-1z"/>',
- friends:'<path d="M4 4h6l2 4-2 5H4L2 8zm10 0h6l2 4-2 5h-6l-2-5zM1 16l5-2 5 2v6H1zm12 0l5-2 5 2v6H13z"/><path class="icon-cut" d="M4 8h6v2H4zm10 0h6v2h-6z"/><path class="icon-light" d="M5 17h2v4H5zm12 0h2v4h-2z"/>',
- clans:'<path d="M3 2h18v11l-9 10-9-10z"/><path class="icon-cut" d="M7 5h10v8l-5 5-5-5z"/><path class="icon-light" d="M11 6h2v3h3v2h-3v4h-2v-4H8V9h3z"/>',
- conflict:'<path d="M2 4l3-2 15 17-3 3zM19 2l3 3-6 7-3-3zM8 13l3 3-6 6-3-3z"/><path class="icon-cut" d="M5 5l13 14-1 1L4 6z"/><path class="icon-light" d="M3 15l6 6-2 2-6-6zm12-12l6 6 2-2-6-6z"/>',
- settings:'<path d="M9 1h6v3l3 2 3-1 2 5-3 2v3l2 2-4 4-3-2h-3l-2 3-5-2 1-3-2-3H1V8h3l2-3 3 1z"/><path class="icon-cut" d="M8 8h8v8H8z"/><path class="icon-light" d="M10 10h4v4h-4z"/>'
+// Original Obitel glyphs: 32-unit grid, chamfered shells and two material layers.
+// No gradient IDs: repeated icons stay independent in the same document.
+const shell=d=>'<path class="icon-base" d="'+d+'"/>';
+const line=d=>'<path class="icon-detail" d="'+d+'"/>';
+const accent=d=>'<path class="icon-accent" d="'+d+'"/>';
+const cut=d=>'<path class="icon-cut" d="'+d+'"/>';
+const symbols={
+ map:shell('M3 7l8-3 10 3 8-3v22l-8 3-10-3-8 3z')+line('M11 4v22m10-19v22M6 20l4-6 6 3 5-7 5 3')+accent('M20 9a3 3 0 1 1-6 0 3 3 0 0 1 6 0m-3 3-2 3h4z'),
+ gear:shell('M3 12h6l4-5h16v6H18l-3 6h-4l-2 9H4l3-13H3z')+line('M13 9h12m-14 6h4m5-11h4v3M6 23h3')+accent('M21 17h5v11h-5z')+cut('M22 21h3v2h-3z'),
+ garage:shell('M5 13l4-7h14l4 7v11H5zM7 24h5v4H7zm13 0h5v4h-5z')+cut('M10 9h12l2 5H8z')+line('M4 15h24M13 19h6M13 22h6')+accent('M7 18h4v3H7zm14 0h4v3h-4z'),
+ daily:shell('M7 5h18v23H7zM12 3h8v5h-8z')+line('M11 13h10m-10 5h6m-6 5h4')+accent('M20 20l3 3 5-6 2 2-7 8-5-5z'),
+ raids:shell('M16 3l12 5v12L16 30 4 20V8z')+cut('M10 11l6-3 6 3v8l-4 2v4h-4v-4l-4-2z')+accent('M11 13l4 1v3h-4zm6 1 4-1v4h-4zM15 20h2v2h-2z')+line('M14 25h4'),
+ guide:shell('M4 5h9l3 3 3-3h9v23h-9l-3 2-3-2H4z')+line('M16 8v22M8 11h4m-4 5h4m-4 5h4')+accent('M21 6h4v14l-2-2-2 2z'),
+ leaderboard:shell('M9 4h14v9l-3 8h-8l-3-8zM13 21h6v5h6v3H7v-3h6z')+line('M9 7H4v6l6 5m13-11h5v6l-6 5')+accent('M16 7l2 4 4 1-3 3v4l-3-2-3 2v-4l-3-3 4-1z'),
+ friends:shell('M5 5l4-2 4 2v6l-4 3-4-3zm14 0 4-2 4 2v6l-4 3-4-3zM3 19l6-3 6 3v10H3zm14 0 6-3 6 3v10H17z')+line('M6 22h6m8 0h6')+accent('M12 18h8v3h-8z')+cut('M8 7h2v3H8zm14 0h2v3h-2z'),
+ clans:shell('M5 3h22v16L16 30 5 19z')+line('M8 6h16v12l-8 8-8-8z')+accent('M14 8h4v4h-4zM9 18h4v4H9zm10 0h4v4h-4z')+line('M16 12v3m-5 3v-3h10v3'),
+ conflict:shell('M4 3l5 1 19 23-3 3L4 9zM28 3l-5 1-8 10 4 4 9-9zM12 18l4 4-9 8-3-3z')+line('M7 7l18 21M25 7l-7 8')+accent('M3 23l7 7 2-2-7-7zM21 5l7 7 2-2-7-7z'),
+ settings:shell('M13 3h6l1 4 4 2 4-1 2 6-4 3v4l-4 5-5-1-4 3-5-3 1-4-4-3-3-1v-7l4-1 2-4 4 1z')+cut('M22 16a6 6 0 1 1-12 0 6 6 0 0 1 12 0')+accent('M19 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0'),
+ medical:shell('M4 9h24v16l-3 3H7l-3-3zM11 4h10v5H11z')+line('M4 14h24M8 24h3m10 0h3')+accent('M14 12h4v5h5v4h-5v5h-4v-5H9v-4h5z'),
+ energy:shell('M11 4h10v3h5v20H6V7h5z')+line('M9 10h4m6 14h4')+accent('M18 7l-8 11h6l-2 10 10-14h-7z'),
+ diamond:shell('M16 2l12 9v11L16 30 4 22V11z')+line('M4 11h24M16 2l-5 9 5 19 5-19z')+accent('M16 8l5 8-5 9-5-9z'),
+ skull:shell('M8 6l8-3 8 3 4 8-3 9-5 2v4h-8v-4l-5-2-3-9z')+cut('M8 12l6 2v5H8zm10 2 6-2v7h-6z')+accent('M16 19l3 4h-6z')+line('M13 29v-4m6 4v-4'),
+ star:shell('M10 3h12l5 8-3 11-8 8-8-8-3-11z')+accent('M16 8l3 5 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z')+line('M11 3l2 4m8-4-2 4'),
+ menu:shell('M5 4h22v24H5z')+line('M9 10h14m-14 6h10m-10 6h14')+accent('M21 14h3v4h-3z'),
+ close:shell('M8 4h16l4 4v16l-4 4H8l-4-4V8z')+line('M10 10l12 12m0-12L10 22'),
+ pause:shell('M8 4h16l4 4v16l-4 4H8l-4-4V8z')+accent('M10 9h4v14h-4zm8 0h4v14h-4z'),
+ repulse:shell('M16 4l8 4v11l-8 9-8-9V8z')+accent('M14 10h4v5h4l-6 8-6-8h4z')+line('M5 8l-3 8 3 8m22-16 3 8-3 8'),
+ run:shell('M19 3l4 2-1 5-4 1-3-3 1-4z')+line('M18 13l-6 5-5-3M13 18l5 5-3 6m3-16 7 6 4-1M12 18l-3 9H4')+accent('M14 10h6l-3 9-5-2z')+line('M3 6h8M2 11h6'),
+ arrow:shell('M5 7h22v20H5z')+line('M11 21L22 10m-10 0h10v10')+accent('M22 10h2v3h-2z'),
+ refresh:shell('M16 4a12 12 0 1 0 12 12h-5a7 7 0 1 1-7-7z')+accent('M16 2l9 5-9 5z'),
+ unknown:shell('M8 4h16l4 4v16l-4 4H8l-4-4V8z')+line('M11 11a5 5 0 0 1 10 0c0 4-5 3-5 8m0 4v1')
 };
-const standardIcon=icon;
-export const shelterIcon=name=>insignia[name]?'<svg class="ui-icon shelter-insignia" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+insignia[name]+'</svg>':standardIcon(name);
+export const ICON_NAMES=Object.freeze(Object.keys(symbols).filter(name=>name!=='unknown'));
+export const icon=name=>{
+ const key=Object.prototype.hasOwnProperty.call(symbols,name)?name:'unknown';
+ return '<svg class="ui-icon obitel-glyph shelter-insignia" data-icon="'+key+'" viewBox="0 0 32 32" aria-hidden="true" focusable="false">'+symbols[key]+'</svg>';
+};
+export const shelterIcon=icon;
