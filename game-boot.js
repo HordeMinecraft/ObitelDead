@@ -1262,38 +1262,38 @@
     var _a2, _b2, _c, _d, _e, _f;
     appearance = { weapon: (_c = (_b2 = (_a2 = WEAPONS[save2.weapon]) == null ? void 0 : _a2.pose) != null ? _b2 : save2.weapon) != null ? _c : 0, armor: (_f = (_e = (_d = ARMOR[save2.armorTier]) == null ? void 0 : _d.pose) != null ? _e : save2.armorTier) != null ? _f : save2.armor > 0 ? 1 : 0 };
   }
-  async function loadSprite(path) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const c = document.createElement("canvas");
-        c.width = img.width;
-        c.height = img.height;
-        const ctx = c.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        const pixels = ctx.getImageData(0, 0, c.width, c.height);
-        for (let i = 0; i < pixels.data.length; i += 4) {
-          let r = pixels.data[i], g2 = pixels.data[i + 1], b = pixels.data[i + 2];
-          if (r > 120 && b > 120 && g2 < 135 && Math.min(r, b) - g2 > 55) pixels.data[i + 3] = 0;
+  function loadArtImage(path, ImageType = Image) {
+    return new Promise((resolve, reject) => {
+      const img = new ImageType();
+      let fallback = false;
+      img.onload = () => resolve(img);
+      img.onerror = () => {
+        if (fallback) {
+          reject(new Error("ART_LOAD"));
+          return;
         }
-        ctx.putImageData(pixels, 0, 0);
-        resolve(c);
+        fallback = true;
+        img.src = path;
       };
-      img.onerror = () => resolve(null);
-      img.src = path;
+      img.src = path.replace(/\.png$/, ".webp");
     });
   }
+  async function loadSprite(path) {
+    const img = await loadArtImage(path), c = document.createElement("canvas");
+    c.width = img.width;
+    c.height = img.height;
+    const ctx = c.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    const pixels = ctx.getImageData(0, 0, c.width, c.height);
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      let r = pixels.data[i], g2 = pixels.data[i + 1], b = pixels.data[i + 2];
+      if (r > 120 && b > 120 && g2 < 135 && Math.min(r, b) - g2 > 55) pixels.data[i + 3] = 0;
+    }
+    ctx.putImageData(pixels, 0, 0);
+    return c;
+  }
   async function loadArt() {
-    await Promise.all([Promise.all(Array.from({ length: 8 }, (_, i) => new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        environments[i] = img;
-        resolve();
-      };
-      img.onerror = () => resolve();
-      img.src = "assets/district-" + i + ".png";
-    }))), loadSprite("assets/characters.png").then((c) => spriteAtlas = c), loadSprite("assets/equipment.png").then((c) => equipmentAtlas = c), loadSprite("assets/armor-tiers.png").then((c) => armorAtlas = c), loadSprite("assets/items.png").then((c) => itemAtlas = c), loadSprite("assets/weapons-loot.png").then((c) => weaponAtlas = c), loadSprite("assets/arsenal-expanded.png").then((c) => expandedAtlas = c)]);
-    if (environments.filter(Boolean).length !== 8 || !spriteAtlas || !equipmentAtlas || !armorAtlas || !itemAtlas || !weaponAtlas || !expandedAtlas) throw new Error("ART_LOAD");
+    await Promise.all([Promise.all(Array.from({ length: 8 }, (_, i) => loadArtImage("assets/district-" + i + ".png").then((img) => environments[i] = img))), loadSprite("assets/characters.png").then((c) => spriteAtlas = c), loadSprite("assets/equipment.png").then((c) => equipmentAtlas = c), loadSprite("assets/armor-tiers.png").then((c) => armorAtlas = c), loadSprite("assets/items.png").then((c) => itemAtlas = c), loadSprite("assets/weapons-loot.png").then((c) => weaponAtlas = c), loadSprite("assets/arsenal-expanded.png").then((c) => expandedAtlas = c)]);
   }
   function drawRig(g2, atlas, index, size, time, moving, running, type) {
     const sw = atlas.width / 3, sh = atlas.height / 2, sx = index % 3 * sw, sy = Math.floor(index / 3) * sh, k = size / sw, hip = sh * (type === "runner" ? 0.53 : 0.59), knee = sh * 0.77, phase = time * 8, swing = moving ? Math.sin(phase) * (running ? 0.25 : 0.13) : 0, bob = moving ? Math.abs(Math.sin(phase)) * 2 : 0, originX = -size * 0.5, originY = -size * 0.94 - bob;
@@ -2361,7 +2361,7 @@
   }
   function renderSettings() {
     const el = $("#settings-page");
-    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043B\u0435\u0432\u0430, \u0431\u0435\u0433 \u0441\u043F\u0440\u0430\u0432\u0430. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.6</span></div></div>';
+    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043B\u0435\u0432\u0430, \u0431\u0435\u0433 \u0441\u043F\u0440\u0430\u0432\u0430. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.7</span></div></div>';
     el.insertAdjacentHTML("beforeend", '<button class="secondary" id="repeat-tutorial">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C \u041E\u0411\u0423\u0427\u0415\u041D\u0418\u0415</button>');
     el.querySelector("#repeat-tutorial").onclick = () => onboarding(navigate, true);
     const account = document.createElement("p");
@@ -2385,10 +2385,10 @@
     let artTimer;
     try {
       await Promise.race([loadArt(), new Promise((_, reject) => {
-        artTimer = setTimeout(() => reject(new Error("ART_TIMEOUT")), 25e3);
+        artTimer = setTimeout(() => reject(new Error("ART_TIMEOUT")), 6e4);
       })]);
-    } catch (e) {
-      (_a2 = window.obitelStartupFailure) == null ? void 0 : _a2.call(window, "ART_LOAD");
+    } catch (error) {
+      (_a2 = window.obitelStartupFailure) == null ? void 0 : _a2.call(window, error.message === "ART_TIMEOUT" ? "ART_TIMEOUT" : "ART_LOAD");
       return;
     } finally {
       clearTimeout(artTimer);
