@@ -557,7 +557,7 @@
     "boss-arena.js"() {
       init_balance();
       init_rare_raids();
-      ARENA = { name: "\u041D\u0443\u043B\u0435\u0432\u0430\u044F \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0430", duration: 30, cost: BOSS_COST, minSeconds: 1, expiry: 15 * 60 * 1e3, maxBonus: 1.2, exposure: 0.65 };
+      ARENA = { name: "\u041D\u0443\u043B\u0435\u0432\u0430\u044F \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0430", duration: 30, cost: BOSS_COST, minSeconds: 1, expiry: 15 * 60 * 1e3, maxBonus: 1.2, exposure: 0.9 };
       arenaContract = (save2, map, rare = false) => ({ duration: ARENA.duration, cost: ARENA.cost, rate: raidDamage(save2) / 5, target: Math.max(1, Math.round(raidDamage(save2) / 5 * ARENA.duration * ARENA.exposure)), cap: Math.max(1, Math.floor(raidHit(save2, map, rare) * ARENA.maxBonus)) });
       arenaPhase = (time) => Math.min(2, Math.floor(Math.max(0, time) / 10));
       ARENA_PHASES = ["\u041D\u0430\u0431\u043B\u044E\u0434\u0435\u043D\u0438\u0435", "\u041F\u043E\u0434\u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u0435", "\u042F\u0440\u043E\u0441\u0442\u044C"];

@@ -1,7 +1,7 @@
 import {raidDamage,BOSS_COST} from './balance.js';
 import {raidHit} from './rare-raids.js';
 
-export const ARENA={name:'Нулевая платформа',duration:30,cost:BOSS_COST,minSeconds:1,expiry:15*60*1000,maxBonus:1.2,exposure:.65};
+export const ARENA={name:'Нулевая платформа',duration:30,cost:BOSS_COST,minSeconds:1,expiry:15*60*1000,maxBonus:1.2,exposure:.9};
 export const arenaContract=(save,map,rare=false)=>({duration:ARENA.duration,cost:ARENA.cost,rate:raidDamage(save)/5,target:Math.max(1,Math.round(raidDamage(save)/5*ARENA.duration*ARENA.exposure)),cap:Math.max(1,Math.floor(raidHit(save,map,rare)*ARENA.maxBonus))});
 export function arenaContribution(contract,rawDamage,elapsedSeconds){
  if(!Number.isFinite(rawDamage)||rawDamage<0||!Number.isFinite(elapsedSeconds)||elapsedSeconds<ARENA.minSeconds)return 0;
