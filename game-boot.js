@@ -347,6 +347,44 @@
     }
   });
 
+  // combat-tactics.js
+  function repulseStatus(run2) {
+    const seconds = Math.max(0, ((run2 == null ? void 0 : run2.repulseAt) || 0) - ((run2 == null ? void 0 : run2.time) || 0));
+    return { seconds, ready: !!run2 && !run2.paused && !run2.ended && !run2.transition && seconds === 0 && run2.stamina >= REPULSE.cost };
+  }
+  function repel(run2) {
+    if (!repulseStatus(run2).ready) return false;
+    run2.stamina -= REPULSE.cost;
+    run2.repulseAt = run2.time + REPULSE.cooldown;
+    run2.repulses = (run2.repulses || 0) + 1;
+    for (const enemy of run2.enemies) {
+      if (enemy.hp <= 0) continue;
+      let dx = enemy.x - run2.x, dy = enemy.y - run2.y, length = Math.hypot(dx, dy);
+      if (length > REPULSE.radius) continue;
+      if (length < 1e-3) {
+        dx = run2.face || 1;
+        dy = 0;
+        length = 1;
+      }
+      const distance = enemy.type === "boss" ? REPULSE.distance * 0.3 : REPULSE.distance;
+      enemy.x = Math.max(25, Math.min(935, enemy.x + dx / length * distance));
+      enemy.y = Math.max(260, Math.min(540, enemy.y + dy / length * distance * 0.8));
+      enemy.attack = null;
+      enemy.cd = Math.max(enemy.cd, 0.8);
+    }
+    return true;
+  }
+  function battleReport(run2) {
+    const seconds = Math.max(0, Math.floor(run2.time));
+    return { duration: Math.floor(seconds / 60) + ":" + String(seconds % 60).padStart(2, "0"), kills: run2.kills, hits: run2.hits || 0, repulses: run2.repulses || 0, energy: run2.plan.cost };
+  }
+  var REPULSE;
+  var init_combat_tactics = __esm({
+    "combat-tactics.js"() {
+      REPULSE = { cost: 35, cooldown: 9, radius: 115, distance: 90 };
+    }
+  });
+
   // vehicles.js
   var VEHICLES, vehicleFor;
   var init_vehicles = __esm({
@@ -527,6 +565,7 @@
       paths = { "leaderboard": "M7 3h10v7a5 5 0 0 1-10 0z M7 5H3v3a4 4 0 0 0 4 4 M17 5h4v3a4 4 0 0 1-4 4 M12 15v5 M7 21h10", "map": "M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2z M9 3v16 M15 5v16", "gear": "M4 14l3-3 3 3 8-8 2 2-8 8 2 3-3 2-3-3-3 1-2-2z", "garage": "M4 15V9l3-5h10l3 5v6 M3 10h18v7H3z M6 17v3 M18 17v3 M6 13h2 M16 13h2", "daily": "M7 4H4v17h16V4h-3 M8 2h8v5H8z M8 11h8 M8 15h6", "raids": "M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z M9 9l6 6 M15 9l-6 6", "guide": "M3 4h7l2 2 2-2h7v15h-7l-2 2-2-2H3z M12 6v15", "settings": "M9 3h6l1 4 4 1v8l-4 1-1 4H9l-1-4-4-1V8l4-1z M15 12a3 3 0 1 0-6 0 3 3 0 0 0 6 0", "friends": "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M2 21v-3a6 6 0 0 1 12 0v3 M17 4a4 4 0 0 1 0 8 M18 15a5 5 0 0 1 4 5v1", "clans": "M5 3v18 M5 4h14l-3 5 3 5H5 M2 21h6", "conflict": "M4 3l6 2 10 14-2 2L4 7z M20 3l-6 2-3 4 M9 13l-5 6 2 2 5-5 M2 17l6 5 M16 22l6-5", "medical": "M9 3h6v6h6v6h-6v6H9v-6H3V9h6z", "energy": "M14 2L4 14h7l-1 8 10-13h-7z", "diamond": "M12 2l9 10-9 10L3 12z M3 12h18 M12 2l-4 10 4 10 4-10z", "skull": "M6 16C0 6 6 2 12 2s12 4 6 14v5H6z M8 10h1v2H8z M15 10h1v2h-1z M10 21v-4 M14 21v-4", "star": "M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z", "menu": "M4 6h16 M4 12h16 M4 18h16", "close": "M6 6l12 12 M18 6L6 18", "pause": "M8 4v16 M16 4v16" };
       icon = (name) => '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' + (paths[name] || paths.medical) + '"/></svg>';
       insignia = {
+        repulse: '<path d="M12 1l9 5v8l-9 9-9-9V6z"/><path class="icon-cut" d="M7 7h10v7l-5 5-5-5z"/><path class="icon-light" d="M10 6h4v5h4l-6 6-6-6h4z"/>',
         map: '<path d="M3 4l6-2 6 3 6-2v17l-6 2-6-3-6 2z"/><path class="icon-cut" d="M8 5h2v11H8zm6 3h2v11h-2z"/><path class="icon-light" d="M4 11h3v2H4zm13-3h3v2h-3z"/><path class="icon-mark" d="M10 10l3-4 3 4-3 4z"/>',
         gear: '<path d="M2 9h4l3-4h12v5h-6l-2 4H9l-2 7H3l3-10H2z"/><path class="icon-cut" d="M11 7h8v1h-8zM8 11h4v1H8z"/><path class="icon-light" d="M16 13h4v8h-4zm1-3h2v2h-2z"/>',
         garage: '<path d="M3 10l3-6h12l3 6v8h-3v3h-4v-3H9v3H5v-3H2v-8z"/><path class="icon-cut" d="M7 6h9l2 4H5zm-3 7h4v2H4zm12 0h4v2h-4z"/><path class="icon-light" d="M10 12h4v5h-4z"/>',
@@ -872,8 +911,8 @@
       KEY = "obitel-onboarding-v1";
       steps = [
         ["\u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C \u0432 \u0443\u0431\u0435\u0436\u0438\u0449\u0435", "\u0422\u0432\u043E\u044F \u0446\u0435\u043B\u044C \u2014 \u0432\u0435\u0440\u043D\u0443\u0442\u044C \u0433\u043E\u0440\u043E\u0434 \u0432\u044B\u0436\u0438\u0432\u0448\u0438\u043C. \u041D\u0430\u0447\u043D\u0438 \u0441 \u0422\u0438\u0445\u043E\u0433\u043E \u043A\u0432\u0430\u0440\u0442\u0430\u043B\u0430, \u0441\u043E\u0431\u0438\u0440\u0430\u0439 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u0438 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u0439 \u043D\u043E\u0432\u044B\u0435 \u0440\u0430\u0439\u043E\u043D\u044B. \u041F\u043E\u0437\u0436\u0435 \u0432\u0441\u0442\u0443\u043F\u0438 \u0432 \u043A\u043B\u0430\u043D \u0438 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438 \u043F\u043E\u0434\u0437\u0435\u043C\u043D\u044B\u0439 \u0440\u0435\u0430\u043A\u0442\u043E\u0440.", "map", "\u041E\u0421\u041C\u041E\u0422\u0420\u0415\u0422\u042C \u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415"],
-        ["\u0414\u0432\u0438\u0433\u0430\u0439\u0441\u044F. \u041E\u0433\u043E\u043D\u044C \u2014 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0439.", "\u0422\u0435\u043B\u0435\u0444\u043E\u043D: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043B\u0435\u0432\u0430, \u043A\u043D\u043E\u043F\u043A\u0430 \u0431\u0435\u0433\u0430 \u0441\u043F\u0440\u0430\u0432\u0430. \u041A\u043E\u043C\u043F\u044C\u044E\u0442\u0435\u0440: WASD \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438, Shift \u2014 \u0431\u0435\u0433. \u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E, \u043F\u043E\u0434\u0431\u0438\u0440\u0430\u0439 \u0430\u043F\u0442\u0435\u0447\u043A\u0438 \u0438 \u0441\u043B\u0435\u0434\u0438 \u0437\u0430 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u044C\u044E. \u041F\u0430\u0443\u0437\u0430 \u2014 \u043A\u043D\u043E\u043F\u043A\u0430 \u2161.", "map", "\u041A\u0410\u041A \u041E\u0422\u041A\u0420\u042B\u0422\u042C \u0411\u041E\u0421\u0421\u0410"],
-        ["\u0422\u0440\u0438 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0434\u043E \u0431\u043E\u0441\u0441\u0430", "\u041E\u0434\u043D\u0430 \u0432\u044B\u043B\u0430\u0437\u043A\u0430 \u0441\u0442\u043E\u0438\u0442 8 \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \u0438 \u0441\u043E\u0441\u0442\u043E\u0438\u0442 \u0438\u0437 \u0442\u0440\u0451\u0445 \u0432\u043E\u043B\u043D. \u041F\u043E\u0441\u043B\u0435 \u0442\u0440\u0451\u0445 \u0443\u0441\u043F\u0435\u0448\u043D\u044B\u0445 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A \u0438 \u0434\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u044F \u043D\u0443\u0436\u043D\u043E\u0433\u043E \u0443\u0440\u043E\u0432\u043D\u044F \u043E\u0442\u043A\u0440\u043E\u0435\u0442\u0441\u044F \u0431\u043E\u0441\u0441. \u041F\u043E\u0431\u0435\u0434\u0438 \u0435\u0433\u043E, \u0447\u0442\u043E\u0431\u044B \u043F\u0435\u0440\u0435\u0439\u0442\u0438 \u0432 \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0440\u0430\u0439\u043E\u043D. \u042D\u043D\u0435\u0440\u0433\u0438\u044F \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u0430\u0432\u043B\u0438\u0432\u0430\u0435\u0442\u0441\u044F \u0441\u0430\u043C\u0430.", "map", "\u041A\u0410\u041A \u0421\u0422\u0410\u0422\u042C \u0421\u0418\u041B\u042C\u041D\u0415\u0415"],
+        ["\u0414\u0432\u0438\u0433\u0430\u0439\u0441\u044F. \u041E\u0433\u043E\u043D\u044C \u2014 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0439.", "\u0422\u0435\u043B\u0435\u0444\u043E\u043D: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440. \u041A\u043E\u043C\u043F\u044C\u044E\u0442\u0435\u0440: WASD \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438, Shift \u2014 \u0431\u0435\u0433, Q \u2014 \u043E\u0442\u043F\u043E\u0440. \u041E\u0442\u043F\u043E\u0440 \u0442\u0440\u0430\u0442\u0438\u0442 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0443\u0434\u0430\u0440 \u0431\u043B\u0438\u0436\u0430\u0439\u0448\u0438\u0445 \u0437\u043E\u043C\u0431\u0438; \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u0430\u0432\u043B\u0438\u0432\u0430\u0435\u0442\u0441\u044F \u0437\u0430 9 \u0441\u0435\u043A\u0443\u043D\u0434. \u0420\u0430\u0437\u043C\u0435\u0440 \u043A\u043D\u043E\u043F\u043E\u043A \u0438 \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439 \u2014 \u0432 \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430\u0445.", "map", "\u041A\u0410\u041A \u041E\u0422\u041A\u0420\u042B\u0422\u042C \u0411\u041E\u0421\u0421\u0410"],
+        ["\u0422\u0440\u0438 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0434\u043E \u0431\u043E\u0441\u0441\u0430", "\u0420\u0430\u0437\u0432\u0435\u0434\u043A\u0430 \u0441\u0442\u043E\u0438\u0442 6 \u044D\u043D\u0435\u0440\u0433\u0438\u0438, \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0430 \u2014 8, \u043F\u0440\u043E\u0440\u044B\u0432 \u0441 5 \u0443\u0440\u043E\u0432\u043D\u044F \u2014 12. \u0412 \u043A\u0430\u0436\u0434\u043E\u043C \u0440\u0435\u0436\u0438\u043C\u0435 \u0442\u0440\u0438 \u0432\u043E\u043B\u043D\u044B. \u041F\u043E\u0441\u043B\u0435 \u0442\u0440\u0451\u0445 \u043F\u043E\u0431\u0435\u0434\u043D\u044B\u0445 \u0432\u044B\u043B\u0430\u0437\u043E\u043A \u0438 \u0434\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u044F \u0443\u0440\u043E\u0432\u043D\u044F \u0440\u0430\u0439\u043E\u043D\u0430 \u043E\u0442\u043A\u0440\u043E\u0435\u0442\u0441\u044F \u0431\u043E\u0441\u0441. \u041F\u043E\u0431\u0435\u0434\u0438 \u0435\u0433\u043E, \u0447\u0442\u043E\u0431\u044B \u043F\u0440\u043E\u0439\u0442\u0438 \u0434\u0430\u043B\u044C\u0448\u0435. \u042D\u043D\u0435\u0440\u0433\u0438\u044F \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u0430\u0432\u043B\u0438\u0432\u0430\u0435\u0442\u0441\u044F \u0441\u0430\u043C\u0430.", "map", "\u041A\u0410\u041A \u0421\u0422\u0410\u0422\u042C \u0421\u0418\u041B\u042C\u041D\u0415\u0415"],
         ["\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u044C\u0441\u044F \u0438 \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0430\u0439\u0441\u044F", "\u0412 \xAB\u0421\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0438\xBB \u043F\u043E\u043A\u0443\u043F\u0430\u0439 \u0438 \u044D\u043A\u0438\u043F\u0438\u0440\u0443\u0439 \u043E\u0440\u0443\u0436\u0438\u0435 \u0438 \u0431\u0440\u043E\u043D\u044E, \u0432 \xAB\u0413\u0430\u0440\u0430\u0436\u0435\xBB \u0443\u043B\u0443\u0447\u0448\u0430\u0439 \u043C\u0430\u0448\u0438\u043D\u0443. \u0414\u0440\u0443\u0437\u044C\u044F \u0430\u0442\u0430\u043A\u0443\u044E\u0442 \u0440\u0435\u0439\u0434\u043E\u0432\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430 \u0432 \u0441\u0432\u043E\u0451 \u0432\u0440\u0435\u043C\u044F, \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u043E\u0431\u0449\u0435\u0435. \u041A\u043E\u043D\u0442\u0440\u0430\u043A\u0442\u044B \u0434\u0430\u044E\u0442 \u0435\u0436\u0435\u0434\u043D\u0435\u0432\u043D\u0443\u044E \u0446\u0435\u043B\u044C. \u0420\u0435\u043A\u043B\u0430\u043C\u0430 \u0437\u0430 \u044D\u043D\u0435\u0440\u0433\u0438\u044E \u2014 \u0442\u043E\u043B\u044C\u043A\u043E \u043F\u043E \u0436\u0435\u043B\u0430\u043D\u0438\u044E.", "gear", "\u041A \u041F\u0415\u0420\u0412\u041E\u0419 \u0412\u042B\u041B\u0410\u0417\u041A\u0415"]
       ];
     }
@@ -1687,6 +1726,11 @@
       avatar.className = "avatar avatar-" + (playerProfile.avatar || 0);
     }
   }
+  function applyControlPrefs() {
+    document.body.classList.toggle("high-contrast", prefs.contrast);
+    document.body.classList.toggle("left-handed", prefs.leftHanded);
+    document.body.classList.toggle("large-controls", prefs.largeControls);
+  }
   async function api(path, body) {
     const data = await requestAPI(path, body);
     if (Object.prototype.hasOwnProperty.call(data, "activeRaidId")) activeRaidId = data.activeRaidId;
@@ -1924,7 +1968,7 @@
     if (!unlocked(save, selected)) return;
     let data = await api("run/start", { map: selected, mode: sortieMode });
     let st = stats(save);
-    run = { ticket: data.ticket, plan: data.plan || sortiePlan(save, selected, sortieMode), rank: expeditionRank(save), map: selected, hp: st.hp, maxHp: st.hp, x: 430, y: 410, face: 1, time: 0, wave: 0, enemies: [], shots: [], drops: [], particles: [], kills: 0, loot: 0, healthDropped: 0, shotCd: 0.2, stamina: 100, exhausted: false, running: false, anim: 0, moving: false, travel: 0, transition: null, invulnerable: 0, paused: false, ended: false, next: 1, boss: false, damage: st.damage, speed: st.speed, lootMult: st.loot };
+    run = { ticket: data.ticket, plan: data.plan || sortiePlan(save, selected, sortieMode), rank: expeditionRank(save), map: selected, hp: st.hp, maxHp: st.hp, x: 430, y: 410, face: 1, time: 0, wave: 0, enemies: [], shots: [], drops: [], particles: [], kills: 0, loot: 0, hits: 0, repulses: 0, repulseAt: 0, repulseVisual: 0, healthDropped: 0, shotCd: 0.2, stamina: 100, exhausted: false, running: false, anim: 0, moving: false, travel: 0, transition: null, invulnerable: 0, paused: false, ended: false, next: 1, boss: false, damage: st.damage, speed: st.speed, lootMult: st.loot };
     background(bg.getContext("2d"), selected);
     sprintHeld = false;
     keys.clear();
@@ -1959,6 +2003,12 @@
     let st = sortieEnemy(enemyStats(r.map, Math.min(r.wave, 3), type, r.rank), type, r.plan);
     r.enemies.push({ x, y, type, ...st, maxHp: st.hp, cd: 1.8, flash: 0, attack: null });
   }
+  function repulse() {
+    if (!repel(run)) return;
+    run.repulseVisual = 0.3;
+    burst(run.x, run.y, "#d9bf80", 12);
+    updateHud();
+  }
   function setSprint(value) {
     sprintHeld = value;
     $("#dash").classList.toggle("running", value);
@@ -1988,7 +2038,7 @@
     r.next = 1.8;
     r.face = 1;
     r.transition = { elapsed: 0, start: r.travel, x: r.x };
-    $("#wave-label").textContent = "\u041F\u0423\u0422\u042C \u0421\u0412\u041E\u0411\u041E\u0414\u0415\u041D \xB7 \u0414\u0412\u0418\u0416\u0415\u041C\u0421\u042F \u0414\u0410\u041B\u042C\u0428\u0415";
+    $("#wave-label").textContent = "\u041F\u0415\u0420\u0415\u0425\u041E\u0414 \u041A \u0412\u041E\u041B\u041D\u0415 " + (r.wave + 1);
   }
   function movement() {
     return [(keys.has("KeyD") || keys.has("ArrowRight") ? 1 : 0) - (keys.has("KeyA") || keys.has("ArrowLeft") ? 1 : 0) + stick.x, (keys.has("KeyS") || keys.has("ArrowDown") ? 1 : 0) - (keys.has("KeyW") || keys.has("ArrowUp") ? 1 : 0) + stick.y];
@@ -2002,6 +2052,7 @@
     joy.firstElementChild.style.transform = `translate(${stick.x * travel}px,${stick.y * travel}px)`;
   }
   function pause() {
+    var _a2;
     if (!run || run.ended) return;
     run.paused = !run.paused;
     pointer = null;
@@ -2009,8 +2060,10 @@
     keys.clear();
     setSprint(false);
     stick = { x: 0, y: 0 };
+    updateHud();
     $("#overlay").hidden = !run.paused;
     if (run.paused) {
+      (_a2 = $("#battle-report")) == null ? void 0 : _a2.remove();
       $("#result-tag").textContent = "\u0421\u0412\u042F\u0417\u042C \u0421 \u0423\u0411\u0415\u0416\u0418\u0429\u0415\u041C";
       $("#result-title").textContent = "\u041F\u0435\u0440\u0435\u0434\u044B\u0448\u043A\u0430";
       $("#result-text").textContent = "\u0412\u044B\u043B\u0430\u0437\u043A\u0430 \u043F\u0440\u0438\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0430.\n\u041E\u0442\u0441\u0442\u0443\u043F\u043B\u0435\u043D\u0438\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442 35% \u043F\u043E\u0434\u043E\u0431\u0440\u0430\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439.";
@@ -2027,6 +2080,7 @@
     let r = run;
     if (!r || r.paused || r.ended) return;
     r.time += dt;
+    r.repulseVisual = Math.max(0, r.repulseVisual - dt);
     if (r.transition) {
       advanceSection(dt);
       return;
@@ -2081,6 +2135,7 @@
         if (e.attack.t <= 0) {
           if (Math.hypot(e.attack.x - r.x, e.attack.y - r.y) < e.attack.radius && r.invulnerable <= 0) {
             r.hp -= e.damage * (e.type === "boss" ? 1.6 : 1);
+            r.hits++;
             r.invulnerable = 0.65;
           }
           burst(e.attack.x, e.attack.y, "#d2a270", 18);
@@ -2146,13 +2201,21 @@
   }
   function updateHud() {
     let r = run;
+    const defense = repulseStatus(r);
+    $("#repulse").disabled = !defense.ready;
+    $("#repulse small").textContent = defense.seconds > 0 ? Math.ceil(defense.seconds) + " \u0441\u0435\u043A" : r.stamina < REPULSE.cost ? "\u041D\u0415\u0422 \u0421\u0418\u041B" : "35 \u0432\u044B\u043D\u043E\u0441\u043B.";
+    const track = $("#wave-track"), stage = r.wave + "-" + !!r.transition + "-" + r.won;
+    if (track.dataset.stage !== stage) {
+      track.dataset.stage = stage;
+      track.innerHTML = [1, 2, 3].map((n) => '<i class="' + (n < r.wave || r.won === true || r.transition && n <= r.wave ? "done" : n === r.wave ? "current" : "") + '"></i>').join("");
+    }
     $("#game").classList.toggle("critical-health", r.hp / r.maxHp < 0.25);
     $("#battle-condition").textContent = r.plan.name + " \xB7 " + r.plan.condition.name;
     $("#hp-label").textContent = `${Math.max(0, Math.ceil(r.hp))} / ${r.maxHp}`;
     $("#hp-bar").style.width = `${Math.max(0, r.hp / r.maxHp * 100)}%`;
     $("#kill-label").textContent = `${r.kills} \u0423\u0421\u0422\u0420\u0410\u041D\u0415\u041D\u041E \xB7 ${r.loot} \u0414\u0415\u0422.`;
     $("#dash").innerHTML = (r.exhausted ? "\u041E\u0422\u0414\u042B\u0425" : r.running ? "\u0411\u0415\u0413" : "\u0411\u0415\u0416\u0410\u0422\u042C") + "<small>" + Math.ceil(r.stamina) + "%</small>";
-    $("#dash").disabled = false;
+    $("#dash").disabled = r.paused || r.ended;
     $("#stamina-fill").style.width = r.stamina + "%";
     $("#section-count").textContent = "\u0423\u0427\u0410\u0421\u0422\u041E\u041A " + Math.max(1, r.wave) + " / 3";
     let boss = r.enemies.find((e) => e.type === "boss");
@@ -2198,6 +2261,15 @@
       }
     }
     for (let d of r.drops) loot(g, d.x, d.y, d.kind, r.time, d.amount || 0);
+    if (r.repulseVisual > 0) {
+      g.strokeStyle = "#e6cf99";
+      g.globalAlpha = r.repulseVisual / 0.3;
+      g.lineWidth = 3;
+      g.beginPath();
+      g.ellipse(r.x, r.y, REPULSE.radius * (1 - r.repulseVisual / 0.3), REPULSE.radius * 0.6 * (1 - r.repulseVisual / 0.3), 0, 0, Math.PI * 2);
+      g.stroke();
+      g.globalAlpha = 1;
+    }
     let actors = [...r.enemies, { x: r.x, y: r.y, type: "hero" }].sort((a, b) => a.y - b.y);
     for (let e of actors) {
       let hero = e.type === "hero", scale = e.type === "boss" ? 2 : 1.15;
@@ -2221,11 +2293,36 @@
     }
     g.globalAlpha = 1;
   }
+  function showBattleReport(r, result) {
+    var _a2;
+    (_a2 = $("#battle-report")) == null ? void 0 : _a2.remove();
+    const report = battleReport(r), panel = document.createElement("div");
+    panel.id = "battle-report";
+    panel.innerHTML = '<div class="report-mode">' + r.plan.name + " \xB7 " + r.plan.condition.name + " \xB7 " + report.energy + ' \u044D\u043D\u0435\u0440\u0433\u0438\u0438</div><div class="battle-report">' + [[report.duration, "\u0412\u0420\u0415\u041C\u042F"], [report.kills, "\u0417\u0410\u0420\u0410\u0416\u0401\u041D\u041D\u042B\u0425"], [report.hits, "\u041F\u041E\u041F\u0410\u0414\u0410\u041D\u0418\u0419"], [report.repulses, "\u041E\u0422\u041F\u041E\u0420"]].map(([value, label2]) => "<div><b>" + value + "</b><small>" + label2 + "</small></div>").join("") + '</div><div class="report-reward"><span>+' + result.reward + "<small>\u0414\u0415\u0422\u0410\u041B\u0415\u0419</small></span><span>+" + result.xp + "<small>\u041E\u041F\u042B\u0422\u0410</small></span></div>";
+    $("#result-text").after(panel);
+  }
+  function leaveRun() {
+    var _a2;
+    $("#game").hidden = true;
+    $("#overlay").hidden = true;
+    (_a2 = $("#battle-report")) == null ? void 0 : _a2.remove();
+    document.body.classList.remove("in-battle");
+    $("#game").classList.remove("critical-health");
+    run = null;
+    pointer = null;
+    joy.firstElementChild.style.transform = "";
+    keys.clear();
+    setSprint(false);
+    stick = { x: 0, y: 0 };
+    refresh();
+  }
   async function finish(win) {
     let r = run;
     if (r.ended) return;
     r.ended = true;
+    r.won = win;
     r.paused = false;
+    updateHud();
     if (win) r.loot += r.drops.filter((d) => d.kind === "scrap").reduce((a, d) => a + d.amount, 0);
     $("#overlay").hidden = false;
     $("#result-tag").textContent = "\u0421\u0412\u042F\u0417\u042C \u0421 \u0423\u0411\u0415\u0416\u0418\u0429\u0415\u041C";
@@ -2237,16 +2334,14 @@
         let result = await api("run/end", { ticket: r.ticket, win, kills: r.kills, loot: r.loot });
         $("#result-tag").textContent = result.win ? "\u041F\u0420\u0418\u041F\u0410\u0421\u042B \u0414\u041E\u0421\u0422\u0410\u0412\u041B\u0415\u041D\u042B" : "\u041E\u0422\u0420\u042F\u0414 \u042D\u0412\u0410\u041A\u0423\u0418\u0420\u041E\u0412\u0410\u041D";
         $("#result-title").textContent = result.win ? "\u0420\u0430\u0439\u043E\u043D \u0437\u0430\u0447\u0438\u0449\u0435\u043D." : "\u0422\u044B \u0432\u0435\u0440\u043D\u0443\u043B\u0441\u044F \u0436\u0438\u0432\u044B\u043C.";
-        $("#result-text").textContent = (result.win ? "\u0417\u0430\u0447\u0438\u0441\u0442\u043E\u043A \u0440\u0430\u0439\u043E\u043D\u0430: " + save.districtRuns[r.map] + " / 3. \u0411\u043E\u0441\u0441 \u0436\u0434\u0451\u0442 \u0432 \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E\u043C \u0440\u0435\u0439\u0434\u0435." : "\u0421\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E 35% \u043F\u043E\u0434\u043E\u0431\u0440\u0430\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439.") + "\n+" + result.reward + " \u0434\u0435\u0442\u0430\u043B\u0435\u0439 \xB7 +" + result.xp + " \u043E\u043F\u044B\u0442\u0430";
-        $("#result-actions").innerHTML = '<button class="primary" id="return">\u0412 \u0423\u0411\u0415\u0416\u0418\u0429\u0415 \u2192</button>';
-        $("#return").onclick = () => {
-          $("#game").hidden = true;
-          $("#overlay").hidden = true;
-          document.body.classList.remove("in-battle");
-          $("#game").classList.remove("critical-health");
-          run = null;
-          refresh();
-        };
+        $("#result-text").textContent = result.win ? "\u0417\u0430\u0447\u0438\u0441\u0442\u043E\u043A \u0440\u0430\u0439\u043E\u043D\u0430: " + save.districtRuns[r.map] + " / 3. \u0411\u043E\u0441\u0441 \u0436\u0434\u0451\u0442 \u0432 \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E\u043C \u0440\u0435\u0439\u0434\u0435." : "\u0421\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E 35% \u043F\u043E\u0434\u043E\u0431\u0440\u0430\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439.";
+        showBattleReport(r, result);
+        $("#result-actions").innerHTML = '<button class="primary" id="return">\u0412 \u0423\u0411\u0415\u0416\u0418\u0429\u0415 \u2192</button><button class="secondary" id="replay" ' + (save.energy < r.plan.cost ? "disabled" : "") + ">\u0415\u0429\u0401 \u0412\u042B\u041B\u0410\u0417\u041A\u0410 \xB7 " + r.plan.cost + " \u03DF</button>";
+        $("#return").onclick = leaveRun;
+        $("#replay").onclick = () => action(async () => {
+          leaveRun();
+          await start();
+        });
       } catch (e) {
         $("#result-title").textContent = "\u041D\u0435\u0442 \u0441\u0432\u044F\u0437\u0438";
         $("#result-text").textContent = e.message;
@@ -2361,7 +2456,7 @@
   }
   function renderSettings() {
     const el = $("#settings-page");
-    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043B\u0435\u0432\u0430, \u0431\u0435\u0433 \u0441\u043F\u0440\u0430\u0432\u0430. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.7</span></div></div>';
+    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["leftHanded", "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439", "\u0414\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043F\u0440\u0430\u0432\u0430, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440 \u0441\u043B\u0435\u0432\u0430."], ["largeControls", "\u041A\u0440\u0443\u043F\u043D\u044B\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438", "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u043A\u043D\u043E\u043F\u043A\u0438 \u0431\u043E\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>Q</kbd> \u2014 \u043E\u0442\u043F\u043E\u0440: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u0434\u0432\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F. \u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440; \u0443\u0440\u043E\u043D\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.8</span></div></div>';
     el.insertAdjacentHTML("beforeend", '<button class="secondary" id="repeat-tutorial">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C \u041E\u0411\u0423\u0427\u0415\u041D\u0418\u0415</button>');
     el.querySelector("#repeat-tutorial").onclick = () => onboarding(navigate, true);
     const account = document.createElement("p");
@@ -2372,7 +2467,7 @@
     el.querySelectorAll("[data-setting]").forEach((input) => input.onchange = () => {
       prefs[input.dataset.setting] = input.checked;
       localStorage.setItem(prefsKey, JSON.stringify(prefs));
-      document.body.classList.toggle("high-contrast", prefs.contrast);
+      applyControlPrefs();
       setSprint(false);
     });
   }
@@ -2421,6 +2516,7 @@
   var playerProfile, $, key, save, sortieMode, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
+      init_combat_tactics();
       init_operations();
       init_operations_ui();
       init_ui_icons();
@@ -2461,12 +2557,12 @@
       busy = false;
       sprintHeld = false;
       prefsKey = "obitel-settings-v1";
-      prefs = { particles: true, contrast: false, runToggle: false };
+      prefs = { particles: true, contrast: false, runToggle: false, leftHanded: false, largeControls: false };
       try {
         prefs = { ...prefs, ...JSON.parse(localStorage.getItem(prefsKey) || "{}") };
       } catch (e) {
       }
-      document.body.classList.toggle("high-contrast", prefs.contrast);
+      applyControlPrefs();
       item = (glyph, title, badge, desc, action2) => `<article class="item"><div class="item-icon">${shelterIcon({ "\u25A4": "daily", "\u25C7": "diamond", "\u271A": "medical", "\u25B0": "garage", "\u26A1": "energy" }[glyph] || "gear")}</div><span class="badge">${badge}</span><h3>${title}</h3><p>${desc}</p>${action2}</article>`;
       upgrade = (field, name, desc) => item(field === "engine" ? "\u2699" : field === "trunk" ? "\u25A4" : "\u25C7", name, `\u0423\u0420\u041E\u0412\u0415\u041D\u042C ${save[field]} / 10`, desc, `<button class="primary" data-upgrade="${field}" ${save[field] >= 10 || save.scrap < upgradeCost(save[field]) ? "disabled" : ""}>${save[field] >= 10 ? "\u041C\u0410\u041A\u0421\u0418\u041C\u0423\u041C" : `\u0423\u041B\u0423\u0427\u0428\u0418\u0422\u042C \xB7 ${upgradeCost(save[field])} \u0414\u0415\u0422.`}</button>`);
       itemArt = (i) => '<canvas class="loot-art" data-item="' + i + '" width="180" height="180"></canvas>';
@@ -2491,6 +2587,11 @@
       bg = document.createElement("canvas");
       bg.width = 960;
       bg.height = 600;
+      $("#repulse").innerHTML = shelterIcon("repulse") + "<span>\u041E\u0422\u041F\u041E\u0420<small>35 \u0432\u044B\u043D\u043E\u0441\u043B.</small></span>";
+      $("#repulse").onpointerdown = (e) => {
+        e.preventDefault();
+        repulse();
+      };
       addEventListener("keydown", (e) => {
         if ($("#game").hidden) return;
         if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
@@ -2498,6 +2599,7 @@
         if (["ShiftLeft", "ShiftRight", "Space"].includes(e.code) && !e.repeat) {
           setSprint(prefs.runToggle ? !sprintHeld : true);
         }
+        if (e.code === "KeyQ" && !e.repeat) repulse();
         if (e.code === "Escape") pause();
       });
       addEventListener("keyup", (e) => {
@@ -2514,6 +2616,7 @@
         if (document.hidden && run && !run.ended && !run.paused) pause();
       });
       $("#dash").onpointerdown = (e) => {
+        if (!run || run.paused || run.ended) return;
         e.preventDefault();
         $("#dash").setPointerCapture(e.pointerId);
         setSprint(prefs.runToggle ? !sprintHeld : true);

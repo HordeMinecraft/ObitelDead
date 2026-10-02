@@ -3,6 +3,7 @@ export const icon=name=>'<svg class="ui-icon" viewBox="0 0 24 24" fill="none" st
 
 // Original shelter insignia: stamped brass silhouettes with dark cut-outs.
 const insignia={
+ repulse:'<path d="M12 1l9 5v8l-9 9-9-9V6z"/><path class="icon-cut" d="M7 7h10v7l-5 5-5-5z"/><path class="icon-light" d="M10 6h4v5h4l-6 6-6-6h4z"/>',
  map:'<path d="M3 4l6-2 6 3 6-2v17l-6 2-6-3-6 2z"/><path class="icon-cut" d="M8 5h2v11H8zm6 3h2v11h-2z"/><path class="icon-light" d="M4 11h3v2H4zm13-3h3v2h-3z"/><path class="icon-mark" d="M10 10l3-4 3 4-3 4z"/>',
  gear:'<path d="M2 9h4l3-4h12v5h-6l-2 4H9l-2 7H3l3-10H2z"/><path class="icon-cut" d="M11 7h8v1h-8zM8 11h4v1H8z"/><path class="icon-light" d="M16 13h4v8h-4zm1-3h2v2h-2z"/>',
  garage:'<path d="M3 10l3-6h12l3 6v8h-3v3h-4v-3H9v3H5v-3H2v-8z"/><path class="icon-cut" d="M7 6h9l2 4H5zm-3 7h4v2H4zm12 0h4v2h-4z"/><path class="icon-light" d="M10 12h4v5h-4z"/>',
