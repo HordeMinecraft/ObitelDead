@@ -1748,10 +1748,14 @@
         if (top < listNode.scrollTop) listNode.scrollTop = top;
         else if (top + row.offsetHeight > listNode.scrollTop + listNode.clientHeight) listNode.scrollTop = top + row.offsetHeight - listNode.clientHeight;
       };
-      renderDetail();
       draw2(root);
+      renderDetail();
     };
     render();
+    return () => {
+      const listNode = root.querySelector(".catalogue-list");
+      listNode.scrollTop = scrollPositions[kind];
+    };
   }
   var selection, filters, scrollPositions, fmt3, delta, art2, state;
   var init_gear_catalogue = __esm({
@@ -2305,7 +2309,8 @@
     const root = $("#gear-page"), opened = [...root.querySelectorAll(".gear-workshop[open]")].map((e) => e.closest(".gear-pane").id), tabs = [["weapons", "\u041E\u0440\u0443\u0436\u0438\u0435"], ["armor", "\u0411\u0440\u043E\u043D\u044F"], ["supplies", "\u041F\u0440\u0438\u043F\u0430\u0441\u044B"]];
     root.innerHTML = `<div class="loadout-hero"><canvas id="loadout-avatar" width="400" height="380"></canvas><div><span class="eyebrow orange">\u0422\u0412\u041E\u0419 \u0412\u042B\u0416\u0418\u0412\u0428\u0418\u0419</span><h2>${WEAPONS[save.weapon].name}</h2><strong>${ARMOR[save.armorTier || 0].name}</strong><div class="stat-pills"><span>${stats(save).hp} HP</span><span>${Math.round(stats(save).damage)} \u0423\u0420\u041E\u041D</span><span>${playerLevel(save)} \u0423\u0420\u041E\u0412\u0415\u041D\u042C</span></div></div></div><div class="gear-tabs" role="tablist" aria-label="\u0421\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435">${tabs.map(([id, label2]) => '<button id="gear-tab-' + id + '" role="tab" aria-controls="gear-' + id + '" aria-selected="' + (gearTab === id) + '" tabindex="' + (gearTab === id ? "0" : "-1") + '" data-gear-tab="' + id + '">' + label2 + "</button>").join("")}</div><section class="gear-pane" id="gear-weapons" role="tabpanel" aria-labelledby="gear-tab-weapons" ${gearTab !== "weapons" ? "hidden" : ""}><div id="weapon-catalogue"></div><details class="gear-workshop"><summary>\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0430\u044F \xB7 \u043E\u0440\u0443\u0436\u0438\u0435 ${save.weaponLevel} / 10</summary>${upgrade("weaponLevel", "\u0412\u0435\u0440\u0441\u0442\u0430\u043A \u043E\u0440\u0443\u0436\u0435\u0439\u043D\u0438\u043A\u0430", `+8% \u0431\u0430\u0437\u043E\u0432\u043E\u0433\u043E \u0443\u0440\u043E\u043D\u0430 \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.weaponLevel * 8}%.`)}</details></section><section class="gear-pane" id="gear-armor" role="tabpanel" aria-labelledby="gear-tab-armor" ${gearTab !== "armor" ? "hidden" : ""}><div id="armor-catalogue"></div><details class="gear-workshop"><summary>\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0430\u044F \xB7 \u043F\u043E\u0434\u043A\u043B\u0430\u0434\u043A\u0430 ${save.armor} / 10</summary>${upgrade("armor", "\u0423\u0441\u0438\u043B\u0435\u043D\u0438\u0435 \u043F\u043E\u0434\u043A\u043B\u0430\u0434\u043A\u0438", `+8 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0437\u0430 \u0443\u0440\u043E\u0432\u0435\u043D\u044C. \u0421\u0435\u0439\u0447\u0430\u0441 +${save.armor * 8} HP. \u0420\u0430\u0431\u043E\u0442\u0430\u0435\u0442 \u0441 \u043B\u044E\u0431\u044B\u043C \u043A\u043E\u043C\u043F\u043B\u0435\u043A\u0442\u043E\u043C.`)}</details></section>` + renderInventory();
     root.querySelectorAll(".gear-workshop").forEach((e) => e.open = opened.includes(e.closest(".gear-pane").id));
-    const mount = (kind) => mountGearCatalogue(root.querySelector(kind === "weapons" ? "#weapon-catalogue" : "#armor-catalogue"), save, kind, { drawWeapon, drawItem, equip: (i) => action(async () => {
+    const catalogues = {};
+    const mount = (kind) => catalogues[kind] = mountGearCatalogue(root.querySelector(kind === "weapons" ? "#weapon-catalogue" : "#armor-catalogue"), save, kind, { drawWeapon, drawItem, equip: (i) => action(async () => {
       await api(kind === "weapons" ? "weapon" : "armor", { [kind === "weapons" ? "weapon" : "armor"]: i });
       toast("\u0421\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435 \u043D\u0430 \u043F\u0435\u0440\u0441\u043E\u043D\u0430\u0436\u0435");
     }).then(() => {
@@ -2315,6 +2320,7 @@
     mount("weapons");
     mount("armor");
     const change = (id) => {
+      var _a2;
       gearTab = id;
       root.querySelectorAll("[data-gear-tab]").forEach((b) => {
         const active = b.dataset.gearTab === id;
@@ -2322,6 +2328,7 @@
         b.tabIndex = active ? 0 : -1;
       });
       root.querySelectorAll(".gear-pane").forEach((p) => p.hidden = p.id !== "gear-" + id);
+      (_a2 = catalogues[id]) == null ? void 0 : _a2.call(catalogues);
     };
     root.querySelectorAll("[data-gear-tab]").forEach((b) => b.onclick = () => change(b.dataset.gearTab));
     root.querySelector(".gear-tabs").onkeydown = (e) => {

@@ -31,7 +31,8 @@ export function mountGearCatalogue(root,save,kind,{drawWeapon,drawItem,equip}){
   const listNode=root.querySelector('.catalogue-list');listNode.scrollTop=scrollPositions[kind];listNode.onscroll=()=>scrollPositions[kind]=listNode.scrollTop;
   root.querySelectorAll('[data-catalogue-select]').forEach(b=>b.onclick=()=>{selection[kind]=+b.dataset.catalogueSelect;renderDetail()});
   root.querySelector('.catalogue-list').onkeydown=e=>{const buttons=[...root.querySelectorAll('[data-catalogue-select]')],i=buttons.indexOf(e.target);if(i<0)return;let next;if(e.key==='ArrowDown')next=(i+1)%buttons.length;else if(e.key==='ArrowUp')next=(i+buttons.length-1)%buttons.length;else if(e.key==='Home')next=0;else if(e.key==='End')next=buttons.length-1;else return;e.preventDefault();buttons[next].click();buttons[next].focus({preventScroll:true});const row=buttons[next],top=row.offsetTop-listNode.offsetTop;if(top<listNode.scrollTop)listNode.scrollTop=top;else if(top+row.offsetHeight>listNode.scrollTop+listNode.clientHeight)listNode.scrollTop=top+row.offsetHeight-listNode.clientHeight};
-  renderDetail();draw(root);
+  draw(root);renderDetail();
  };
  render();
+ return ()=>{const listNode=root.querySelector('.catalogue-list');listNode.scrollTop=scrollPositions[kind]};
 }
