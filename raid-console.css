@@ -1,0 +1,140 @@
+/* One page scroller. Hide its WebKit overlay indicator without disabling scrolling. */
+body:not(.in-battle) main{scrollbar-width:none;-webkit-overflow-scrolling:auto}
+body:not(.in-battle) main::-webkit-scrollbar{display:none;width:0;height:0}
+#raids-page .raid-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;flex-wrap:wrap}
+#raids-page .boss-select{width:auto;min-width:180px;max-width:100%;min-height:36px;font-size:12px;padding:8px 12px;background:#172e2b;border-color:#8c9b7266}
+#raids-page .raid-tabs{margin:0;gap:6px}
+#raids-page .raid-active-state{padding:7px 10px;border-left:2px solid #c3ac6d;background:#263c31;color:#e3d2a7;font-size:11px}
+#raids-page .raid-console{display:grid;grid-template-columns:225px minmax(0,1fr);gap:0;border:1px solid #a08e6066;border-top:2px solid #c3ac6d;border-radius:10px;overflow:hidden;background:radial-gradient(ellipse at 90% 0,#75835322,transparent 55%),repeating-linear-gradient(135deg,#9caa6a03 0 1px,transparent 1px 5px),linear-gradient(120deg,#243b2e,#10282c);box-shadow:inset 0 1px #e1dbb522,0 9px 24px #0003}
+#raids-page .raid-dossier{min-width:0;border-right:1px solid #899d7044;background:#102523}
+#raids-page .raid-console .boss-stage{height:226px;min-height:0;overflow:hidden;position:relative;isolation:isolate;background:radial-gradient(ellipse at 50% 65%,#b2a76833,transparent 60%),linear-gradient(0deg,#10252388,#10252399),var(--boss-scene) center/cover}
+#raids-page .raid-console .boss-stage:before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#102523,transparent 50%),repeating-linear-gradient(90deg,transparent 0 43px,#9fa86b0b 44px 45px);z-index:1}
+#raids-page .raid-console .boss-character{position:absolute;inset:0;width:100%;height:100%;max-width:none;padding:9px 0 13px;margin:0;object-fit:contain;image-rendering:pixelated;z-index:2;filter:drop-shadow(0 6px 8px #0008)}
+#raids-page .raid-console .boss-rarity{position:absolute;top:12px;left:12px;z-index:3;background:#132824d9;border:1px solid #c3ac6d66;padding:5px 8px;color:#e3ca94;font-size:9px;letter-spacing:1.5px}
+#raids-page .raid-console .boss-stage-caption{position:absolute;bottom:9px;left:12px;right:12px;z-index:3;text-align:center;color:#b2c6b4;font-size:10px;letter-spacing:.3px}
+#raids-page .raid-vitals{padding:14px 16px 16px}
+#raids-page .raid-vitals>span{display:block;font-size:10px;color:#a6b8a5;line-height:1.3}
+#raids-page .raid-vitals h2{font-size:29px;line-height:1.1;margin:6px 0 12px;color:#f0ddbc}
+#raids-page .boss-hp-label{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 6px;margin:0 0 7px}
+#raids-page .boss-hp-label b{font:500 21px/1.2 Oswald,sans-serif;color:#d5dfbc;font-variant-numeric:tabular-nums}
+#raids-page .boss-hp-label>span{font-size:10px;color:#9eb7a7}
+#raids-page .raid-health{height:8px;margin:0;border:1px solid #82966d55;border-radius:3px;background:#091f21;box-shadow:inset 0 2px 4px #0004}
+#raids-page .raid-health>i{background:linear-gradient(90deg,#658458,#a2ba7d);box-shadow:inset 0 1px #d5e1ab66}
+#raids-page .raid-vitals>small{display:block;font-size:9px;color:#9eb7a7;margin-top:7px}
+#raids-page .raid-command-center{padding:16px;min-width:0}
+#raids-page .raid-command-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;color:#a6b8a5;font-size:10px}
+#raids-page .raid-command-header .eyebrow{font-size:9px;color:#e0c792;letter-spacing:1.3px}
+#raids-page .raid-command-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#raids-page .raid-command{display:flex;flex-direction:column;min-width:0;overflow:hidden;padding:0 12px 9px;background:linear-gradient(140deg,#43513a77,#172e2bee);border:1px solid #93a27a55;border-radius:7px;box-shadow:inset 0 1px #e0dab32a,0 3px 7px #0002}
+#raids-page .raid-command-art{height:65px;margin:0 -12px 10px;position:relative;border-bottom:1px solid #81946833;display:grid;place-items:center;background:radial-gradient(ellipse,#8d86533b,#172e2b55),repeating-linear-gradient(0deg,transparent 0 16px,#aaba8022 17px 18px)}
+#raids-page .raid-command-art canvas{width:min(175px,85%);height:61px;object-fit:contain;image-rendering:pixelated}
+#raids-page .raid-command-art>span{position:absolute;left:8px;top:7px;font-size:8px;letter-spacing:1px;color:#d1cba7;background:#122b28ba;padding:3px 5px}
+#raids-page .arena-command-art{background:linear-gradient(90deg,#0d262b44,#0d262b33),url('assets/arena-zero.webp') 50% 60%/cover}
+#raids-page .raid-command-copy h3{font:500 18px/1.2 Oswald,sans-serif;color:#eddec0;margin:0 0 4px}
+#raids-page .raid-command-copy p{font-size:11px;line-height:1.4;color:#b4c4ae;margin:0 0 9px}
+#raids-page .raid-command-values{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;color:#c0cfb6;margin-bottom:10px;min-height:25px;flex-wrap:wrap}
+#raids-page .raid-command-values b{font:500 19px/1.2 Oswald,sans-serif;color:#edcf92;font-variant-numeric:tabular-nums}
+#raids-page .raid-command button{width:100%;min-height:36px;padding:8px 10px;margin-top:auto;font-size:12px;line-height:1.25;white-space:normal}
+#raids-page .raid-command>small{margin-top:7px;text-align:center;font-size:9px;line-height:1.3;color:#a5b8a4}
+#raids-page .raid-readiness{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;color:#e0c792;font-size:11px;flex-wrap:wrap}
+#raids-page .raid-readiness>small{font-size:10px;color:#9db5a4;line-height:1.4}
+#raids-page .raid-loot{border:1px solid #8f9b6944;border-radius:6px;margin:0;padding:10px 12px;background:linear-gradient(120deg,#2a402aaa,#102a29bb)}
+#raids-page .raid-loot-title{display:flex;justify-content:space-between;align-items:baseline;gap:5px 10px;flex-wrap:wrap;margin-bottom:8px}
+#raids-page .raid-loot-title>b{font-size:11px;font-weight:500;color:#dece9e}
+#raids-page .raid-loot-title>small{font-size:9px;color:#acc1a4;line-height:1.35}
+#raids-page .raid-rewards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0}
+#raids-page .raid-rewards>div{display:flex;align-items:center;gap:7px;border:0;padding:0;background:none;min-width:0}
+#raids-page .raid-rewards canvas{width:34px;height:34px;object-fit:contain;flex-shrink:0;image-rendering:pixelated}
+#raids-page .raid-rewards strong{display:block;font:500 19px/1.2 Oswald,sans-serif;color:#e7d7b1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#raids-page .raid-rewards small{display:block;font-size:9px;color:#a9c1a6}
+#raids-page .raid-xp-seal{display:grid;place-items:center;width:30px;height:30px;flex-shrink:0;border:1px solid #b6a167;color:#debd78;font:600 12px/1 Oswald,sans-serif;transform:rotate(-6deg);border-radius:50%;background:radial-gradient(circle,#526144,#233b31);box-shadow:inset 0 0 0 3px #102b28}
+#raids-page #raid-claim{margin-top:10px;min-height:36px;font-size:12px;padding:8px 12px}
+#raids-page .raid-loot-claimed{color:#bacfa3;font-size:11px;margin:8px 0 0}
+#raids-page .raid-after-action{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+#raids-page .raid-after-action>section{border:1px solid #8b9b7355;border-radius:7px;padding:13px 14px;min-width:0;background:linear-gradient(130deg,#273c2f88,#10282b)}
+#raids-page .raid-block-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:11px}
+#raids-page .raid-block-title h3{font:500 18px/1.2 Oswald,sans-serif;margin:0;color:#e1d6b5}
+#raids-page .raid-block-title>small{font-size:9px;color:#8fab9e}
+#raids-page .raid-after-action p{font-size:12px;line-height:1.5;color:#a9beaa;margin:0}
+#raids-page .raid-after-action ol{list-style:none;padding:0;margin:0}
+#raids-page .raid-activity li{display:flex;gap:10px;padding:9px 0;border-top:1px solid #8b9b7329;font-size:12px;line-height:1.4;color:#c7d3bb}
+#raids-page .raid-activity time{font-size:10px;color:#aeb997;font-variant-numeric:tabular-nums;margin-top:2px}
+#raids-page .raid-activity li b{color:#edcf92;font-weight:600}
+#raids-page .raid-activity small{display:block;color:#94b1a0;font-size:10px;margin-top:2px}
+#raids-page .raid-damage-ranking li{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid #8b9b7329;font-size:12px;min-width:0}
+#raids-page .raid-damage-ranking .friend-avatar{width:32px;height:32px;flex-basis:32px}
+#raids-page .damage-rank{font:500 16px Oswald,sans-serif;color:#d6bd86;min-width:14px}
+#raids-page .damage-player{flex:1;min-width:0;overflow-wrap:anywhere;color:#c7d3bb}
+#raids-page .damage-player>small{display:block;font-size:9px;color:#8fab9e;margin-top:2px}
+#raids-page .raid-damage-ranking li>b{font:500 16px Oswald,sans-serif;color:#d6bd86;flex-shrink:0}
+#raids-page .raid-damage-ranking li.is-me .damage-player{color:#edd3a2}
+#raids-page .raid-party{border:1px solid #8b9b7355;border-radius:7px;margin:12px 0;background:#142b29;padding:0 12px}
+#raids-page .raid-party>summary{padding:12px 0;min-height:44px;color:#b9c9ae;font-size:12px;cursor:pointer}
+#raids-page .arena-tools{margin-top:12px;gap:10px}
+#raids-page .arena-guide p{color:#abc1a9;font-size:12px;line-height:1.6}
+#raids-page .raid-rules{margin:12px 0}
+#raids-page .raid-rules>summary,#raids-page .arena-guide>summary{font-size:12px;min-height:36px;cursor:pointer}
+#raids-page .is-rare .boss-rarity{color:#edd3a2;border-color:#d8ad75;background:#3b3524cc}
+
+@media(max-width:1000px){
+ #raids-page .raid-console{grid-template-columns:185px minmax(0,1fr)}
+ #raids-page .raid-command-center{padding:12px}
+ #raids-page .raid-vitals{padding:12px}
+ #raids-page .raid-vitals h2{font-size:25px}
+ #raids-page .raid-command-values b{font-size:17px}
+ #raids-page .raid-rewards canvas{width:26px;height:26px}
+ #raids-page .raid-rewards{gap:6px}
+ #raids-page .raid-rewards>div{gap:5px}
+ #raids-page .raid-rewards strong{font-size:17px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ #raids-page .raid-toolbar{margin-bottom:9px;gap:8px}
+ #raids-page .raid-console{grid-template-columns:165px minmax(0,1fr)}
+ #raids-page .raid-console .boss-stage{height:164px}
+ #raids-page .raid-console .boss-character{padding-top:5px;padding-bottom:8px}
+ #raids-page .raid-console .boss-rarity{font-size:8px;top:8px;left:8px;padding:4px 6px}
+ #raids-page .raid-console .boss-stage-caption{font-size:9px;bottom:7px}
+ #raids-page .raid-vitals{padding:10px}
+ #raids-page .raid-vitals>span{font-size:9px}
+ #raids-page .raid-vitals h2{font-size:23px;margin:4px 0 8px}
+ #raids-page .boss-hp-label b{font-size:18px}
+ #raids-page .boss-hp-label>span{font-size:9px}
+ #raids-page .raid-command-center{padding:10px}
+ #raids-page .raid-command-header{margin-bottom:8px}
+ #raids-page .raid-command-art{height:48px;margin-bottom:8px}
+ #raids-page .raid-command-art canvas{height:46px}
+ #raids-page .raid-command-copy h3{font-size:16px}
+ #raids-page .raid-command-copy p{font-size:10px;line-height:1.3;margin-bottom:6px}
+ #raids-page .raid-command-values{margin-bottom:7px;min-height:22px}
+ #raids-page .raid-command-values b{font-size:16px}
+ #raids-page .raid-command button,#raids-page #raid-claim,#raids-page .boss-select{min-height:44px}
+ #raids-page .raid-command{padding-bottom:7px}
+ #raids-page .raid-command>small{font-size:8px;margin-top:5px}
+ #raids-page .raid-readiness{padding:8px 0;font-size:10px}
+ #raids-page .raid-readiness>small{font-size:9px}
+ #raids-page .raid-loot{padding:8px 9px}
+ #raids-page .raid-rewards strong{font-size:16px}
+ #raids-page .raid-rewards small{font-size:8px}
+ #raids-page .raid-rules>summary,#raids-page .arena-guide>summary{min-height:44px}
+}
+@media(max-width:680px){
+ #raids-page .raid-console{grid-template-columns:145px minmax(0,1fr)}
+ #raids-page .raid-command-grid{gap:7px}
+ #raids-page .raid-command{padding-left:8px;padding-right:8px}
+ #raids-page .raid-command-art{margin-left:-8px;margin-right:-8px}
+ #raids-page .raid-rewards canvas{width:23px;height:23px}
+ #raids-page .raid-rewards>div{gap:4px}
+ #raids-page .raid-xp-seal{width:23px;height:23px;font-size:10px}
+ #raids-page .raid-after-action{gap:8px}
+ #raids-page .raid-after-action>section{padding:10px}
+ #raids-page .raid-block-title h3{font-size:16px}
+ #raids-page .raid-block-title{flex-wrap:wrap;gap:4px}
+}
+@media(max-width:520px){
+ #raids-page .raid-console{grid-template-columns:120px minmax(0,1fr)}
+ #raids-page .raid-command-grid{grid-template-columns:1fr}
+ #raids-page .raid-after-action{grid-template-columns:1fr}
+ #raids-page .raid-rewards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #raids-page .raid-vitals h2{font-size:21px}
+ #raids-page .raid-console .boss-stage{height:180px}
+}

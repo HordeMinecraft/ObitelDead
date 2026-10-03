@@ -1155,47 +1155,80 @@
     }
   });
 
+  // raid-observation.js
+  function observeRaid(previous, raid2, at) {
+    var _a2;
+    const mine = ((_a2 = raid2.members.find((p) => p.me)) == null ? void 0 : _a2.damage) || 0;
+    const state2 = { id: raid2.id, hp: raid2.hp, mine, entries: (previous == null ? void 0 : previous.id) === raid2.id ? [...previous.entries] : [] };
+    if ((previous == null ? void 0 : previous.id) === raid2.id && raid2.hp < previous.hp) {
+      const damage = previous.hp - raid2.hp;
+      state2.entries.unshift({ at, damage, mine: Math.min(damage, Math.max(0, mine - previous.mine)), hp: raid2.hp });
+      state2.entries = state2.entries.slice(0, 6);
+    }
+    return state2;
+  }
+  var raidRanking;
+  var init_raid_observation = __esm({
+    "raid-observation.js"() {
+      raidRanking = (members) => members.filter((p) => p.damage > 0).slice().sort((a, b) => b.damage - a.damage);
+    }
+  });
+
   // raid-view.js
   function tickRaid(root, raid2, save2, offset) {
     const button = root.querySelector("#raid-attack");
     if (!button || !raid2) return;
     const seconds = Math.max(0, Math.ceil((raid2.nextAttack - Date.now() - offset) / 1e3));
-    button.disabled = !!raid2.arenaPending || !!raid2.blockedBy || !raid2.joined || !raidAllowed(save2, raid2.map, raid2.rare) || raid2.hp <= 0 || seconds > 0 || save2.energy < BOSS_COST;
-    button.textContent = raid2.arenaPending ? "\u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u0430\u0440\u0435\u043D\u0443" : raid2.blockedBy ? "\u0414\u0440\u0443\u0433\u043E\u0439 \u0431\u043E\u0441\u0441 \u0430\u043A\u0442\u0438\u0432\u0435\u043D" : raid2.hp <= 0 ? "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D" : seconds ? "\u041D\u0430\u043B\u0451\u0442 \xB7 " + seconds + " \u0441" : save2.energy < BOSS_COST ? "\u041D\u0443\u0436\u043D\u043E 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438" : "\u041D\u0430\u043B\u0451\u0442 \xB7 12 \u03DF";
+    const blocked = !!raid2.blockedBy || !raid2.joined || !raidAllowed(save2, raid2.map, raid2.rare) || raid2.hp <= 0;
+    button.disabled = blocked || !!raid2.arenaPending || seconds > 0 || save2.energy < BOSS_COST;
+    button.textContent = raid2.hp <= 0 ? "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D" : raid2.arenaPending ? "\u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u0430\u0440\u0435\u043D\u0443" : seconds ? "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430" : "\u0410\u0442\u0430\u043A\u043E\u0432\u0430\u0442\u044C";
+    const status = raid2.blockedBy ? "\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u043E\u0431\u0435\u0434\u0438 \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430" : !raid2.joined ? "\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0441\u044C \u043A \u043E\u0442\u0440\u044F\u0434\u0443" : raid2.hp <= 0 ? "\u041E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430" : raid2.arenaPending ? "\u041D\u0430\u0447\u0430\u0442 \u0431\u043E\u0439 \u043D\u0430 \u0430\u0440\u0435\u043D\u0435" : seconds ? "\u041E\u0442\u0440\u044F\u0434 \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0430\u0435\u0442\u0441\u044F \xB7 " + seconds + " \u0441" : save2.energy < BOSS_COST ? "\u041D\u0443\u0436\u043D\u043E 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438" : "\u041E\u0442\u0440\u044F\u0434 \u0433\u043E\u0442\u043E\u0432 \u043A \u0430\u0442\u0430\u043A\u0435";
+    const clock = root.querySelector("#raid-ready-clock");
+    if (clock) clock.textContent = status;
     const arena = root.querySelector("#raid-arena");
     if (arena) {
-      arena.disabled = raid2.arenaVersion !== 1 || !!raid2.blockedBy || !raid2.joined || !raidAllowed(save2, raid2.map, raid2.rare) || raid2.hp <= 0 || !raid2.arenaPending && (seconds > 0 || save2.energy < BOSS_COST);
-      arena.textContent = raid2.arenaVersion !== 1 ? "\u0421\u0435\u0440\u0432\u0435\u0440 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F" : raid2.hp <= 0 ? "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D" : raid2.arenaPending ? "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0430\u0440\u0435\u043D\u0443" : seconds ? "\u0410\u0440\u0435\u043D\u0430 \xB7 " + seconds + " \u0441" : "\u0410\u0440\u0435\u043D\u0430 \xB7 12 \u03DF";
+      arena.disabled = raid2.arenaVersion !== 1 || blocked || !raid2.arenaPending && (seconds > 0 || save2.energy < BOSS_COST);
+      arena.textContent = raid2.arenaVersion !== 1 ? "\u0421\u0435\u0440\u0432\u0435\u0440 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F" : raid2.hp <= 0 ? "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D" : raid2.arenaPending ? "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0431\u043E\u0439" : seconds ? "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430" : "\u0412\u0441\u0442\u0443\u043F\u0438\u0442\u044C \u0432 \u0431\u043E\u0439";
     }
+    const practice = root.querySelector("#arena-practice");
+    if (practice) practice.disabled = !!raid2.arenaPending;
+    const cost = root.querySelector(".raid-arena-cost");
+    if (cost) cost.textContent = raid2.arenaPending ? "\u041E\u043F\u043B\u0430\u0447\u0435\u043D\u043E" : "12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438";
   }
-  function renderRaidView(root, { raid: raid2, save: save2, selected: selected2, rareMode: rareMode2, offset, onMode, onMap, onCreate, onAttack, onArena, onPractice, onJoin, onClaim, onClose, onCopy, onPrepare }) {
-    var _a2, _b2, _c, _d, _e, _f;
+  function renderRaidView(root, { raid: raid2, save: save2, selected: selected2, rareMode: rareMode2, offset, onMode, onMap, onCreate, onAttack, onArena, onPractice, onJoin, onClaim, onClose, onPrepare }) {
+    var _a2, _b2, _c, _d, _e, _f, _g;
     const map = raid2 ? raid2.map : selected2, rare = raid2 ? !!raid2.rare : rareMode2, m = MAPS[map], profile = RARE_RAIDS[map], allowed = raidAllowed(save2, map, rare), mine = raid2 == null ? void 0 : raid2.members.find((p) => p.me);
-    const reward = (raid2 == null ? void 0 : raid2.reward) || { scrap: m.reward * 2, xp: 45, cores: 3, cloth: 6 };
-    const capacity = (raid2 == null ? void 0 : raid2.capacity) || RAID_CAPACITY;
-    const arena = arenaContract(save2, map, rare);
-    const hit = (_a2 = raid2 == null ? void 0 : raid2.estimatedDamage) != null ? _a2 : raidHit(save2, map, rare);
-    const hp = (_b2 = raid2 == null ? void 0 : raid2.hp) != null ? _b2 : rare ? profile.hp : raidProfile(map).hp, maxHp = (_c = raid2 == null ? void 0 : raid2.maxHp) != null ? _c : hp;
-    const party = (raid2 == null ? void 0 : raid2.members) || [];
+    const reward = (raid2 == null ? void 0 : raid2.reward) || { scrap: m.reward * 2, xp: 45, cores: 3, cloth: 6 }, capacity = (raid2 == null ? void 0 : raid2.capacity) || RAID_CAPACITY, arena = arenaContract(save2, map, rare);
+    const hit = (_a2 = raid2 == null ? void 0 : raid2.estimatedDamage) != null ? _a2 : raidHit(save2, map, rare), hp = (_b2 = raid2 == null ? void 0 : raid2.hp) != null ? _b2 : rare ? profile.hp : raidProfile(map).hp, maxHp = (_c = raid2 == null ? void 0 : raid2.maxHp) != null ? _c : hp, party = (raid2 == null ? void 0 : raid2.members) || [];
     const requiredLevel = rare ? profile.level : m.level, remaining = Math.max(0, 3 - (save2.districtRuns[map] || 0));
     const accessReason = allowed ? "\u0414\u043E\u0441\u0442\u0443\u043F \u043E\u0442\u043A\u0440\u044B\u0442" : !unlocked(save2, map) ? "\u041F\u043E\u0431\u0435\u0434\u0438 \u0431\u043E\u0441\u0441\u0430 \u043F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0435\u0433\u043E \u0440\u0430\u0439\u043E\u043D\u0430" : playerLevel(save2) < requiredLevel ? "\u041D\u0443\u0436\u0435\u043D \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + requiredLevel : remaining ? "\u041E\u0441\u0442\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A: " + remaining : rare && !save2.cleared.includes(map) ? "\u041F\u043E\u0431\u0435\u0434\u0438 \u043E\u0431\u044B\u0447\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E" : "\u041D\u0443\u0436\u0435\u043D \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u0440\u0430\u0439\u043E\u043D\u0430";
-    const oldArena = (_d = root.querySelector(".arena-guide")) == null ? void 0 : _d.open, oldDetails = (_e = root.querySelector(".raid-rules")) == null ? void 0 : _e.open, oldPage = Number(root.dataset.partyPage || 0);
-    const same = root.dataset.encounter === ((raid2 == null ? void 0 : raid2.id) || "catalog");
-    root.dataset.encounter = (raid2 == null ? void 0 : raid2.id) || "catalog";
+    const encounter = (raid2 == null ? void 0 : raid2.id) || "catalog-" + map + "-" + rare, same = root.dataset.encounter === encounter;
+    const oldArena = (_d = root.querySelector(".arena-guide")) == null ? void 0 : _d.open, oldDetails = (_e = root.querySelector(".raid-rules")) == null ? void 0 : _e.open, oldParty = (_f = root.querySelector(".raid-party")) == null ? void 0 : _f.open, oldPage = Number(root.dataset.partyPage || 0);
+    const main = root.closest("main"), scroll = (main == null ? void 0 : main.scrollTop) || 0, focused = root.contains(document.activeElement) ? document.activeElement.id : null;
+    const previous = observations.get(root), seen = raid2 ? observeRaid(previous, raid2, Date.now() + offset) : null;
+    observations.set(root, seen);
+    root.dataset.encounter = encounter;
     root.dataset.partyPage = String(same ? oldPage : 0);
-    root.innerHTML = `<div class="raid-toolbar"><div class="raid-tabs" role="group" aria-label="\u0422\u0438\u043F \u0431\u043E\u0441\u0441\u0430">${raid2 && hp > 0 ? `<span class="raid-active-state">${rare ? "\u0420\u0435\u0434\u043A\u0438\u0439" : "\u041E\u0431\u044B\u0447\u043D\u044B\u0439"} \u0440\u0435\u0439\u0434 \xB7 ${raid2.blockedBy ? "\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440" : "\u0430\u043A\u0442\u0438\u0432\u0435\u043D"}</span>` : `<button class="secondary" data-mode="normal" aria-pressed="${!rare}">\u041E\u0431\u044B\u0447\u043D\u044B\u0435</button><button class="secondary" data-mode="rare" aria-pressed="${rare}">\u0420\u0435\u0434\u043A\u0438\u0435</button>`}</div><div class="raid-picker">${!raid2 ? `<label class="raid-select" for="raid-map">\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430</label><select id="raid-map" class="boss-select">${MAPS.map((v, i) => `<option value="${i}" ${map === i ? "selected" : ""}>${v.boss}${rare ? " \xB7 \u0443\u0440. " + RARE_RAIDS[i].level : ""}</option>`).join("")}</select>` : ""}</div></div>
-
-
- <article class="boss-encounter ${rare ? "is-rare" : ""}">
- <div class="boss-stage" style="--boss-scene:url('assets/district-${map}.png')"><span class="boss-rarity">${rare ? "\u0420\u0415\u0414\u041A\u0418\u0419" : "\u0411\u041E\u0421\u0421 \u0420\u0410\u0419\u041E\u041D\u0410"} \xB7 ${escape(m.name)}</span><img class="boss-character" src="assets/boss-${BOSS_ART[map]}.png" alt="${escape(m.boss)} \u2014 ${roles[map]}" width="512" height="512" decoding="async"><span class="boss-stage-caption">${roles[map]}</span></div>
- <div class="boss-brief"><span class="eyebrow">${raid2 ? "\u041E\u0411\u0429\u0418\u0419 \u0420\u0415\u0419\u0414" : "\u0414\u041E\u0421\u042C\u0415 \u041F\u0420\u041E\u0422\u0418\u0412\u041D\u0418\u041A\u0410"}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt(hp)}</b><span>/ ${fmt(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt(hp)} \u0438\u0437 ${fmt(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div>
- ${raid2 ? `<p class="raid-total">\u041E\u0411\u0429\u0418\u0419 \u0423\u0420\u041E\u041D: <b>${fmt((_f = raid2.totalDamage) != null ? _f : maxHp - hp)}</b> \xB7 \u0422\u0412\u041E\u0419: <b>${fmt(mine == null ? void 0 : mine.damage)}</b></p><p class="page-intro">${raid2.blockedBy ? "\u0423 \u0442\u0435\u0431\u044F \u0443\u0436\u0435 \u0435\u0441\u0442\u044C \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0431\u043E\u0441\u0441. \u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u0435\u0433\u043E, \u0447\u0442\u043E\u0431\u044B \u0432\u0441\u0442\u0443\u043F\u0438\u0442\u044C \u0432 \u044D\u0442\u043E\u0442 \u0440\u0435\u0439\u0434." : hp > 0 ? "\u0410\u0442\u0430\u043A\u0438 \u0432\u0441\u0435\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u0443\u043C\u0435\u043D\u044C\u0448\u0430\u044E\u0442 \u043E\u0434\u043D\u043E \u043E\u0431\u0449\u0435\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435." : "\u041E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430! \u0417\u0430\u0431\u0435\u0440\u0438 \u0441\u0432\u043E\u044E \u043D\u0430\u0433\u0440\u0430\u0434\u0443."}</p>` : ""}<div class="boss-facts"><div><span>\u0422\u0432\u043E\u044F \u0430\u0442\u0430\u043A\u0430</span><b>${fmt(hit)}</b></div><div><span>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438</span><b>${party.length} / ${capacity}</b></div><div><span>\u041F\u043E\u0432\u0442\u043E\u0440</span><b>${raidProfile(map).cooldown / 1e3} \u0441\u0435\u043A</b></div></div>
- ${!raid2 ? `<p class="boss-access">\u0423\u0440\u043E\u0432\u0435\u043D\u044C ${rare ? profile.level : m.level} \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438${rare ? " \xB7 \u043F\u043E\u0431\u0435\u0434\u0430 \u043D\u0430\u0434 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \u0432\u0435\u0440\u0441\u0438\u0435\u0439" : ""}<br><span>${accessReason}</span></p>${allowed ? '<button class="primary boss-action" id="create-raid">\u041D\u0430\u0447\u0430\u0442\u044C \u0440\u0435\u0439\u0434</button>' : '<button class="primary boss-action" id="raid-prepare">\u041A \u0440\u0430\u0439\u043E\u043D\u0443</button>'}` : `<div class="raid-actions"><button class="primary boss-action" id="raid-arena">\u0410\u0440\u0435\u043D\u0430 \xB7 12 \u03DF</button><button class="secondary boss-action" id="raid-attack">\u041D\u0430\u043B\u0451\u0442 \xB7 12 \u03DF</button>${!raid2.joined && hp > 0 ? `<button class="secondary boss-action" id="join-raid" ${raid2.blockedBy || !allowed || party.length >= capacity ? "disabled" : ""}>${!allowed ? "\u041D\u0443\u0436\u0435\u043D \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441" : party.length >= capacity ? "\u041E\u0442\u0440\u044F\u0434 \u0437\u0430\u043F\u043E\u043B\u043D\u0435\u043D" : "\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u044C\u0441\u044F"}</button>` : ""}</div><p class="raid-action-note">\u0410\u0440\u0435\u043D\u0430 \u2014 30 \u0441\u0435\u043A\u0443\u043D\u0434 \u0431\u043E\u044F, \u0434\u043E +20% \u0432\u043A\u043B\u0430\u0434\u0430. \u041D\u0430\u043B\u0451\u0442 \u2014 \u043E\u0431\u044B\u0447\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0431\u0435\u0437 \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F.</p>`}
- </div></article>
- <div class="arena-tools"><button class="secondary" id="arena-practice">\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430</button><p>\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E \xB7 \u0431\u0435\u0437 \u043E\u043F\u044B\u0442\u0430 \u0438 \u043D\u0430\u0433\u0440\u0430\u0434</p><details class="arena-guide" ${oldArena && same ? "open" : ""}><summary>\u041E\u0431 \u0430\u0440\u0435\u043D\u0435 \xB7 30 \u0441\u0435\u043A</summary><section class="arena-briefing"><div class="arena-briefing-copy"><span class="eyebrow">\u041D\u041E\u0412\u042B\u0419 \u0411\u041E\u0415\u0412\u041E\u0419 \u0423\u0417\u0415\u041B / 00</span><h3>\u041D\u0443\u043B\u0435\u0432\u0430\u044F \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0430.</h3><p>\u0423\u0434\u0435\u0440\u0436\u0438 \u043F\u043E\u0437\u0438\u0446\u0438\u044E 30 \u0441\u0435\u043A\u0443\u043D\u0434. \u0423\u0445\u043E\u0434\u0438 \u0438\u0437 \u043E\u0442\u043C\u0435\u0447\u0435\u043D\u043D\u044B\u0445 \u0437\u043E\u043D \u0438 \u0430\u0442\u0430\u043A\u0443\u0439 \u043F\u043E\u0441\u043B\u0435 \u0442\u044F\u0436\u0451\u043B\u043E\u0433\u043E \u0443\u0434\u0430\u0440\u0430 \u0431\u043E\u0441\u0441\u0430.</p><div class="arena-briefing-facts"><span><b>30 \u0441\u0435\u043A</b> \u0422\u0440\u0438 \u0444\u0430\u0437\u044B</span><span><b>12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438</b> \u0426\u0435\u043D\u0430 \u0431\u043E\u044F</span><span><b>\u0414\u043E ${fmt(arena.cap)}</b> \u0412\u043A\u043B\u0430\u0434 \u0432 \u0440\u0435\u0439\u0434</span></div></div><div class="arena-phase-list"><span><b>01</b><i>\u041D\u0430\u0431\u043B\u044E\u0434\u0435\u043D\u0438\u0435<small>\u0423\u043A\u043B\u043E\u043D\u044F\u0439\u0441\u044F \u043E\u0442 \u043E\u0434\u0438\u043D\u043E\u0447\u043D\u043E\u0433\u043E \u0443\u0434\u0430\u0440\u0430</small></i></span><span><b>02</b><i>\u041F\u043E\u0434\u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u0435<small>\u041E\u0442\u043F\u043E\u0440 \u0443\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445</small></i></span><span><b>03</b><i>\u042F\u0440\u043E\u0441\u0442\u044C<small>\u0414\u0432\u0435 \u0437\u043E\u043D\u044B \u0443\u0434\u0430\u0440\u0430 \u2014 \u043D\u0430\u0439\u0434\u0438 \u0432\u044B\u0445\u043E\u0434</small></i></span></div></section></details></div>
- <section class="raid-loot"><div class="section-title"><h3>${raid2 ? "\u0422\u0432\u043E\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B" : rare ? "\u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434 \u0440\u0435\u0439\u0434\u0430" : "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443"}</h3></div><div class="raid-rewards">${rewards(raid2 ? reward : rare ? profile.pool : reward)}</div>${rare ? "<p>\u0424\u043E\u043D\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u043D\u0430\u043D\u0435\u0441\u0451\u043D\u043D\u043E\u043C\u0443 \u0443\u0440\u043E\u043D\u0443. \u0411\u0435\u0437 \u0443\u0447\u0430\u0441\u0442\u0438\u044F \u0432 \u0430\u0442\u0430\u043A\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u044B \u043D\u0435\u0442.</p>" : "<p>\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0440\u0430\u0441\u0442\u0451\u0442 \u0441 \u0442\u0432\u043E\u0438\u043C \u0432\u043A\u043B\u0430\u0434\u043E\u043C. \u041F\u043E\u043B\u043D\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u2014 \u0437\u0430 25% \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0431\u043E\u0441\u0441\u0430; \u043C\u0435\u043D\u044C\u0448\u0438\u0439 \u0432\u043A\u043B\u0430\u0434 \u0434\u0430\u0451\u0442 \u043F\u0440\u043E\u043F\u043E\u0440\u0446\u0438\u043E\u043D\u0430\u043B\u044C\u043D\u0443\u044E \u0447\u0430\u0441\u0442\u044C.</p>"}${raid2 && hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0430\u0431\u0440\u0430\u0442\u044C \u043D\u0430\u0433\u0440\u0430\u0434\u0443</button>' : ""}</section>
- <details class="raid-rules" ${oldDetails && same ? "open" : ""}><summary>\u041F\u0440\u0430\u0432\u0438\u043B\u0430 \u0438 \u0443\u0441\u043B\u043E\u0432\u0438\u044F \u0440\u0435\u0439\u0434\u0430</summary><p>\u0410\u0442\u0430\u043A\u0438 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F, \u043E\u0431\u0449\u0435\u0435 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F. \u0426\u0435\u043D\u0430 \u2014 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438. \u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u043D\u0430\u043B\u0451\u0442 \u043D\u0430\u043D\u043E\u0441\u0438\u0442 \u043E\u0431\u044B\u0447\u043D\u044B\u0439 \u0443\u0440\u043E\u043D \u0431\u0435\u0437 \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F. \u0410\u0440\u0435\u043D\u0430 \u2014 \u0431\u043E\u0439 \u043D\u0430 30 \u0441\u0435\u043A\u0443\u043D\u0434, \u0434\u043E +20% \u043A \u043E\u0431\u044B\u0447\u043D\u043E\u043C\u0443 \u0432\u043A\u043B\u0430\u0434\u0443. \u0423\u0440\u043E\u043D \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F; \u0442\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430 \u043D\u0438\u0447\u0435\u0433\u043E \u043D\u0435 \u043D\u0430\u0447\u0438\u0441\u043B\u044F\u0435\u0442. ${rare ? "\u041E\u0441\u0430\u0434\u043D\u043E\u0435 \u0443\u0441\u0438\u043B\u0435\u043D\u0438\u0435 \xD7" + profile.multiplier.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + ". \u041E\u043D\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u043D\u0430 \u0440\u0435\u0434\u043A\u0438\u0445 \u0431\u043E\u0441\u0441\u043E\u0432. \u041D\u0430\u0433\u0440\u0430\u0434\u044B \u043E\u043A\u0440\u0443\u0433\u043B\u044F\u044E\u0442\u0441\u044F \u0432\u043D\u0438\u0437 \u0438 \u0432\u044B\u0434\u0430\u044E\u0442\u0441\u044F \u043E\u0434\u0438\u043D \u0440\u0430\u0437 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B. \u0420\u0435\u0439\u0434 \u0431\u0435\u0437 \u0441\u0440\u043E\u043A\u0430 \u0438\u0441\u0442\u0435\u0447\u0435\u043D\u0438\u044F." : raidProfile(map).trait}</p><p>\u041D\u0430 \u0438\u0433\u0440\u043E\u043A\u0430 \u2014 \u043E\u0434\u0438\u043D \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0431\u043E\u0441\u0441 \u0434\u043E \u043F\u043E\u0431\u0435\u0434\u044B. \u041F\u0440\u0438 \u0432\u044B\u0431\u043E\u0440\u0435 \u0442\u043E\u0433\u043E \u0436\u0435 \u0431\u043E\u0441\u0441\u0430 \u0438\u0433\u0440\u0430 \u043F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0435\u0442 \u043A \u043E\u0431\u0449\u0435\u043C\u0443 \u0440\u0435\u0439\u0434\u0443, \u0432 \u043F\u0435\u0440\u0432\u0443\u044E \u043E\u0447\u0435\u0440\u0435\u0434\u044C \u0441 \u0434\u0440\u0443\u0437\u044C\u044F\u043C\u0438. \u0423\u0440\u043E\u043D \u0432\u0441\u0435\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u0441\u0443\u043C\u043C\u0438\u0440\u0443\u0435\u0442\u0441\u044F; \u043F\u043E\u043B\u043D\u044B\u0439 \u043E\u0442\u0440\u044F\u0434 \u2014 300 \u0438\u0433\u0440\u043E\u043A\u043E\u0432. \u0415\u0441\u043B\u0438 \u043E\u0442\u0440\u044F\u0434 \u0437\u0430\u043F\u043E\u043B\u043D\u0435\u043D, \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439.</p></details>
- ${raid2 ? (raid2.blockedBy || hp <= 0 ? '<div class="raid-controls"><button class="secondary" id="close-raid">' + (raid2.blockedBy ? "\u041A \u043C\u043E\u0435\u043C\u0443 \u0431\u043E\u0441\u0441\u0443" : "\u041A \u0441\u043F\u0438\u0441\u043A\u0443 \u0431\u043E\u0441\u0441\u043E\u0432") + "</button></div>" : "") + '<section class="raid-party"><h3>\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438 \xB7 ' + party.length + '</h3><div class="party-list"></div><div class="party-pagination"></div></section>' : ""}`;
+    const leaders = raidRanking(party).slice(0, 5), contribution = (mine == null ? void 0 : mine.damage) || 0;
+    const lootLabel = raid2 ? hp > 0 ? "\u0422\u0432\u043E\u044F \u0434\u043E\u043B\u044F \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B" : "\u0422\u0432\u043E\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430" : rare ? "\u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434 \u043E\u0442\u0440\u044F\u0434\u0430" : "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430";
+    const lootHint = raid2 && hp <= 0 ? "\u0418\u0442\u043E\u0433 \u043F\u043E \u0442\u0432\u043E\u0435\u043C\u0443 \u0432\u043A\u043B\u0430\u0434\u0443." : rare ? "\u0424\u043E\u043D\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u0444\u0430\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u043C\u0443 \u0443\u0440\u043E\u043D\u0443." : raid2 ? "\u0414\u043E \u043F\u043E\u043B\u043D\u043E\u0439 \u043D\u0430\u0433\u0440\u0430\u0434\u044B: " + fmt(Math.max(0, Math.ceil(maxHp * 0.25 - contribution))) + " \u0443\u0440\u043E\u043D\u0430." : "\u041F\u043E\u043B\u043D\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u2014 \u0437\u0430 25% \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0431\u043E\u0441\u0441\u0430.";
+    const quickAction = !raid2 ? allowed ? '<button class="primary" id="create-raid">\u041D\u0430\u0447\u0430\u0442\u044C \u0440\u0435\u0439\u0434</button>' : '<button class="primary" id="raid-prepare">\u041A \u0440\u0430\u0439\u043E\u043D\u0443</button>' : '<button class="primary" id="raid-attack" aria-describedby="raid-ready-clock">\u0410\u0442\u0430\u043A\u043E\u0432\u0430\u0442\u044C</button>';
+    const arenaAction = !raid2 ? '<button class="secondary" id="arena-practice">\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430</button>' : '<button class="secondary" id="raid-arena" aria-describedby="raid-ready-clock">\u0412\u0441\u0442\u0443\u043F\u0438\u0442\u044C \u0432 \u0431\u043E\u0439</button>';
+    root.innerHTML = `<div class="raid-toolbar"><div class="raid-tabs" role="group" aria-label="\u0422\u0438\u043F \u0431\u043E\u0441\u0441\u0430">${raid2 && hp > 0 ? `<span class="raid-active-state">${rare ? "\u0420\u0435\u0434\u043A\u0438\u0439" : "\u041E\u0431\u044B\u0447\u043D\u044B\u0439"} \u0440\u0435\u0439\u0434 \xB7 ${raid2.blockedBy ? "\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440" : "\u0430\u043A\u0442\u0438\u0432\u0435\u043D"}</span>` : `<button class="secondary" data-mode="normal" aria-pressed="${!rare}">\u041E\u0431\u044B\u0447\u043D\u044B\u0435</button><button class="secondary" data-mode="rare" aria-pressed="${rare}">\u0420\u0435\u0434\u043A\u0438\u0435</button>`}</div>${!raid2 ? `<select id="raid-map" class="boss-select" aria-label="\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430">${MAPS.map((v, i) => `<option value="${i}" ${map === i ? "selected" : ""}>${v.boss}${rare ? " \xB7 \u0443\u0440. " + RARE_RAIDS[i].level : ""}</option>`).join("")}</select>` : ""}</div>
+ <article class="raid-console ${rare ? "is-rare" : ""}">
+  <div class="raid-dossier"><div class="boss-stage" style="--boss-scene:url('assets/district-${map}.webp')"><span class="boss-rarity">${rare ? "\u0420\u0415\u0414\u041A\u0410\u042F \u0426\u0415\u041B\u042C" : "\u0426\u0415\u041B\u042C " + String(map + 1).padStart(2, "0")}</span><img class="boss-character" src="assets/boss-${BOSS_ART[map]}.png" alt="${escape(m.boss)} \u2014 ${roles[map]}" width="512" height="512" decoding="async"><span class="boss-stage-caption">${escape(m.name)}</span></div>
+  <div class="raid-vitals"><span>${roles[map]}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt(hp)}</b><span>/ ${fmt(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt(hp)} \u0438\u0437 ${fmt(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div><small>${raid2 ? "\u041E\u0431\u0449\u0438\u0439 \u0443\u0440\u043E\u043D: " + fmt(maxHp - hp) : "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + requiredLevel + " \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438"}</small></div></div>
+  <div class="raid-command-center"><div class="raid-command-header"><span class="eyebrow">${raid2 ? "\u0411\u041E\u0419 \u0421 \u041E\u0422\u0420\u042F\u0414\u041E\u041C" : "\u041F\u041E\u0414\u0413\u041E\u0422\u041E\u0412\u041A\u0410 \u041A \u0411\u041E\u042E"}</span><span>${party.length} / ${capacity} \u0431\u043E\u0439\u0446\u043E\u0432</span></div>
+   <div class="raid-command-grid"><section class="raid-command raid-command-fire"><div class="raid-command-art"><canvas data-raid-weapon="${save2.weapon}" width="190" height="72" aria-hidden="true"></canvas><span>01 / \u041E\u0420\u0423\u0416\u0418\u0415</span></div><div class="raid-command-copy"><h3>\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u043D\u0430\u043B\u0451\u0442</h3><p>${escape(WEAPONS[save2.weapon].name)} \xB7 \u0431\u0435\u0437 \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F</p><div class="raid-command-values"><span><b>${fmt(hit)}</b> \u0443\u0440\u043E\u043D\u0430</span><span><b>12</b> \u044D\u043D\u0435\u0440\u0433\u0438\u0438</span></div></div>${quickAction}<small>\u041F\u0435\u0440\u0435\u0440\u044B\u0432: ${raidProfile(map).cooldown / 1e3} \u0441\u0435\u043A</small></section>
+   <section class="raid-command raid-command-arena"><div class="raid-command-art arena-command-art"><span>02 / \u0422\u0410\u041A\u0422\u0418\u041A\u0410</span></div><div class="raid-command-copy"><h3>\u0411\u043E\u0439 \u043D\u0430 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0435</h3><p>\u0423\u043A\u043B\u043E\u043D\u044F\u0439\u0441\u044F \u0438 \u043D\u0430\u0445\u043E\u0434\u0438 \u043E\u043A\u043D\u043E \u0434\u043B\u044F \u0441\u0442\u0440\u0435\u043B\u044C\u0431\u044B</p><div class="raid-command-values"><span>${raid2 ? "\u0434\u043E" : "\u0412 \u0440\u0435\u0439\u0434\u0435 \u0434\u043E"} <b>${fmt(arena.cap)}</b> \u0443\u0440\u043E\u043D\u0430</span><span class="raid-arena-cost">${raid2 ? "12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438" : "\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u0430\u044F \u043F\u0440\u043E\u0431\u0430"}</span></div></div>${arenaAction}<small>${raid2 ? "30 \u0441\u0435\u043A \u0431\u043E\u044F \xB7 \u043E\u0431\u0449\u0438\u0439 \u043F\u0435\u0440\u0435\u0440\u044B\u0432" : "\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442 \u0443\u0440\u043E\u043D \u0440\u0435\u0439\u0434\u0443"}</small></section></div>
+   <div class="raid-readiness"><span id="raid-ready-clock" tabindex="-1">${raid2 ? "\u041E\u0442\u0440\u044F\u0434 \u0433\u043E\u0442\u043E\u0432 \u043A \u0430\u0442\u0430\u043A\u0435" : accessReason}</span>${!raid2 ? `<small>\u0423\u0441\u043B\u043E\u0432\u0438\u044F: \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${requiredLevel}${rare ? " \u0438 \u043F\u043E\u0431\u0435\u0434\u0430 \u043D\u0430\u0434 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \u0432\u0435\u0440\u0441\u0438\u0435\u0439" : ""}</small>` : !raid2.joined && hp > 0 ? `<button class="secondary" id="join-raid" ${raid2.blockedBy || !allowed || party.length >= capacity ? "disabled" : ""}>${!allowed ? "\u041D\u0443\u0436\u0435\u043D \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441" : party.length >= capacity ? "\u041E\u0442\u0440\u044F\u0434 \u0437\u0430\u043F\u043E\u043B\u043D\u0435\u043D" : "\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u044C\u0441\u044F"}</button>` : `<small>\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434: ${fmt(contribution)} \u0443\u0440\u043E\u043D\u0430</small>`}</div>
+   <section class="raid-loot"><div class="raid-loot-title"><b>${lootLabel}</b><small>${lootHint}</small></div><div class="raid-rewards">${rewards(raid2 ? reward : rare ? profile.pool : reward)}</div>${raid2 && hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0430\u0431\u0440\u0430\u0442\u044C \u043D\u0430\u0433\u0440\u0430\u0434\u0443</button>' : (mine == null ? void 0 : mine.claimed) ? '<p class="raid-loot-claimed">\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</p>' : ""}</section>
+  </div>
+ </article>
+ ${raid2 ? `<div class="raid-after-action"><section class="raid-activity"><div class="raid-block-title"><h3>\u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u044F \u0431\u043E\u044F</h3><small>\u0421 \u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u0430</small></div>${seen.entries.length ? "<ol>" + seen.entries.map((e) => `<li><time>${new Date(e.at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</time><span>\u041E\u0431\u0449\u0438\u0439 \u0443\u0440\u043E\u043D <b>+${fmt(e.damage)}</b><small>${e.mine ? "\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434 +" + fmt(e.mine) : "\u0412\u043A\u043B\u0430\u0434 \u0434\u0440\u0443\u0433\u0438\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432"} \xB7 \u043E\u0441\u0442\u0430\u043B\u043E\u0441\u044C ${fmt(e.hp)} HP</small></span></li>`).join("") + "</ol>" : "<p>\u0418\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u043F\u043E\u044F\u0432\u044F\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0439 \u0430\u0442\u0430\u043A\u0438. \u0421\u0442\u0430\u0440\u044B\u0435 \u0441\u043E\u0431\u044B\u0442\u0438\u044F \u043D\u0435 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u0430\u0432\u043B\u0438\u0432\u0430\u044E\u0442\u0441\u044F.</p>"}</section><section class="raid-damage-ranking"><div class="raid-block-title"><h3>\u041B\u0438\u0434\u0435\u0440\u044B \u043F\u043E \u0443\u0440\u043E\u043D\u0443</h3><small>\u0412 \u044D\u0442\u043E\u043C \u0440\u0435\u0439\u0434\u0435</small></div>${leaders.length ? "<ol>" + leaders.map((p, i) => `<li ${p.me ? 'class="is-me"' : ""}><span class="damage-rank">${i + 1}</span>${portrait(p)}<span class="damage-player">${escape(p.name)}${p.me ? " \xB7 \u0442\u044B" : ""}<small>${share(p.damage, maxHp)} \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0431\u043E\u0441\u0441\u0430</small></span><b>${fmt(p.damage)}</b></li>`).join("") + "</ol>" : "<p>\u0417\u0434\u0435\u0441\u044C \u043F\u043E\u044F\u0432\u044F\u0442\u0441\u044F \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438, \u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u0443\u0436\u0435 \u043D\u0430\u043D\u0435\u0441\u043B\u0438 \u0443\u0440\u043E\u043D.</p>"}</section></div>` : ""}
+ <div class="arena-tools">${raid2 ? '<button class="secondary" id="arena-practice">\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430</button><p>\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E \xB7 \u0431\u0435\u0437 \u043E\u043F\u044B\u0442\u0430 \u0438 \u043D\u0430\u0433\u0440\u0430\u0434</p>' : ""}<details class="arena-guide" ${oldArena && same ? "open" : ""}><summary>\u0422\u0430\u043A\u0442\u0438\u043A\u0430 \u0430\u0440\u0435\u043D\u044B \xB7 30 \u0441\u0435\u043A</summary><p>\u041D\u0430\u0431\u043B\u044E\u0434\u0435\u043D\u0438\u0435 \u2192 \u043F\u043E\u0434\u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u0435 \u2192 \u044F\u0440\u043E\u0441\u0442\u044C. \u0423\u0445\u043E\u0434\u0438 \u0438\u0437 \u043E\u0442\u043C\u0435\u0447\u0435\u043D\u043D\u044B\u0445 \u0437\u043E\u043D, \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439 \u043E\u0442\u043F\u043E\u0440 \u0438 \u0441\u0442\u0440\u0435\u043B\u044F\u0439 \u0432 \u043E\u043A\u043D\u043E \u0443\u044F\u0437\u0432\u0438\u043C\u043E\u0441\u0442\u0438. \u0412\u043A\u043B\u0430\u0434 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F \u0431\u043E\u044F. \u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u2014 \u0434\u043E +20% \u043A \u0431\u044B\u0441\u0442\u0440\u043E\u043C\u0443 \u043D\u0430\u043B\u0451\u0442\u0443.</p></details></div>
+ <details class="raid-rules" ${oldDetails && same ? "open" : ""}><summary>\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u043E\u0431\u0449\u0435\u0433\u043E \u0440\u0435\u0439\u0434\u0430</summary><p>\u0423 \u0432\u0441\u0435\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u043E\u0434\u043D\u043E \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430. \u0410\u0442\u0430\u043A\u0443\u0439 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F; \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u0432\u043A\u043B\u0430\u0434\u0430 \u2014 \u043A\u0430\u0436\u0434\u044B\u0435 4 \u0441\u0435\u043A\u0443\u043D\u0434\u044B \u043F\u0440\u0438 \u043E\u0442\u043A\u0440\u044B\u0442\u043E\u043C \u044D\u043A\u0440\u0430\u043D\u0435. \u041E\u0431\u0430 \u0441\u043F\u043E\u0441\u043E\u0431\u0430 \u0430\u0442\u0430\u043A\u0438 \u0441\u0442\u043E\u044F\u0442 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \u0438 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u044E\u0442 \u043E\u0431\u0449\u0438\u0439 \u043F\u0435\u0440\u0435\u0440\u044B\u0432. ${rare ? "\u041E\u0441\u0430\u0434\u043D\u043E\u0435 \u0443\u0441\u0438\u043B\u0435\u043D\u0438\u0435 \xD7" + profile.multiplier.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + ". \u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434 \u043D\u0430\u0433\u0440\u0430\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u0443\u0440\u043E\u043D\u0443; \u0441\u0440\u043E\u043A\u0430 \u0438\u0441\u0442\u0435\u0447\u0435\u043D\u0438\u044F \u0440\u0435\u0439\u0434\u0430 \u043D\u0435\u0442." : raidProfile(map).trait}</p><p>\u041E\u0434\u0438\u043D \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0431\u043E\u0441\u0441 \u0434\u043E \u043F\u043E\u0431\u0435\u0434\u044B. \u041F\u0440\u0438 \u0432\u044B\u0431\u043E\u0440\u0435 \u0442\u043E\u0433\u043E \u0436\u0435 \u0431\u043E\u0441\u0441\u0430 \u0438\u0433\u0440\u0430 \u043F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0435\u0442 \u043A \u043E\u0431\u0449\u0435\u043C\u0443 \u0440\u0435\u0439\u0434\u0443, \u0432 \u043F\u0435\u0440\u0432\u0443\u044E \u043E\u0447\u0435\u0440\u0435\u0434\u044C \u0441 \u0434\u0440\u0443\u0437\u044C\u044F\u043C\u0438. \u0412 \u043E\u0442\u0440\u044F\u0434\u0435 \u0434\u043E 300 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432; \u043F\u0440\u0438 \u0437\u0430\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0438 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0440\u0435\u0439\u0434.</p></details>
+ ${raid2 ? (raid2.blockedBy || hp <= 0 ? '<div class="raid-controls"><button class="secondary" id="close-raid">' + (raid2.blockedBy ? "\u041A \u043C\u043E\u0435\u043C\u0443 \u0431\u043E\u0441\u0441\u0443" : "\u041A \u0441\u043F\u0438\u0441\u043A\u0443 \u0431\u043E\u0441\u0441\u043E\u0432") + "</button></div>" : "") + `<details class="raid-party" ${oldParty && same ? "open" : ""}><summary>\u0412\u0435\u0441\u044C \u043E\u0442\u0440\u044F\u0434 \xB7 ${party.length} / ${capacity}</summary><div class="party-list"></div><div class="party-pagination"></div></details>` : ""}`;
     root.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => onMode(b.dataset.mode === "rare"));
     const bind = (id, fn) => {
       const el = root.querySelector("#" + id);
@@ -1204,32 +1237,25 @@
     const select = root.querySelector("#raid-map");
     if (select) select.onchange = (e) => onMap(Number(e.target.value));
     bind("raid-prepare", onPrepare);
-    bind("arena-practice", () => {
-      root.querySelector("#arena-practice").textContent = "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430\u2026";
-      onPractice();
-    });
-    bind("raid-arena", () => {
-      root.querySelector("#raid-arena").textContent = "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430\u2026";
-      onArena();
-    });
+    bind("arena-practice", onPractice);
+    bind("raid-arena", onArena);
     bind("create-raid", onCreate);
     bind("raid-attack", onAttack);
     bind("join-raid", onJoin);
     bind("raid-claim", onClaim);
     bind("close-raid", onClose);
-    bind("copy-raid", onCopy);
+    root.querySelectorAll("[data-raid-weapon]").forEach((c) => drawWeapon(c, Number(c.dataset.raidWeapon)));
+    root.querySelectorAll("[data-raid-resource]").forEach((c) => drawItem(c, Number(c.dataset.raidResource)));
     if (raid2) {
-      const sorted = [...party].sort((a, b) => Number(b.me) - Number(a.me) || b.damage - a.damage), pages = Math.ceil(sorted.length / 20);
+      const sorted = [...party].sort((a, b) => b.damage - a.damage), pages = Math.ceil(sorted.length / 20);
       const paint = () => {
         const page2 = Math.min(Number(root.dataset.partyPage), Math.max(0, pages - 1));
         root.dataset.partyPage = page2;
         root.querySelector(".party-list").innerHTML = sorted.slice(page2 * 20, page2 * 20 + 20).map((p) => `<div>${portrait(p)}<span><b>${escape(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</b><small>${p.online ? "\u0412 \u0441\u0435\u0442\u0438" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"}</small></span><div class="party-contribution"><b>${fmt(p.damage)} \u0443\u0440\u043E\u043D\u0430</b><div><i style="width:${Math.min(100, p.damage / maxHp * 100)}%"></i></div></div>${p.claimed ? "<small>\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</small>" : ""}</div>`).join("");
         const nav = root.querySelector(".party-pagination");
-        nav.innerHTML = pages > 1 ? `<button class="secondary" ${page2 === 0 ? "disabled" : ""}>\u2190</button><span>${page2 + 1} / ${pages}</span><button class="secondary" ${page2 === pages - 1 ? "disabled" : ""}>\u2192</button>` : "";
+        nav.innerHTML = pages > 1 ? `<button class="secondary" ${page2 === 0 ? "disabled" : ""} aria-label="\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438">\u2190</button><span>${page2 + 1} / ${pages}</span><button class="secondary" ${page2 === pages - 1 ? "disabled" : ""} aria-label="\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438">\u2192</button>` : "";
         const buttons = nav.querySelectorAll("button");
         if (buttons.length) {
-          buttons[0].ariaLabel = "\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438";
-          buttons[1].ariaLabel = "\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438";
           buttons[0].onclick = () => {
             root.dataset.partyPage = page2 - 1;
             paint();
@@ -1243,19 +1269,30 @@
       paint();
       tickRaid(root, raid2, save2, offset);
     }
+    if (main) main.scrollTop = same ? scroll : 0;
+    const focus = focused && root.querySelector("#" + focused);
+    if (focus && !focus.disabled) focus.focus({ preventScroll: true });
+    else if (focus == null ? void 0 : focus.disabled) (_g = root.querySelector("#raid-ready-clock")) == null ? void 0 : _g.focus({ preventScroll: true });
   }
-  var BOSS_ART, roles, fmt, escape, rewards;
+  var BOSS_ART, roles, observations, fmt, share, escape, rewards;
   var init_raid_view = __esm({
     "raid-view.js"() {
       init_boss_arena();
       init_friends_ui();
+      init_art();
+      init_raid_observation();
       init_balance();
       init_rare_raids();
       BOSS_ART = ["watcher", "arsonist", "crane", "doctor", "root", "driver", "smelter", "admiral"];
       roles = ["\u0425\u0440\u0430\u043D\u0438\u0442\u0435\u043B\u044C \u043F\u0443\u0441\u0442\u044B\u0445 \u0434\u043E\u043C\u043E\u0432", "\u041E\u0433\u043E\u043D\u044C \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u0439 \u0437\u0430\u043F\u0440\u0430\u0432\u043A\u0438", "\u0425\u043E\u0437\u044F\u0438\u043D \u0433\u0440\u0443\u0437\u043E\u0432\u043E\u0433\u043E \u0434\u0432\u043E\u0440\u0430", "\u041A\u0430\u0440\u0430\u043D\u0442\u0438\u043D \u043D\u0435 \u043E\u043A\u043E\u043D\u0447\u0435\u043D", "\u0421\u0435\u0440\u0434\u0446\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0433\u043E \u043B\u0435\u0441\u0430", "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0440\u0435\u0439\u0441", "\u0416\u0430\u0440 \u043C\u0451\u0440\u0442\u0432\u044B\u0445 \u043F\u0435\u0447\u0435\u0439", "\u041A\u043E\u043C\u0430\u043D\u0434\u0438\u0440 \u0437\u0430\u0442\u043E\u043D\u0443\u0432\u0448\u0435\u0433\u043E \u0444\u043B\u043E\u0442\u0430"];
+      observations = /* @__PURE__ */ new WeakMap();
       fmt = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
+      share = (damage, max) => {
+        const percent = damage / max * 100;
+        return percent > 0 && percent < 0.01 ? "\u043C\u0435\u043D\u044C\u0448\u0435 0,01%" : percent.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + "%";
+      };
       escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-      rewards = (r) => Object.entries({ scrap: "\u0414\u0435\u0442\u0430\u043B\u0438", xp: "\u041E\u043F\u044B\u0442", cores: "\u042F\u0434\u0440\u0430", cloth: "\u0422\u043A\u0430\u043D\u044C" }).map(([k, name]) => "<div><strong>" + fmt(r[k]) + "</strong><span>" + name + "</span></div>").join("");
+      rewards = (r) => Object.entries({ scrap: "\u0414\u0435\u0442\u0430\u043B\u0438", xp: "\u041E\u043F\u044B\u0442", cores: "\u042F\u0434\u0440\u0430", cloth: "\u0422\u043A\u0430\u043D\u044C" }).map(([k, name]) => "<div>" + (k === "xp" ? '<i class="raid-xp-seal" aria-hidden="true">XP</i>' : '<canvas data-raid-resource="' + { scrap: 0, cores: 1, cloth: 2 }[k] + '" width="42" height="42" aria-hidden="true"></canvas>') + "<span><strong>" + fmt(r[k]) + "</strong><small>" + name + "</small></span></div>").join("");
     }
   });
 
@@ -1305,7 +1342,7 @@
       ctx.font = "bold 12px monospace";
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffdfaa";
-      ctx.fillText("\u0423\u0414\u0410\u0420", z.x, z.y + 4);
+      ctx.fillText("\u0423\u0414\u0410\u0420 \xB7 " + Math.max(0, attack.t).toFixed(1) + " \u0441", z.x, z.y + 4);
       ctx.restore();
     }
   }
@@ -1460,6 +1497,52 @@
   var init_combat_tactics = __esm({
     "combat-tactics.js"() {
       REPULSE = { cost: 35, cooldown: 9, radius: 115, distance: 90 };
+    }
+  });
+
+  // battle-feedback.js
+  function nearestTarget(enemies, x, y, range) {
+    let target = null, distance = range;
+    for (const enemy of enemies) {
+      if (enemy.hp <= 0) continue;
+      const d = Math.hypot(enemy.x - x, enemy.y - y);
+      if (d < distance) {
+        distance = d;
+        target = enemy;
+      }
+    }
+    return target;
+  }
+  function combatCue(run2, weapon) {
+    if (run2.ended) return { tone: "quiet", title: "\u0411\u043E\u0439 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D", timer: "" };
+    if (run2.paused) return { tone: "quiet", title: "\u0411\u043E\u0439 \u043F\u0440\u0438\u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D", timer: "" };
+    if (run2.transition) return { tone: "travel", title: "\u0423\u0447\u0430\u0441\u0442\u043E\u043A \u0437\u0430\u0447\u0438\u0449\u0435\u043D \xB7 \u0438\u0434\u0451\u043C \u0434\u0430\u043B\u044C\u0448\u0435", timer: "" };
+    const threats = run2.enemies.filter((e) => {
+      var _a2;
+      return e.hp > 0 && ((_a2 = e.attack) == null ? void 0 : _a2.t) > 0 && (e.attack.zones || [e.attack]).some((z) => strikeContains(z, run2.x, run2.y));
+    });
+    if (threats.length) {
+      const seconds = Math.min(...threats.map((e) => e.attack.t));
+      return { tone: "danger", title: "\u0412\u044B\u0439\u0434\u0438 \u0438\u0437 \u0437\u043E\u043D\u044B \u0443\u0434\u0430\u0440\u0430", timer: seconds.toFixed(1) + " \u0441" };
+    }
+    const boss = run2.enemies.find((e) => e.hp > 0 && e.type === "boss");
+    if ((boss == null ? void 0 : boss.exposedUntil) > run2.time) return { tone: "opening", title: "\u0411\u043E\u0441\u0441 \u0443\u044F\u0437\u0432\u0438\u043C \xB7 \u0434\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E", timer: (boss.exposedUntil - run2.time).toFixed(1) + " \u0441" };
+    if (run2.exhausted) return { tone: "recover", title: "\u0411\u0435\u0433 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D \xB7 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u044C", timer: "" };
+    if (run2.hp / run2.maxHp < 0.25) return { tone: "danger", title: "\u041C\u0430\u043B\u043E \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \xB7 \u0443\u0445\u043E\u0434\u0438 \u043E\u0442 \u043E\u043A\u0440\u0443\u0436\u0435\u043D\u0438\u044F", timer: "" };
+    if (!nearestTarget(run2.enemies, run2.x, run2.y, weapon.range) && run2.enemies.some((e) => e.hp > 0)) return { tone: "range", title: "\u0426\u0435\u043B\u044C \u0432\u043D\u0435 \u0434\u0430\u043B\u044C\u043D\u043E\u0441\u0442\u0438 \xB7 \u043F\u043E\u0434\u043E\u0439\u0434\u0438 \u0431\u043B\u0438\u0436\u0435", timer: "" };
+    return { tone: "quiet", title: "\u0410\u0432\u0442\u043E\u043E\u0433\u043E\u043D\u044C \xB7 \u0434\u0432\u0438\u0433\u0430\u0439\u0441\u044F \u0438 \u0434\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E", timer: "" };
+  }
+  function sortieNextStep(save2, map) {
+    if (MAPS.every((_, i) => save2.cleared.includes(i))) return { page: "guide", map, label: "\u041A \u0434\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u044F\u043C", description: "\u0412\u0441\u0435 \u0440\u0430\u0439\u043E\u043D\u044B \u043E\u0441\u0432\u043E\u0435\u043D\u044B. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u043D\u0430\u0433\u0440\u0430\u0434\u044B \u043F\u043E\u043B\u0435\u0432\u043E\u0433\u043E \u0436\u0443\u0440\u043D\u0430\u043B\u0430." };
+    if (!save2.cleared.includes(map) && bossUnlocked(save2, map)) return { page: "raids", map, label: "\u041A \u0431\u043E\u0441\u0441\u0443 \u0440\u0430\u0439\u043E\u043D\u0430", description: MAPS[map].boss + " \u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D. \u041D\u0430\u0447\u043D\u0438 \u043E\u0431\u0449\u0438\u0439 \u0440\u0435\u0439\u0434." };
+    if (save2.cleared.includes(map) && MAPS[map + 1] && unlocked(save2, map + 1)) return { page: "map", map: map + 1, label: "\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0440\u0430\u0439\u043E\u043D", description: MAPS[map + 1].name + " \u043E\u0442\u043A\u0440\u044B\u0442 \u0434\u043B\u044F \u0432\u044B\u043B\u0430\u0437\u043E\u043A." };
+    const remaining = Math.max(0, 3 - (save2.districtRuns[map] || 0));
+    return { page: "map", map, label: "\u041A \u043A\u0430\u0440\u0442\u0435 \u0433\u043E\u0440\u043E\u0434\u0430", description: remaining ? "\u041F\u043E\u0431\u0435\u0434\u043D\u044B\u0445 \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A \u0434\u043E \u0431\u043E\u0441\u0441\u0430: " + remaining + "." : "\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u044B. \u041F\u0440\u043E\u0432\u0435\u0440\u044C \u0442\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435 \u043A \u0443\u0440\u043E\u0432\u043D\u044E \u0431\u043E\u0441\u0441\u0430." };
+  }
+  var init_battle_feedback = __esm({
+    "battle-feedback.js"() {
+      init_balance();
+      init_boss_arena();
     }
   });
 
@@ -2228,7 +2311,7 @@
     $("#map-threat").textContent = `\u0423\u0413\u0420\u041E\u0417\u0410 ${["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][i]}`;
     $("#deploy").disabled = !networkReady || !unlocked(save, i) || save.energy < plan.cost;
     $("#deploy").innerHTML = '<span class="deploy-label">' + plan.name + '</span><span class="deploy-cost">' + plan.cost + " \u03DF " + shelterIcon("arrow") + "</span>";
-    $("#deploy-hint").textContent = !unlocked(save, i) ? "\u041F\u041E\u0411\u0415\u0414\u0418 \u0411\u041E\u0421\u0421\u0410 \u041F\u0420\u0415\u0414\u042B\u0414\u0423\u0429\u0415\u0413\u041E \u0420\u0410\u0419\u041E\u041D\u0410" : save.energy < plan.cost ? "\u041D\u0415\u0414\u041E\u0421\u0422\u0410\u0422\u041E\u0427\u041D\u041E \u042D\u041D\u0415\u0420\u0413\u0418\u0418 \xB7 +1 \u041A\u0410\u0416\u0414\u042B\u0415 5 \u041C\u0418\u041D\u0423\u0422" : `\u0417\u0410\u0427\u0418\u0421\u0422\u041E\u041A: ${save.districtRuns[i]} / 3 \u0414\u041E \u0411\u041E\u0421\u0421\u0410`;
+    $("#deploy-hint").textContent = !unlocked(save, i) ? "\u041F\u041E\u0411\u0415\u0414\u0418 \u0411\u041E\u0421\u0421\u0410 \u041F\u0420\u0415\u0414\u042B\u0414\u0423\u0429\u0415\u0413\u041E \u0420\u0410\u0419\u041E\u041D\u0410" : save.energy < plan.cost ? "\u041D\u0415\u0414\u041E\u0421\u0422\u0410\u0422\u041E\u0427\u041D\u041E \u042D\u041D\u0415\u0420\u0413\u0418\u0418 \xB7 +1 \u041A\u0410\u0416\u0414\u042B\u0415 5 \u041C\u0418\u041D\u0423\u0422" : `\u0417\u0410\u0427\u0418\u0421\u0422\u041E\u041A: ${Math.min(3, save.districtRuns[i] || 0)} / 3 \u0414\u041E \u0411\u041E\u0421\u0421\u0410`;
     $("#boss-open").disabled = !bossUnlocked(save, i);
     $("#boss-progress").textContent = bossUnlocked(save, i) ? "\u0411\u041E\u0421\u0421 \u0414\u041E\u0421\u0422\u0423\u041F\u0415\u041D" : `\u041D\u0423\u0416\u041D\u041E 3 \u0417\u0410\u0427\u0418\u0421\u0422\u041A\u0418 \u0418 \u0423\u0420\u041E\u0412\u0415\u041D\u042C ${MAPS[i].level}`;
     scene($("#scene"), i);
@@ -2634,7 +2717,8 @@
     }
     let weapon = WEAPONS[(_a2 = r.weapon) != null ? _a2 : save.weapon];
     r.shotCd -= dt;
-    let target = r.enemies.filter((e) => Math.hypot(e.x - r.x, e.y - r.y) < weapon.range).sort((a, b) => Math.hypot(a.x - r.x, a.y - r.y) - Math.hypot(b.x - r.x, b.y - r.y))[0];
+    let target = nearestTarget(r.enemies, r.x, r.y, weapon.range);
+    r.target = target;
     if (target && r.shotCd <= 0) {
       r.face = target.x > r.x ? 1 : -1;
       let angle = Math.atan2(target.y - r.y, target.x - r.x);
@@ -2667,7 +2751,7 @@
       if (e.attack) {
         e.attack.t -= dt;
         if (e.attack.t <= 0) {
-          if (Math.hypot(e.attack.x - r.x, e.attack.y - r.y) < e.attack.radius && r.invulnerable <= 0) {
+          if (strikeContains(e.attack, r.x, r.y) && r.invulnerable <= 0) {
             r.hp -= e.damage * (e.type === "boss" ? 1.6 : 1);
             r.hits++;
             r.invulnerable = 0.65;
@@ -2737,9 +2821,19 @@
     updateHud();
   }
   function updateHud(force = false) {
+    var _a2;
     let r = run;
     if (!force && !r.paused && !r.ended && r.time < (r.hudAt || 0)) return;
     r.hudAt = r.time + 0.1;
+    const cue = combatCue(r, WEAPONS[(_a2 = r.weapon) != null ? _a2 : save.weapon]), cueNode = $("#combat-cue");
+    cueNode.dataset.tone = cue.tone;
+    if ($("#combat-cue-title").textContent !== cue.title) $("#combat-cue-title").textContent = cue.title;
+    $("#combat-cue-timer").textContent = cue.timer;
+    $("#stamina-label").textContent = Math.ceil(r.stamina) + "%";
+    const hpTrack = $(".hp-track");
+    hpTrack.setAttribute("aria-valuenow", Math.round(Math.max(0, r.hp / r.maxHp * 100)));
+    hpTrack.setAttribute("aria-valuetext", Math.max(0, Math.ceil(r.hp)) + " \u0438\u0437 " + r.maxHp + " HP");
+    $(".stamina-track").setAttribute("aria-valuenow", Math.round(r.stamina));
     const defense = repulseStatus(r);
     $("#repulse").disabled = !defense.ready;
     $("#repulse small").textContent = defense.seconds > 0 ? Math.ceil(defense.seconds) + " \u0441\u0435\u043A" : r.stamina < REPULSE.cost ? "\u041D\u0415\u0422 \u0421\u0418\u041B" : "35 \u0432\u044B\u043D\u043E\u0441\u043B.";
@@ -2768,13 +2862,14 @@
       const pressure = Math.min(100, r.rawDamage / r.contract.target * 100), seconds = Math.max(0, Math.ceil(ARENA.duration - r.time));
       $("#wave-label").textContent = ARENA_PHASES[arenaPhase(r.time)] + " \xB7 " + seconds + " \u0441\u0435\u043A";
       $("#battle-condition").textContent = r.practice ? "\u0411\u0415\u0421\u041F\u041B\u0410\u0422\u041D\u0410\u042F \u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0410" : MAPS[r.map].boss + " \xB7 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438";
-      $("#section-count").textContent = (boss == null ? void 0 : boss.exposedUntil) > r.time ? "\u0411\u041E\u0421\u0421 \u0423\u042F\u0417\u0412\u0418\u041C \xB7 \u0410\u0422\u0410\u041A\u0423\u0419" : "\u041F\u041E\u0421\u041B\u0415 \u0423\u0414\u0410\u0420\u0410 \u0411\u041E\u0421\u0421 \u0423\u042F\u0417\u0412\u0418\u041C";
-      $("#kill-label").textContent = r.practice ? "\u041D\u0410\u041F\u041E\u0420 " + Math.floor(pressure) + "% \xB7 \u0411\u0415\u0417 \u041D\u0410\u0413\u0420\u0410\u0414" : "\u0412\u041A\u041B\u0410\u0414 ~" + arenaContribution(r.contract, r.rawDamage, r.time) + " / " + r.contract.cap;
+      $("#section-count").textContent = r.practice ? "\u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0410" : "\u041E\u0411\u0429\u0418\u0419 \u0420\u0415\u0419\u0414";
+      $("#kill-label").textContent = r.practice ? "\u041D\u0410\u041F\u041E\u0420 " + Math.floor(pressure) + "% \xB7 \u0411\u0415\u0417 \u041D\u0410\u0413\u0420\u0410\u0414" : Number.isFinite(r.confirmedDamage) ? "\u0417\u0410\u0427\u0422\u0415\u041D\u041E " + raidNumber(r.confirmedDamage) : "\u0412\u041A\u041B\u0410\u0414 ~" + arenaContribution(r.contract, r.rawDamage, r.time) + " / " + r.contract.cap;
       $("#boss-bar").style.width = (r.practice ? pressure : Math.max(0, r.sharedHp / r.sharedMaxHp * 100)) + "%";
       $("#boss-name").textContent = MAPS[r.map].boss + (r.practice ? " \xB7 \u041D\u0410\u041F\u041E\u0420" : " \xB7 " + raidNumber(r.sharedHp) + " HP");
     }
   }
   function draw() {
+    var _a2;
     if (!run || $("#game").hidden) return;
     let r = run;
     const offset = r.travel % 960, section = Math.floor(r.travel / 960);
@@ -2824,6 +2919,18 @@
       g.stroke();
       g.globalAlpha = 1;
     }
+    if (((_a2 = r.target) == null ? void 0 : _a2.hp) > 0) {
+      const tx = r.target.x, ty = r.target.y, rad = r.target.type === "boss" ? 34 : 20;
+      g.strokeStyle = "#edcf92";
+      g.lineWidth = 1.5;
+      g.beginPath();
+      for (const side of [-1, 1]) {
+        g.moveTo(tx + side * rad, ty - 5);
+        g.lineTo(tx + side * rad, ty + 5);
+        g.lineTo(tx + side * (rad - 7), ty + 5);
+      }
+      g.stroke();
+    }
     let actors = [...r.enemies, { x: r.x, y: r.y, type: "hero" }].sort((a, b) => a.y - b.y);
     for (let e of actors) {
       let hero = e.type === "hero", scale = e.type === "boss" ? 2 : 1.15;
@@ -2848,12 +2955,15 @@
     }
     g.globalAlpha = 1;
   }
+  function resultMetrics(rows, duration, mode = "") {
+    return '<details class="result-metrics"><summary>\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043A\u0430 \u0431\u043E\u044F \xB7 ' + duration + "</summary>" + (mode ? '<div class="report-mode">' + mode + "</div>" : "") + '<div class="battle-report">' + rows.map(([value, label2]) => "<div><b>" + value + "</b><small>" + label2 + "</small></div>").join("") + "</div></details>";
+  }
   function showBattleReport(r, result) {
     var _a2;
     (_a2 = $("#battle-report")) == null ? void 0 : _a2.remove();
     const report = battleReport(r), panel = document.createElement("div");
     panel.id = "battle-report";
-    panel.innerHTML = '<div class="report-mode">' + r.plan.name + " \xB7 " + r.plan.condition.name + " \xB7 " + report.energy + ' \u044D\u043D\u0435\u0440\u0433\u0438\u0438</div><div class="battle-report">' + [[report.duration, "\u0412\u0420\u0415\u041C\u042F"], [report.kills, "\u0417\u0410\u0420\u0410\u0416\u0401\u041D\u041D\u042B\u0425"], [report.hits, "\u041F\u041E\u041F\u0410\u0414\u0410\u041D\u0418\u0419"], [report.repulses, "\u041E\u0422\u041F\u041E\u0420"]].map(([value, label2]) => "<div><b>" + value + "</b><small>" + label2 + "</small></div>").join("") + '</div><div class="report-reward"><span>+' + result.reward + "<small>\u0414\u0415\u0422\u0410\u041B\u0415\u0419</small></span><span>+" + result.xp + "<small>\u041E\u041F\u042B\u0422\u0410</small></span></div>";
+    panel.innerHTML = '<div class="report-reward"><span>+' + result.reward + "<small>\u0414\u0415\u0422\u0410\u041B\u0415\u0419</small></span><span>+" + result.xp + "<small>\u041E\u041F\u042B\u0422\u0410</small></span></div>" + resultMetrics([[report.duration, "\u0412\u0420\u0415\u041C\u042F"], [report.kills, "\u0417\u0410\u0420\u0410\u0416\u0401\u041D\u041D\u042B\u0425"], [report.hits, "\u041F\u041E\u041F\u0410\u0414\u0410\u041D\u0418\u0419"], [report.repulses, "\u041E\u0422\u041F\u041E\u0420"]], report.duration, r.plan.name + " \xB7 " + r.plan.condition.name + " \xB7 " + report.energy + " \u044D\u043D\u0435\u0440\u0433\u0438\u0438");
     $("#result-text").after(panel);
   }
   function leaveRun() {
@@ -2889,14 +2999,22 @@
     $("#result-text").textContent = "\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u043C \u0440\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442 \u0432\u044B\u043B\u0430\u0437\u043A\u0438 \u043D\u0430 \u0441\u0435\u0440\u0432\u0435\u0440\u0435.";
     $("#result-actions").innerHTML = "";
     const submit = async () => {
+      var _a2;
       try {
         let result = await api("run/end", { ticket: r.ticket, win, kills: r.kills, loot: r.loot });
         $("#result-tag").textContent = result.win ? "\u041F\u0420\u0418\u041F\u0410\u0421\u042B \u0414\u041E\u0421\u0422\u0410\u0412\u041B\u0415\u041D\u042B" : "\u041E\u0422\u0420\u042F\u0414 \u042D\u0412\u0410\u041A\u0423\u0418\u0420\u041E\u0412\u0410\u041D";
         $("#result-title").textContent = result.win ? "\u0420\u0430\u0439\u043E\u043D \u0437\u0430\u0447\u0438\u0449\u0435\u043D." : "\u0422\u044B \u0432\u0435\u0440\u043D\u0443\u043B\u0441\u044F \u0436\u0438\u0432\u044B\u043C.";
-        $("#result-text").textContent = result.win ? "\u0417\u0430\u0447\u0438\u0441\u0442\u043E\u043A \u0440\u0430\u0439\u043E\u043D\u0430: " + save.districtRuns[r.map] + " / 3. \u0411\u043E\u0441\u0441 \u0436\u0434\u0451\u0442 \u0432 \u043E\u0442\u0434\u0435\u043B\u044C\u043D\u043E\u043C \u0440\u0435\u0439\u0434\u0435." : "\u0421\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E 35% \u043F\u043E\u0434\u043E\u0431\u0440\u0430\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439.";
+        $("#result-text").textContent = result.win ? "\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0434\u043B\u044F \u0434\u043E\u0441\u0442\u0443\u043F\u0430 \u043A \u0431\u043E\u0441\u0441\u0443: " + Math.min(3, save.districtRuns[r.map] || 0) + " / 3." : "\u0421\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E 35% \u043F\u043E\u0434\u043E\u0431\u0440\u0430\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439.";
         showBattleReport(r, result);
-        $("#result-actions").innerHTML = '<button class="primary" id="return">\u0412 \u0443\u0431\u0435\u0436\u0438\u0449\u0435</button><button class="secondary" id="replay" ' + (save.energy < r.plan.cost ? "disabled" : "") + ">\u041F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u044C \xB7 " + r.plan.cost + " \u03DF</button>";
-        $("#return").onclick = leaveRun;
+        const next = activeRaidId ? { page: "raids", map: (_a2 = raid == null ? void 0 : raid.map) != null ? _a2 : r.map, label: "\u041A \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u043C\u0443 \u0440\u0435\u0439\u0434\u0443", description: "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438 \u043E\u0431\u0449\u0438\u0439 \u0431\u043E\u0439 \u0441 \u0442\u0435\u043A\u0443\u0449\u0438\u043C \u0431\u043E\u0441\u0441\u043E\u043C." } : sortieNextStep(save, r.map);
+        $("#battle-report .result-metrics").insertAdjacentHTML("beforebegin", '<div class="result-next"><small>\u0421\u041B\u0415\u0414\u0423\u042E\u0429\u0410\u042F \u0426\u0415\u041B\u042C</small><p>' + next.description + "</p></div>");
+        $("#result-actions").innerHTML = '<button class="primary" id="return">' + next.label + '</button><button class="secondary" id="replay" ' + (save.energy < r.plan.cost ? "disabled" : "") + ">\u041F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u044C \xB7 " + r.plan.cost + " \u03DF</button>";
+        $("#return").onclick = () => {
+          selected = next.map;
+          if (next.page === "guide") journalTab = "milestones";
+          leaveRun();
+          navigate(next.page);
+        };
         $("#replay").onclick = () => action(async () => {
           leaveRun();
           await start();
@@ -2926,19 +3044,23 @@
     const submit = async () => {
       try {
         const result = r.practice ? { damage: 0, cap: r.contract.cap } : await api("raids/" + r.arenaRaidId + "/attack", { arena: "finish", ticket: r.ticket, damage: r.rawDamage });
+        r.confirmedDamage = result.damage;
         if (result.raid) {
           raid = result.raid;
           r.sharedHp = raid.hp;
-          updateHud(true);
         }
-        $("#result-title").textContent = r.practice ? "\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0430." : result.refunded ? "\u0411\u043E\u0441\u0441 \u0443\u0436\u0435 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D." : survived ? "\u041E\u0442\u0440\u044F\u0434 \u0443\u0434\u0435\u0440\u0436\u0430\u043B \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0443." : "\u0422\u044B \u044D\u0432\u0430\u043A\u0443\u0438\u0440\u043E\u0432\u0430\u043D.";
-        $("#result-text").textContent = r.practice ? "\u0411\u0435\u0437 \u0440\u0430\u0441\u0445\u043E\u0434\u0430 \u044D\u043D\u0435\u0440\u0433\u0438\u0438, \u043E\u043F\u044B\u0442\u0430 \u0438 \u0434\u043E\u0431\u044B\u0447\u0438. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u0431\u043E\u0439, \u0447\u0442\u043E\u0431\u044B \u043E\u0441\u0432\u043E\u0438\u0442\u044C \u0437\u043E\u043D\u044B \u0443\u0434\u0430\u0440\u0430." : result.refunded ? "\u0414\u0440\u0443\u0433\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438 \u0434\u043E\u0431\u0438\u043B\u0438 \u0431\u043E\u0441\u0441\u0430 \u0432\u043E \u0432\u0440\u0435\u043C\u044F \u0442\u0432\u043E\u0435\u0433\u043E \u0431\u043E\u044F. 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0435\u043D\u044B." : "\u0412 \u043E\u0431\u0449\u0438\u0439 \u0440\u0435\u0439\u0434 \u0437\u0430\u0447\u0442\u0435\u043D\u043E " + raidNumber(result.damage) + " \u0443\u0440\u043E\u043D\u0430. \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0432\u044B\u0434\u0430\u0451\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u043E\u0431\u0449\u0435\u0439 \u043F\u043E\u0431\u0435\u0434\u044B.";
+        updateHud(true);
+        $("#result-title").textContent = r.practice ? "\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0430." : result.refunded ? "\u0411\u043E\u0441\u0441 \u0443\u0436\u0435 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D." : r.sharedHp <= 0 ? "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D." : survived ? "\u041E\u0442\u0440\u044F\u0434 \u0443\u0434\u0435\u0440\u0436\u0430\u043B \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0443." : "\u0422\u044B \u044D\u0432\u0430\u043A\u0443\u0438\u0440\u043E\u0432\u0430\u043D.";
+        $("#result-text").textContent = r.practice ? "\u0411\u0435\u0437 \u0440\u0430\u0441\u0445\u043E\u0434\u0430 \u044D\u043D\u0435\u0440\u0433\u0438\u0438, \u043E\u043F\u044B\u0442\u0430 \u0438 \u0434\u043E\u0431\u044B\u0447\u0438. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u0431\u043E\u0439, \u0447\u0442\u043E\u0431\u044B \u043E\u0441\u0432\u043E\u0438\u0442\u044C \u0437\u043E\u043D\u044B \u0443\u0434\u0430\u0440\u0430." : result.refunded ? "\u0414\u0440\u0443\u0433\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438 \u0434\u043E\u0431\u0438\u043B\u0438 \u0431\u043E\u0441\u0441\u0430 \u0432\u043E \u0432\u0440\u0435\u043C\u044F \u0442\u0432\u043E\u0435\u0433\u043E \u0431\u043E\u044F. 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0435\u043D\u044B." : "\u0412 \u043E\u0431\u0449\u0438\u0439 \u0440\u0435\u0439\u0434 \u0437\u0430\u0447\u0442\u0435\u043D\u043E " + raidNumber(result.damage) + " \u0443\u0440\u043E\u043D\u0430. " + (r.sharedHp <= 0 ? "\u0417\u0430\u0431\u0435\u0440\u0438 \u043D\u0430\u0433\u0440\u0430\u0434\u0443 \u043D\u0430 \u044D\u043A\u0440\u0430\u043D\u0435 \u0440\u0435\u0439\u0434\u0430." : "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0432\u044B\u0434\u0430\u0451\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u043E\u0431\u0449\u0435\u0439 \u043F\u043E\u0431\u0435\u0434\u044B.");
         const report = battleReport(r), panel = document.createElement("div");
         panel.id = "battle-report";
-        panel.innerHTML = '<div class="battle-report">' + [[report.duration, "\u0412\u0420\u0415\u041C\u042F"], [r.hits, "\u041F\u041E\u041F\u0410\u0414\u0410\u041D\u0418\u0419"], [Math.min(100, Math.floor(r.rawDamage / r.contract.target * 100)) + "%", "\u041D\u0410\u041F\u041E\u0420"]].map(([v, label2]) => "<div><b>" + v + "</b><small>" + label2 + "</small></div>").join("") + '</div><div class="arena-result-contribution"><span>' + (r.practice ? "\u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0410" : "\u0412\u041A\u041B\u0410\u0414 \u0412 \u041E\u0411\u0429\u0423\u042E \u041F\u041E\u0411\u0415\u0414\u0423") + "</span><strong>" + raidNumber(result.damage) + "</strong><small>" + (r.practice ? "\u0411\u0435\u0437 \u043D\u0430\u0433\u0440\u0430\u0434\u044B" : "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0437\u0430 \u0431\u043E\u0439: " + raidNumber(result.cap)) + "</small></div>";
+        panel.innerHTML = '<div class="arena-result-contribution"><span>' + (r.practice ? "\u0422\u0420\u0415\u041D\u0418\u0420\u041E\u0412\u041A\u0410" : "\u0412\u041A\u041B\u0410\u0414 \u0412 \u041E\u0411\u0429\u0423\u042E \u041F\u041E\u0411\u0415\u0414\u0423") + "</span><strong>" + raidNumber(result.damage) + "</strong><small>" + (r.practice ? "\u0411\u0435\u0437 \u043D\u0430\u0433\u0440\u0430\u0434\u044B" : "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0437\u0430 \u0431\u043E\u0439: " + raidNumber(result.cap)) + "</small></div>" + resultMetrics([[report.duration, "\u0412\u0420\u0415\u041C\u042F"], [r.hits, "\u041F\u041E\u041F\u0410\u0414\u0410\u041D\u0418\u0419"], [Math.min(100, Math.floor(r.rawDamage / r.contract.target * 100)) + "%", "\u041D\u0410\u041F\u041E\u0420"]], report.duration);
         $("#result-text").after(panel);
-        $("#result-actions").innerHTML = '<button class="primary" id="arena-return">\u0412 \u0443\u0431\u0435\u0436\u0438\u0449\u0435</button>' + (r.practice ? '<button class="secondary" id="arena-repeat">\u0415\u0449\u0451 \u0442\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430</button>' : "");
-        $("#arena-return").onclick = leaveRun;
+        $("#result-actions").innerHTML = '<button class="primary" id="arena-return">' + (r.practice ? "\u041A \u0440\u0435\u0439\u0434-\u0431\u043E\u0441\u0441\u0430\u043C" : "\u041A \u043E\u0431\u0449\u0435\u043C\u0443 \u0440\u0435\u0439\u0434\u0443") + "</button>" + (r.practice ? '<button class="secondary" id="arena-repeat">\u0415\u0449\u0451 \u0442\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430</button>' : "");
+        $("#arena-return").onclick = () => {
+          leaveRun();
+          navigate("raids");
+        };
         const repeat = $("#arena-repeat");
         if (repeat) repeat.onclick = () => action(async () => {
           const map = r.map;
@@ -3070,7 +3192,7 @@
   }
   function renderSettings() {
     const el = $("#settings-page");
-    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["leftHanded", "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439", "\u0414\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043F\u0440\u0430\u0432\u0430, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440 \u0441\u043B\u0435\u0432\u0430."], ["largeControls", "\u041A\u0440\u0443\u043F\u043D\u044B\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438", "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u043A\u043D\u043E\u043F\u043A\u0438 \u0431\u043E\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>Q</kbd> \u2014 \u043E\u0442\u043F\u043E\u0440: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u0434\u0432\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F. \u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440; \u0443\u0440\u043E\u043D\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.13</span></div></div>';
+    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["leftHanded", "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439", "\u0414\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043F\u0440\u0430\u0432\u0430, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440 \u0441\u043B\u0435\u0432\u0430."], ["largeControls", "\u041A\u0440\u0443\u043F\u043D\u044B\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438", "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u043A\u043D\u043E\u043F\u043A\u0438 \u0431\u043E\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>Q</kbd> \u2014 \u043E\u0442\u043F\u043E\u0440: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u0434\u0432\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F. \u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440; \u0443\u0440\u043E\u043D\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.14</span></div></div>';
     el.insertAdjacentHTML("beforeend", '<button class="secondary" id="repeat-tutorial">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C \u041E\u0411\u0423\u0427\u0415\u041D\u0418\u0415</button>');
     el.querySelector("#repeat-tutorial").onclick = () => onboarding(navigate, true);
     const account = document.createElement("p");
@@ -3143,6 +3265,7 @@
       init_campaign();
       init_campaign_ui();
       init_combat_tactics();
+      init_battle_feedback();
       init_operations();
       init_operations_ui();
       init_ui_icons();
@@ -3208,6 +3331,7 @@
       };
       $("#deploy").onclick = () => action(() => start());
       $("#boss-open").onclick = () => navigate("raids");
+      $("#pause").before($(".battle-stats"));
       canvas = $("#battle");
       display = canvas.getContext("2d");
       world = document.createElement("canvas");

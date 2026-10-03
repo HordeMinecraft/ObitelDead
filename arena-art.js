@@ -18,6 +18,6 @@ export function drawArenaStrike(ctx,attack){
   ctx.save();ctx.fillStyle='#ad513850';ctx.strokeStyle='#f2c783';ctx.lineWidth=2;
   ctx.beginPath();ctx.ellipse(z.x,z.y,z.radius,z.radius*.6,0,0,Math.PI*2);ctx.fill();ctx.stroke();
   ctx.globalAlpha=.65;ctx.fillStyle='#d8794b';ctx.beginPath();ctx.ellipse(z.x,z.y,z.radius*progress,z.radius*.6*progress,0,0,Math.PI*2);ctx.fill();
-  ctx.globalAlpha=1;ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillStyle='#ffdfaa';ctx.fillText('УДАР',z.x,z.y+4);ctx.restore();
+  ctx.globalAlpha=1;ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillStyle='#ffdfaa';ctx.fillText('УДАР · '+Math.max(0,attack.t).toFixed(1)+' с',z.x,z.y+4);ctx.restore();
  }
 }
