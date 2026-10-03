@@ -12,6 +12,7 @@
     }
   },
   "vars": {
+    "VK_PAYMENTS_MODE": "live",
     "ALLOWED_ORIGINS": "https://hordeminecraft.github.io"
   },
   "d1_databases": [
