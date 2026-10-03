@@ -27,7 +27,7 @@ export const raidProfile=map=>map===5?{hp:3900,cooldown:35000,armor:.1,trait:'Б
 export const ENERGY_INTERVAL=5*60*1000;
 export const RAID_COST=8;
 export const BOSS_COST=12;
-export const freshSave=()=>({version:1,vehicle:'nomad',ownedVehicles:['nomad'],armorTier:0,ownedArmor:[0],bossKills:0,cloth:0,scrap:180,cores:0,xp:0,cleared:[],districtRuns:Array(MAPS.length).fill(0),energy:60,energyAt:Date.now(),weapon:0,owned:[0],weaponLevel:0,armor:0,engine:0,body:0,trunk:0,kills:0,daily:{date:'',kills:0,claimed:false}});
+export const freshSave=()=>({version:1,raidCharges:{},raidTestCharges:{},vehicle:'nomad',ownedVehicles:['nomad'],armorTier:0,ownedArmor:[0],bossKills:0,cloth:0,scrap:180,cores:0,xp:0,cleared:[],districtRuns:Array(MAPS.length).fill(0),energy:60,energyAt:Date.now(),weapon:0,owned:[0],weaponLevel:0,armor:0,engine:0,body:0,trunk:0,kills:0,daily:{date:'',kills:0,claimed:false}});
 export function restoreEnergy(s,now=Date.now()){s.energy=Math.min(ENERGY_MAX,Math.max(0,s.energy??ENERGY_MAX));s.energyAt=Math.min(now,s.energyAt??now);if(s.energy>=ENERGY_MAX){s.energyAt=now;return s.energy}const recovered=Math.floor((now-s.energyAt)/ENERGY_INTERVAL);s.energy=Math.min(ENERGY_MAX,s.energy+recovered);if(s.energy===ENERGY_MAX)s.energyAt=now;else s.energyAt+=recovered*ENERGY_INTERVAL;return s.energy}
 export function spendEnergy(s,amount,now=Date.now()){restoreEnergy(s,now);if(s.energy<amount)return false;if(s.energy===ENERGY_MAX)s.energyAt=now;s.energy-=amount;return true}
 export const bossUnlocked=(s,i)=>unlocked(s,i)&&(s.districtRuns?.[i]||0)>=3&&playerLevel(s)>=MAPS[i].level;
@@ -56,7 +56,7 @@ ARMOR.push(
  {name:'«Легенда: Янтарь»',hp:300,level:400,bosses:0,cost:0,cloth:0,cores:0,icon:5,pose:3,votes:45,sku:'armor_amber',description:'Коллекционная броня. Защита обычной «Легенды».'}
 );
 export const armorUnlocked=(s,i)=>playerLevel(s)>=ARMOR[i].level||(s.bossKills||0)>=ARMOR[i].bosses&&ARMOR[i].bosses>0||i===0;
-export function migrateSave(s){migrateVehicles(s);s.districtRuns=Array.from({length:MAPS.length},(_,i)=>Math.max(0,Number(s.districtRuns?.[i])||0));s.armorTier??=s.armor>0?1:0;s.ownedArmor??=s.armor>0?[0,1]:[0];s.bossKills??=s.cleared.length;s.cloth??=0;return s}
+export function migrateSave(s){migrateVehicles(s);s.raidCharges??={};s.raidTestCharges??={};s.districtRuns=Array.from({length:MAPS.length},(_,i)=>Math.max(0,Number(s.districtRuns?.[i])||0));s.armorTier??=s.armor>0?1:0;s.ownedArmor??=s.armor>0?[0,1]:[0];s.bossKills??=s.cleared.length;s.cloth??=0;return s}
 // Expedition economy: lower supply rate, independent of boss/contract rewards.
 export const EXPEDITION_LOOT={scrapChance:1/3,scrapMin:4,scrapMax:8,healthChance:.05,healthLimit:2,heal:28};
 export function expeditionReward(map,kills,loot,win,multiplier=1){

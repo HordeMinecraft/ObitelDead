@@ -4,7 +4,7 @@ const environments=[];let spriteAtlas=null,equipmentAtlas=null,armorAtlas=null,i
 export function setAppearance(save){appearance={weapon:WEAPONS[save.weapon]?.pose??save.weapon??0,armor:ARMOR[save.armorTier]?.pose??save.armorTier??(save.armor>0?1:0)}}
 export function loadArtImage(path,ImageType=Image){return new Promise((resolve,reject)=>{const img=new ImageType();let fallback=false;img.onload=()=>resolve(img);img.onerror=()=>{if(fallback){reject(new Error('ART_LOAD'));return}fallback=true;img.src=path};img.src=path.replace(/\.png$/,'.webp')})}
 async function loadSprite(path){const img=await loadArtImage(path),c=document.createElement('canvas');c.width=img.width;c.height=img.height;const ctx=c.getContext('2d');ctx.drawImage(img,0,0);const pixels=ctx.getImageData(0,0,c.width,c.height);for(let i=0;i<pixels.data.length;i+=4){let r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];if(r>120&&b>120&&g<135&&Math.min(r,b)-g>55)pixels.data[i+3]=0}ctx.putImageData(pixels,0,0);return c}
-export async function loadArt(onProgress=()=>{}){let done=0;const total=14,track=promise=>promise.then(value=>{onProgress(++done,total);return value});onProgress(0,total);await Promise.all([...Array.from({length:8},(_,i)=>track(loadArtImage('assets/district-'+i+'.png').then(img=>environments[i]=img))),track(loadSprite('assets/characters.png').then(c=>spriteAtlas=c)),track(loadSprite('assets/equipment.png').then(c=>equipmentAtlas=c)),track(loadSprite('assets/armor-tiers.png').then(c=>armorAtlas=c)),track(loadSprite('assets/items.png').then(c=>itemAtlas=c)),track(loadSprite('assets/weapons-loot.png').then(c=>weaponAtlas=c)),track(loadSprite('assets/arsenal-expanded.png').then(c=>expandedAtlas=c))]);}
+export async function loadArt(onProgress=()=>{}){let done=0;const total=15,track=promise=>promise.then(value=>{onProgress(++done,total);return value});onProgress(0,total);await Promise.all([...Array.from({length:8},(_,i)=>track(loadArtImage('assets/district-'+i+'.png').then(img=>environments[i]=img))),track(loadSprite('assets/characters.png').then(c=>spriteAtlas=c)),track(loadSprite('assets/equipment.png').then(c=>equipmentAtlas=c)),track(loadSprite('assets/armor-tiers.png').then(c=>armorAtlas=c)),track(loadSprite('assets/items.png').then(c=>itemAtlas=c)),track(loadSprite('assets/weapons-loot.png').then(c=>weaponAtlas=c)),track(loadSprite('assets/arsenal-expanded.png').then(c=>expandedAtlas=c)),track(loadRaidKit())]);}
 function drawRig(g,atlas,index,size,time,moving,running,type){const sw=atlas.width/3,sh=atlas.height/2,sx=index%3*sw,sy=Math.floor(index/3)*sh,k=size/sw,hip=sh*(type==='runner'?.53:.59),knee=sh*.77,phase=time*8,swing=moving?Math.sin(phase)*(running?.25:.13):0,bob=moving?Math.abs(Math.sin(phase))*2:0,originX=-size*.5,originY=-size*.94-bob;
 g.imageSmoothingEnabled=false;
 for(let leg=0;leg<2;leg++){const lx=leg*sw/2,pivot=sw*(leg?.57:.43),angle=swing*(leg?1:-1),bend=moving?Math.max(0,-Math.sin(phase+(leg?Math.PI:0)))*(running?.38:.17):0;g.save();g.translate(originX+pivot*k,originY+hip*k);g.rotate(angle);g.drawImage(atlas,sx+lx,sy+hip,sw/2,knee-hip,(lx-pivot)*k,0,size/2,(knee-hip)*k);g.translate(0,(knee-hip)*k);g.rotate(bend);g.drawImage(atlas,sx+lx,sy+knee,sw/2,sh-knee,(lx-pivot)*k,0,size/2,(sh-knee)*k);g.restore()}
@@ -35,7 +35,34 @@ export function person(g,x,y,type='walker',scale=1,t=0,face=1,flash=0,moving=fal
 
 export function drawItem(canvas,index){if(!itemAtlas)return;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);ctx.imageSmoothingEnabled=false;ctx.drawImage(itemAtlas,index%3*itemAtlas.width/3,Math.floor(index/3)*itemAtlas.height/2,itemAtlas.width/3,itemAtlas.height/2,0,0,canvas.width,canvas.height)}
 
-export function drawWeapon(canvas,index){const w=WEAPONS[index],atlas=w?.art!==undefined?expandedAtlas:weaponAtlas;if(!atlas)return;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);ctx.imageSmoothingEnabled=false;const cell=w.art??index,sw=atlas.width/3,sh=atlas.height/2;ctx.save();if(w.tint)ctx.filter='hue-rotate('+w.tint+'deg)';ctx.drawImage(atlas,cell%3*sw,Math.floor(cell/3)*sh,sw,sh,0,0,canvas.width,canvas.height);ctx.restore()}
+const spriteFrames=new WeakMap();
+function fitSprite(canvas,atlas,cell,columns=3,rows=2,isolated=false){
+ const ctx=canvas.getContext('2d'),sw=Math.floor(atlas.width/columns),sh=Math.floor(atlas.height/rows),sx=cell%columns*sw,sy=Math.floor(cell/columns)*sh;
+ let frames=spriteFrames.get(atlas);if(!frames){frames=new Map();spriteFrames.set(atlas,frames)}
+ let frame=frames.get(cell);if(!frame){const pixels=atlas.getContext('2d').getImageData(sx,sy,sw,sh).data;let left=sw,top=sh,right=-1,bottom=-1;
+  if(isolated){
+   // The generated strip has tiny disconnected fragments at cell edges. Fit only its main item.
+   const seen=new Uint8Array(sw*sh),queue=new Int32Array(sw*sh);let largest=0,mainPixels;
+   for(let start=0;start<seen.length;start++)if(!seen[start]&&pixels[start*4+3]>24){
+    let head=0,tail=1,l=sw,t=sh,r=-1,b=-1;queue[0]=start;seen[start]=1;
+    while(head<tail){const pos=queue[head++],x=pos%sw,y=Math.floor(pos/sw);l=Math.min(l,x);t=Math.min(t,y);r=Math.max(r,x);b=Math.max(b,y);
+     for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=x+dx,ny=y+dy;if(nx<0||nx>=sw||ny<0||ny>=sh)continue;const next=ny*sw+nx;if(!seen[next]&&pixels[next*4+3]>24){seen[next]=1;queue[tail++]=next}}
+    }
+    if(tail>largest){largest=tail;mainPixels=queue.slice(0,tail);left=l;top=t;right=r;bottom=b}
+   }
+   if(mainPixels){const mask=new Uint8Array(sw*sh);for(const pos of mainPixels)mask[pos]=1;for(let i=0;i<mask.length;i++)if(!mask[i])pixels[i*4+3]=0;const isolatedCanvas=document.createElement('canvas');isolatedCanvas.width=sw;isolatedCanvas.height=sh;const isolatedCtx=isolatedCanvas.getContext('2d'),clean=isolatedCtx.createImageData(sw,sh);clean.data.set(pixels);isolatedCtx.putImageData(clean,0,0);frame={canvas:isolatedCanvas,x:left,y:top,w:right-left+1,h:bottom-top+1};}
+  }else for(let y=0;y<sh;y++)for(let x=0;x<sw;x++)if(pixels[(y*sw+x)*4+3]>24){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y)}
+  frame??=right<0?{x:0,y:0,w:sw,h:sh}:{x:left,y:top,w:right-left+1,h:bottom-top+1};frames.set(cell,frame)
+ }
+ ctx.clearRect(0,0,canvas.width,canvas.height);ctx.imageSmoothingEnabled=false;
+ const scale=Math.min(canvas.width*.9/frame.w,canvas.height*.88/frame.h),w=frame.w*scale,h=frame.h*scale;
+ ctx.drawImage(frame.canvas||atlas,(frame.canvas?0:sx)+frame.x,(frame.canvas?0:sy)+frame.y,frame.w,frame.h,(canvas.width-w)/2,(canvas.height-h)/2,w,h);
+}
+export function drawWeapon(canvas,index){const w=WEAPONS[index],atlas=w?.art!==undefined?expandedAtlas:weaponAtlas;if(!atlas)return;const ctx=canvas.getContext('2d');ctx.save();if(w.tint)ctx.filter='hue-rotate('+w.tint+'deg)';fitSprite(canvas,atlas,w.art??index);ctx.restore()}
+let raidKit=null;
+let raidKitLoading;
+export async function loadRaidKit(){if(!raidKit)await(raidKitLoading??=loadSprite('assets/raid-kit.png').then(atlas=>raidKit=atlas).catch(e=>{raidKitLoading=null;throw e}));}
+export function drawRaidItem(canvas,index){if(raidKit)fitSprite(canvas,raidKit,index,3,1,true);}
 export function loot(g,x,y,kind,time,amount=0){const health=kind==='health',size=health?35:30,bob=Math.sin(time*3+x)*2;g.save();g.translate(x,y);g.fillStyle='#080e09aa';g.beginPath();g.ellipse(0,4,16,6,0,0,Math.PI*2);g.fill();g.strokeStyle=health?'#b0d2a580':'#e4b77380';g.lineWidth=1;g.beginPath();g.ellipse(0,3,18,7,0,0,Math.PI*2);g.stroke();if(weaponAtlas){g.imageSmoothingEnabled=false;g.drawImage(weaponAtlas,health?512:0,512,512,512,-size/2,-size+bob,size,size)}else{g.fillStyle=health?'#a8c794':'#d6ad6d';g.fillRect(-5,-13,10,10)}if(amount){g.font='bold 9px monospace';g.textAlign='center';g.strokeStyle='#11190f';g.lineWidth=3;g.strokeText(amount,0,14);g.fillStyle='#efdab3';g.fillText(amount,0,14)}g.restore()}
 
 function expansionBackground(g,map){

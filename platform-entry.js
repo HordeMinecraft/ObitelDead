@@ -1,6 +1,17 @@
 import {playRewardedAd} from './ads-bridge.js';
 import bridge from '@vkontakte/vk-bridge';
 export const VK_APP_ID=54626490;
+export async function buyRaidCharges(item){
+ if(!inVK)throw new Error('Покупки за голоса доступны внутри VK.');
+ if(!bridge.supports('VKWebAppShowOrderBox'))throw new Error('Покупки недоступны на этой платформе VK.');
+ document.dispatchEvent(new CustomEvent('obitel-media-hold',{detail:true}));
+ try{
+  const result=await bridge.send('VKWebAppShowOrderBox',{type:'item',item});
+  if(result?.status==='cancel')throw new Error('Покупка отменена.');
+  if(result?.status!=='success')throw new Error('VK не подтвердил оплату. Заряды не начислены.');
+  return result.order_id;
+ }finally{document.dispatchEvent(new CustomEvent('obitel-media-hold',{detail:false}))}
+}
 const launch=new URLSearchParams(location.search);
 export const inVK=launch.has('vk_app_id')||launch.has('api_id')||bridge.isEmbedded()||Boolean(window.ReactNativeWebView);
 

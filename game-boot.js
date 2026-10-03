@@ -11,11 +11,17 @@
 
   // ads-bridge.js
   async function playRewardedAd(bridge) {
-    const available = await bridge.send("VKWebAppCheckNativeAds", { ad_format: "reward" });
-    if ((available == null ? void 0 : available.result) !== true) throw new Error("\u0421\u0435\u0439\u0447\u0430\u0441 \u043D\u0435\u0442 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E\u0439 \u0440\u0435\u043A\u043B\u0430\u043C\u044B. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439 \u043F\u043E\u0437\u0436\u0435.");
-    const shown = await bridge.send("VKWebAppShowNativeAds", { ad_format: "reward" });
-    if ((shown == null ? void 0 : shown.result) !== true) throw new Error("\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D. \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043D\u0435 \u0432\u044B\u0434\u0430\u043D\u0430.");
-    return true;
+    var _a2, _b2;
+    (_a2 = globalThis.document) == null ? void 0 : _a2.dispatchEvent(new CustomEvent("obitel-media-hold", { detail: true }));
+    try {
+      const available = await bridge.send("VKWebAppCheckNativeAds", { ad_format: "reward" });
+      if ((available == null ? void 0 : available.result) !== true) throw new Error("\u0421\u0435\u0439\u0447\u0430\u0441 \u043D\u0435\u0442 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E\u0439 \u0440\u0435\u043A\u043B\u0430\u043C\u044B. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439 \u043F\u043E\u0437\u0436\u0435.");
+      const shown = await bridge.send("VKWebAppShowNativeAds", { ad_format: "reward" });
+      if ((shown == null ? void 0 : shown.result) !== true) throw new Error("\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D. \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043D\u0435 \u0432\u044B\u0434\u0430\u043D\u0430.");
+      return true;
+    } finally {
+      (_b2 = globalThis.document) == null ? void 0 : _b2.dispatchEvent(new CustomEvent("obitel-media-hold", { detail: false }));
+    }
   }
   var init_ads_bridge = __esm({
     "ads-bridge.js"() {
@@ -287,6 +293,19 @@
   });
 
   // platform-entry.js
+  async function buyRaidCharges(item2) {
+    if (!inVK) throw new Error("\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u0437\u0430 \u0433\u043E\u043B\u043E\u0441\u0430 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u0432\u043D\u0443\u0442\u0440\u0438 VK.");
+    if (!dist_default.supports("VKWebAppShowOrderBox")) throw new Error("\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u043D\u0430 \u044D\u0442\u043E\u0439 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0435 VK.");
+    document.dispatchEvent(new CustomEvent("obitel-media-hold", { detail: true }));
+    try {
+      const result = await dist_default.send("VKWebAppShowOrderBox", { type: "item", item: item2 });
+      if ((result == null ? void 0 : result.status) === "cancel") throw new Error("\u041F\u043E\u043A\u0443\u043F\u043A\u0430 \u043E\u0442\u043C\u0435\u043D\u0435\u043D\u0430.");
+      if ((result == null ? void 0 : result.status) !== "success") throw new Error("VK \u043D\u0435 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043B \u043E\u043F\u043B\u0430\u0442\u0443. \u0417\u0430\u0440\u044F\u0434\u044B \u043D\u0435 \u043D\u0430\u0447\u0438\u0441\u043B\u0435\u043D\u044B.");
+      return result.order_id;
+    } finally {
+      document.dispatchEvent(new CustomEvent("obitel-media-hold", { detail: false }));
+    }
+  }
   async function currentVKUser() {
     if (!inVK) return null;
     try {
@@ -444,7 +463,7 @@
       raidProfile = (map) => map === 5 ? { hp: 3900, cooldown: 35e3, armor: 0.1, trait: "\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u0440\u0438\u0442\u043C: \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 35 \u0441\u0435\u043A\u0443\u043D\u0434. \u0411\u0440\u043E\u043D\u044F \u0441\u043D\u0438\u0436\u0430\u0435\u0442 \u0443\u0440\u043E\u043D \u043D\u0430 10%." } : map === 6 ? { hp: 4700, cooldown: 45e3, armor: 0.2, trait: "\u0421\u0442\u0430\u043B\u044C\u043D\u0430\u044F \u043A\u043E\u0436\u0430: \u0432\u0445\u043E\u0434\u044F\u0449\u0438\u0439 \u0443\u0440\u043E\u043D \u0441\u043D\u0438\u0436\u0435\u043D \u043D\u0430 20%." } : map === 7 ? { hp: 6200, cooldown: 5e4, armor: 0.05, trait: "\u041E\u0441\u0430\u0434\u0430: \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0430\u0441 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F, \u043F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 50 \u0441\u0435\u043A\u0443\u043D\u0434." } : { hp: 750 * (1 + map * 0.7), cooldown: 45e3, armor: 0, trait: "\u041F\u043E\u0432\u0442\u043E\u0440\u043D\u0430\u044F \u0430\u0442\u0430\u043A\u0430 \u0447\u0435\u0440\u0435\u0437 45 \u0441\u0435\u043A\u0443\u043D\u0434." };
       ENERGY_INTERVAL = 5 * 60 * 1e3;
       BOSS_COST = 12;
-      freshSave = () => ({ version: 1, vehicle: "nomad", ownedVehicles: ["nomad"], armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: Array(MAPS.length).fill(0), energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
+      freshSave = () => ({ version: 1, raidCharges: {}, raidTestCharges: {}, vehicle: "nomad", ownedVehicles: ["nomad"], armorTier: 0, ownedArmor: [0], bossKills: 0, cloth: 0, scrap: 180, cores: 0, xp: 0, cleared: [], districtRuns: Array(MAPS.length).fill(0), energy: 60, energyAt: Date.now(), weapon: 0, owned: [0], weaponLevel: 0, armor: 0, engine: 0, body: 0, trunk: 0, kills: 0, daily: { date: "", kills: 0, claimed: false } });
       bossUnlocked = (s, i) => {
         var _a2;
         return unlocked(s, i) && (((_a2 = s.districtRuns) == null ? void 0 : _a2[i]) || 0) >= 3 && playerLevel(s) >= MAPS[i].level;
@@ -565,6 +584,126 @@
     }
   });
 
+  // game-audio.js
+  function createGameAudio({ Context = globalThis.AudioContext || globalThis.webkitAudioContext, fetcher = globalThis.fetch, visible = () => {
+    var _a2;
+    return !((_a2 = globalThis.document) == null ? void 0 : _a2.hidden);
+  }, onState = () => {
+  } } = {}) {
+    let context, master, loading, activated = false, enabled = true, volume = 0.45, held = false;
+    const buffers = /* @__PURE__ */ new Map(), voices = /* @__PURE__ */ new Set(), last2 = /* @__PURE__ */ new Map();
+    const state2 = () => onState(!enabled ? "off" : !Context ? "unavailable" : held ? "held" : (context == null ? void 0 : context.state) === "running" && buffers.size ? "ready" : "waiting");
+    const stop = () => {
+      for (const source of voices) {
+        try {
+          source.stop();
+        } catch (e) {
+        }
+      }
+      voices.clear();
+    };
+    const unlock = () => {
+      activated = true;
+      if (!enabled || held || !visible() || !Context) return;
+      try {
+        if (!context) {
+          context = new Context();
+          master = context.createGain();
+          master.gain.value = volume;
+          master.connect(context.destination);
+        }
+        if (context.state === "suspended") context.resume().then(state2).catch(() => {
+        });
+        if (!loading && buffers.size !== Object.keys(SFX).length) loading = Promise.all(Object.keys(SFX).filter((name) => !buffers.has(name)).map(async (name) => {
+          var _a2;
+          try {
+            const response = await fetcher(new URL("assets/sfx-" + name + ".wav", ((_a2 = globalThis.document) == null ? void 0 : _a2.baseURI) || "http://localhost/"));
+            if (!response.ok) return;
+            const buffer = await context.decodeAudioData(await response.arrayBuffer());
+            buffers.set(name, buffer);
+          } catch (e) {
+          }
+        })).then(state2).finally(() => {
+          loading = null;
+        });
+        state2();
+        return loading;
+      } catch (e) {
+        state2();
+      }
+    };
+    return {
+      unlock,
+      set({ sound = true, soundVolume = 0.45 }) {
+        enabled = sound !== false;
+        volume = Math.max(0, Math.min(1, Number(soundVolume) || 0));
+        if (master) master.gain.value = volume;
+        if (!enabled) stop();
+        else if (activated) unlock();
+        state2();
+      },
+      play(name, { gain = 1, rate = 1 } = {}) {
+        var _a2;
+        if (!enabled || held || !visible() || (context == null ? void 0 : context.state) !== "running" || !buffers.has(name) || voices.size >= 8) return false;
+        const time = context.currentTime, interval = name === "step" ? 0.12 : name === "shot" || name === "shotgun" ? 0.06 : 0.07;
+        if (time - ((_a2 = last2.get(name)) != null ? _a2 : -100) < interval) return false;
+        last2.set(name, time);
+        const source = context.createBufferSource(), level = context.createGain();
+        source.buffer = buffers.get(name);
+        source.playbackRate.value = Math.max(0.8, Math.min(1.2, rate));
+        level.gain.value = SFX[name] * Math.max(0, Math.min(1, gain));
+        source.connect(level);
+        level.connect(master);
+        voices.add(source);
+        source.onended = () => {
+          voices.delete(source);
+          source.disconnect();
+          level.disconnect();
+        };
+        source.start();
+        return true;
+      },
+      hold(value) {
+        held = !!value;
+        stop();
+        if (held && (context == null ? void 0 : context.state) === "running") context.suspend().catch(() => {
+        });
+        state2();
+      },
+      stop,
+      state: () => ({ enabled, volume, activated, loaded: buffers.size, voices: voices.size, status: (context == null ? void 0 : context.state) || "locked" })
+    };
+  }
+  var SFX;
+  var init_game_audio = __esm({
+    "game-audio.js"() {
+      SFX = Object.freeze({ shot: 0.27, shotgun: 0.27, wood: 0.6, metal: 0.5, fire: 0.32, step: 0.23, hit: 0.5, click: 0.35, success: 0.45, error: 0.3 });
+    }
+  });
+
+  // raid-attacks.js
+  function raidAttackPlan(save2, map, rare = false, style = "gun", hp = Infinity, testMode = false) {
+    const attack = RAID_ATTACKS.find((a) => a.id === style);
+    if (!attack) return null;
+    const base = raidHit(save2, map, rare), damage = Math.max(1, Math.round(base * (1 + attack.bonus)));
+    const inventory = testMode ? save2.raidTestCharges : save2.raidCharges;
+    const charges = attack.sku ? Math.max(0, Math.floor((inventory == null ? void 0 : inventory[attack.id]) || 0)) : null;
+    return { ...attack, damage, extra: damage - base, expected: Math.min(Math.max(0, hp), damage), charges, cooldown: raidProfile(map).cooldown, locked: playerLevel(save2) < attack.level };
+  }
+  var RAID_ATTACKS;
+  var init_raid_attacks = __esm({
+    "raid-attacks.js"() {
+      init_balance();
+      init_rare_raids();
+      RAID_ATTACKS = Object.freeze([
+        { id: "gun", name: "\u0412\u044B\u0441\u0442\u0440\u0435\u043B", cost: 12, bonus: 0, level: 1, art: null, sound: "shot" },
+        { id: "bat", name: "\u0423\u0434\u0430\u0440 \u0431\u0438\u0442\u043E\u0439", cost: 12, bonus: 0.2, level: 1, art: 0, sound: "wood", sku: "raid_bat_10", votes: 3, pack: 10 },
+        { id: "pipe", name: "\u0421\u0442\u0430\u043B\u044C\u043D\u0430\u044F \u0442\u0440\u0443\u0431\u0430", cost: 12, bonus: 0.4, level: 1, art: 1, sound: "metal", sku: "raid_pipe_10", votes: 5, pack: 10 },
+        { id: "fire", name: "\u041A\u043E\u043A\u0442\u0435\u0439\u043B\u044C \u041C\u043E\u043B\u043E\u0442\u043E\u0432\u0430", cost: 12, bonus: 0.7, level: 5, art: 2, sound: "fire", sku: "raid_fire_10", votes: 8, pack: 10 }
+      ].map(Object.freeze));
+    }
+  });
+
   // art.js
   function setAppearance(save2) {
     var _a2, _b2, _c, _d, _e, _f;
@@ -603,12 +742,12 @@
   async function loadArt(onProgress = () => {
   }) {
     let done = 0;
-    const total = 14, track = (promise) => promise.then((value) => {
+    const total = 15, track = (promise) => promise.then((value) => {
       onProgress(++done, total);
       return value;
     });
     onProgress(0, total);
-    await Promise.all([...Array.from({ length: 8 }, (_, i) => track(loadArtImage("assets/district-" + i + ".png").then((img) => environments[i] = img))), track(loadSprite("assets/characters.png").then((c) => spriteAtlas = c)), track(loadSprite("assets/equipment.png").then((c) => equipmentAtlas = c)), track(loadSprite("assets/armor-tiers.png").then((c) => armorAtlas = c)), track(loadSprite("assets/items.png").then((c) => itemAtlas = c)), track(loadSprite("assets/weapons-loot.png").then((c) => weaponAtlas = c)), track(loadSprite("assets/arsenal-expanded.png").then((c) => expandedAtlas = c))]);
+    await Promise.all([...Array.from({ length: 8 }, (_, i) => track(loadArtImage("assets/district-" + i + ".png").then((img) => environments[i] = img))), track(loadSprite("assets/characters.png").then((c) => spriteAtlas = c)), track(loadSprite("assets/equipment.png").then((c) => equipmentAtlas = c)), track(loadSprite("assets/armor-tiers.png").then((c) => armorAtlas = c)), track(loadSprite("assets/items.png").then((c) => itemAtlas = c)), track(loadSprite("assets/weapons-loot.png").then((c) => weaponAtlas = c)), track(loadSprite("assets/arsenal-expanded.png").then((c) => expandedAtlas = c)), track(loadRaidKit())]);
   }
   function drawRig(g2, atlas, index, size, time, moving, running, type) {
     const sw = atlas.width / 3, sh = atlas.height / 2, sx = index % 3 * sw, sy = Math.floor(index / 3) * sh, k = size / sw, hip = sh * (type === "runner" ? 0.53 : 0.59), knee = sh * 0.77, phase = time * 8, swing = moving ? Math.sin(phase) * (running ? 0.25 : 0.13) : 0, bob = moving ? Math.abs(Math.sin(phase)) * 2 : 0, originX = -size * 0.5, originY = -size * 0.94 - bob;
@@ -865,18 +1004,93 @@
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(itemAtlas, index % 3 * itemAtlas.width / 3, Math.floor(index / 3) * itemAtlas.height / 2, itemAtlas.width / 3, itemAtlas.height / 2, 0, 0, canvas2.width, canvas2.height);
   }
+  function fitSprite(canvas2, atlas, cell, columns = 3, rows = 2, isolated = false) {
+    const ctx = canvas2.getContext("2d"), sw = Math.floor(atlas.width / columns), sh = Math.floor(atlas.height / rows), sx = cell % columns * sw, sy = Math.floor(cell / columns) * sh;
+    let frames = spriteFrames.get(atlas);
+    if (!frames) {
+      frames = /* @__PURE__ */ new Map();
+      spriteFrames.set(atlas, frames);
+    }
+    let frame2 = frames.get(cell);
+    if (!frame2) {
+      const pixels = atlas.getContext("2d").getImageData(sx, sy, sw, sh).data;
+      let left = sw, top = sh, right = -1, bottom = -1;
+      if (isolated) {
+        const seen = new Uint8Array(sw * sh), queue = new Int32Array(sw * sh);
+        let largest = 0, mainPixels;
+        for (let start2 = 0; start2 < seen.length; start2++) if (!seen[start2] && pixels[start2 * 4 + 3] > 24) {
+          let head = 0, tail = 1, l = sw, t = sh, r = -1, b = -1;
+          queue[0] = start2;
+          seen[start2] = 1;
+          while (head < tail) {
+            const pos = queue[head++], x = pos % sw, y = Math.floor(pos / sw);
+            l = Math.min(l, x);
+            t = Math.min(t, y);
+            r = Math.max(r, x);
+            b = Math.max(b, y);
+            for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+              const nx = x + dx, ny = y + dy;
+              if (nx < 0 || nx >= sw || ny < 0 || ny >= sh) continue;
+              const next = ny * sw + nx;
+              if (!seen[next] && pixels[next * 4 + 3] > 24) {
+                seen[next] = 1;
+                queue[tail++] = next;
+              }
+            }
+          }
+          if (tail > largest) {
+            largest = tail;
+            mainPixels = queue.slice(0, tail);
+            left = l;
+            top = t;
+            right = r;
+            bottom = b;
+          }
+        }
+        if (mainPixels) {
+          const mask = new Uint8Array(sw * sh);
+          for (const pos of mainPixels) mask[pos] = 1;
+          for (let i = 0; i < mask.length; i++) if (!mask[i]) pixels[i * 4 + 3] = 0;
+          const isolatedCanvas = document.createElement("canvas");
+          isolatedCanvas.width = sw;
+          isolatedCanvas.height = sh;
+          const isolatedCtx = isolatedCanvas.getContext("2d"), clean = isolatedCtx.createImageData(sw, sh);
+          clean.data.set(pixels);
+          isolatedCtx.putImageData(clean, 0, 0);
+          frame2 = { canvas: isolatedCanvas, x: left, y: top, w: right - left + 1, h: bottom - top + 1 };
+        }
+      } else for (let y = 0; y < sh; y++) for (let x = 0; x < sw; x++) if (pixels[(y * sw + x) * 4 + 3] > 24) {
+        left = Math.min(left, x);
+        top = Math.min(top, y);
+        right = Math.max(right, x);
+        bottom = Math.max(bottom, y);
+      }
+      frame2 != null ? frame2 : frame2 = right < 0 ? { x: 0, y: 0, w: sw, h: sh } : { x: left, y: top, w: right - left + 1, h: bottom - top + 1 };
+      frames.set(cell, frame2);
+    }
+    ctx.clearRect(0, 0, canvas2.width, canvas2.height);
+    ctx.imageSmoothingEnabled = false;
+    const scale = Math.min(canvas2.width * 0.9 / frame2.w, canvas2.height * 0.88 / frame2.h), w = frame2.w * scale, h = frame2.h * scale;
+    ctx.drawImage(frame2.canvas || atlas, (frame2.canvas ? 0 : sx) + frame2.x, (frame2.canvas ? 0 : sy) + frame2.y, frame2.w, frame2.h, (canvas2.width - w) / 2, (canvas2.height - h) / 2, w, h);
+  }
   function drawWeapon(canvas2, index) {
     var _a2;
     const w = WEAPONS[index], atlas = (w == null ? void 0 : w.art) !== void 0 ? expandedAtlas : weaponAtlas;
     if (!atlas) return;
     const ctx = canvas2.getContext("2d");
-    ctx.clearRect(0, 0, canvas2.width, canvas2.height);
-    ctx.imageSmoothingEnabled = false;
-    const cell = (_a2 = w.art) != null ? _a2 : index, sw = atlas.width / 3, sh = atlas.height / 2;
     ctx.save();
     if (w.tint) ctx.filter = "hue-rotate(" + w.tint + "deg)";
-    ctx.drawImage(atlas, cell % 3 * sw, Math.floor(cell / 3) * sh, sw, sh, 0, 0, canvas2.width, canvas2.height);
+    fitSprite(canvas2, atlas, (_a2 = w.art) != null ? _a2 : index);
     ctx.restore();
+  }
+  async function loadRaidKit() {
+    if (!raidKit) await (raidKitLoading != null ? raidKitLoading : raidKitLoading = loadSprite("assets/raid-kit.png").then((atlas) => raidKit = atlas).catch((e) => {
+      raidKitLoading = null;
+      throw e;
+    }));
+  }
+  function drawRaidItem(canvas2, index) {
+    if (raidKit) fitSprite(canvas2, raidKit, index, 3, 1, true);
   }
   function loot(g2, x, y, kind, time, amount = 0) {
     const health = kind === "health", size = health ? 35 : 30, bob = Math.sin(time * 3 + x) * 2;
@@ -974,7 +1188,7 @@
     g2.fillStyle = shade;
     g2.fillRect(0, 0, 960, 600);
   }
-  var environments, spriteAtlas, equipmentAtlas, armorAtlas, itemAtlas, weaponAtlas, expandedAtlas, appearance, palettes;
+  var environments, spriteAtlas, equipmentAtlas, armorAtlas, itemAtlas, weaponAtlas, expandedAtlas, appearance, palettes, spriteFrames, raidKit, raidKitLoading;
   var init_art = __esm({
     "art.js"() {
       init_balance();
@@ -987,6 +1201,8 @@
       expandedAtlas = null;
       appearance = { weapon: 0, armor: 0 };
       palettes = [["#4c5b49", "#78826b", "#98967a", "#c0b99a"], ["#5e5846", "#81765c", "#a19373", "#c6b58d"], ["#445958", "#6e8580", "#8d9c90", "#afb7a2"], ["#4b5b4f", "#7d8d75", "#a4ad91", "#c6c8a8"], ["#344d39", "#617453", "#819167", "#a6ac7f"]];
+      spriteFrames = /* @__PURE__ */ new WeakMap();
+      raidKit = null;
     }
   });
 
@@ -1176,58 +1392,55 @@
 
   // raid-view.js
   function tickRaid(root, raid2, save2, offset) {
-    const button = root.querySelector("#raid-attack");
-    if (!button || !raid2) return;
+    if (!raid2) return;
     const seconds = Math.max(0, Math.ceil((raid2.nextAttack - Date.now() - offset) / 1e3));
     const blocked = !!raid2.blockedBy || !raid2.joined || !raidAllowed(save2, raid2.map, raid2.rare) || raid2.hp <= 0;
-    button.disabled = blocked || !!raid2.arenaPending || seconds > 0 || save2.energy < BOSS_COST;
-    button.textContent = raid2.hp <= 0 ? "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D" : raid2.arenaPending ? "\u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u0430\u0440\u0435\u043D\u0443" : seconds ? "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430" : "\u0410\u0442\u0430\u043A\u043E\u0432\u0430\u0442\u044C";
-    const status = raid2.blockedBy ? "\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u043E\u0431\u0435\u0434\u0438 \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430" : !raid2.joined ? "\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0441\u044C \u043A \u043E\u0442\u0440\u044F\u0434\u0443" : raid2.hp <= 0 ? "\u041E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430" : raid2.arenaPending ? "\u041D\u0430\u0447\u0430\u0442 \u0431\u043E\u0439 \u043D\u0430 \u0430\u0440\u0435\u043D\u0435" : seconds ? "\u041E\u0442\u0440\u044F\u0434 \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0430\u0435\u0442\u0441\u044F \xB7 " + seconds + " \u0441" : save2.energy < BOSS_COST ? "\u041D\u0443\u0436\u043D\u043E 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438" : "\u041E\u0442\u0440\u044F\u0434 \u0433\u043E\u0442\u043E\u0432 \u043A \u0430\u0442\u0430\u043A\u0435";
+    for (const attack of options(raid2, save2, raid2.map, raid2.rare)) {
+      const button = root.querySelector('[data-raid-attack="' + attack.id + '"]');
+      if (!button) continue;
+      const missing = !!attack.sku && !attack.charges;
+      button.disabled = blocked || attack.locked || !!raid2.arenaPending || seconds > 0 || save2.energy < attack.cost || missing || attack.id !== "gun" && raid2.attackVersion !== 2;
+      button.textContent = raid2.hp <= 0 ? "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D" : raid2.blockedBy ? "\u0414\u0440\u0443\u0433\u043E\u0439 \u0431\u043E\u0441\u0441 \u0430\u043A\u0442\u0438\u0432\u0435\u043D" : !raid2.joined ? "\u041D\u0443\u0436\u0435\u043D \u043E\u0442\u0440\u044F\u0434" : attack.locked ? "\u0423\u0440. " + attack.level : raid2.arenaPending ? "\u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u0430\u0440\u0435\u043D\u0443" : missing ? "\u041D\u0435\u0442 \u0437\u0430\u0440\u044F\u0434\u043E\u0432" : seconds ? "\u0427\u0435\u0440\u0435\u0437 " + seconds + " \u0441" : save2.energy < attack.cost ? "\u041D\u0443\u0436\u043D\u043E " + attack.cost + " \u044D\u043D\u0435\u0440\u0433\u0438\u0438" : attack.id === "gun" ? "\u0412\u044B\u0441\u0442\u0440\u0435\u043B\u0438\u0442\u044C" : "\u041D\u0430\u043D\u0435\u0441\u0442\u0438 \u0443\u0434\u0430\u0440";
+    }
+    const status = raid2.blockedBy ? "\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u043E\u0431\u0435\u0434\u0438 \u0441\u0432\u043E\u0435\u0433\u043E \u0431\u043E\u0441\u0441\u0430" : !raid2.joined ? "\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0441\u044C \u043A \u043E\u0442\u0440\u044F\u0434\u0443" : raid2.hp <= 0 ? "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D" : raid2.arenaPending ? "\u0411\u043E\u0439 \u043D\u0430 \u0430\u0440\u0435\u043D\u0435 \u043D\u0430\u0447\u0430\u0442" : seconds ? "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430 \xB7 " + seconds + " \u0441" : save2.energy < BOSS_COST ? "\u041D\u0443\u0436\u043D\u043E 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438" : "\u0412\u044B\u0431\u0435\u0440\u0438 \u0443\u0434\u0430\u0440";
     const clock = root.querySelector("#raid-ready-clock");
     if (clock) clock.textContent = status;
+    const progress = root.querySelector(".raid-recovery>i");
+    if (progress) progress.style.width = (seconds ? Math.max(0, Math.min(100, (1 - seconds / ((raid2.attackCooldown || raidProfile(raid2.map).cooldown) / 1e3)) * 100)) : 100) + "%";
     const arena = root.querySelector("#raid-arena");
     if (arena) {
       arena.disabled = raid2.arenaVersion !== 1 || blocked || !raid2.arenaPending && (seconds > 0 || save2.energy < BOSS_COST);
-      arena.textContent = raid2.arenaVersion !== 1 ? "\u0421\u0435\u0440\u0432\u0435\u0440 \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F" : raid2.hp <= 0 ? "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D" : raid2.arenaPending ? "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0431\u043E\u0439" : seconds ? "\u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430" : "\u0412\u0441\u0442\u0443\u043F\u0438\u0442\u044C \u0432 \u0431\u043E\u0439";
+      arena.textContent = raid2.arenaPending ? "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0431\u043E\u0439" : seconds ? "\u0410\u0440\u0435\u043D\u0430 \xB7 " + seconds + " \u0441" : "\u041D\u0430 \u0430\u0440\u0435\u043D\u0443 \xB7 12 \u03DF";
     }
-    const practice = root.querySelector("#arena-practice");
-    if (practice) practice.disabled = !!raid2.arenaPending;
-    const cost = root.querySelector(".raid-arena-cost");
-    if (cost) cost.textContent = raid2.arenaPending ? "\u041E\u043F\u043B\u0430\u0447\u0435\u043D\u043E" : "12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438";
   }
-  function renderRaidView(root, { raid: raid2, save: save2, selected: selected2, rareMode: rareMode2, offset, onMode, onMap, onCreate, onAttack, onArena, onPractice, onJoin, onClaim, onClose, onPrepare }) {
-    var _a2, _b2, _c, _d, _e, _f, _g;
+  function renderRaidView(root, { raid: raid2, save: save2, selected: selected2, rareMode: rareMode2, offset, onMode, onMap, onCreate, onAttack, onBuy, onArena, onJoin, onClaim, onClose, onPrepare, payments: payments2 = { mode: "off", account: "guest" } }) {
+    var _a2, _b2, _c, _d, _e;
     const map = raid2 ? raid2.map : selected2, rare = raid2 ? !!raid2.rare : rareMode2, m = MAPS[map], profile = RARE_RAIDS[map], allowed = raidAllowed(save2, map, rare), mine = raid2 == null ? void 0 : raid2.members.find((p) => p.me);
-    const reward = (raid2 == null ? void 0 : raid2.reward) || { scrap: m.reward * 2, xp: 45, cores: 3, cloth: 6 }, capacity = (raid2 == null ? void 0 : raid2.capacity) || RAID_CAPACITY, arena = arenaContract(save2, map, rare);
-    const hit = (_a2 = raid2 == null ? void 0 : raid2.estimatedDamage) != null ? _a2 : raidHit(save2, map, rare), hp = (_b2 = raid2 == null ? void 0 : raid2.hp) != null ? _b2 : rare ? profile.hp : raidProfile(map).hp, maxHp = (_c = raid2 == null ? void 0 : raid2.maxHp) != null ? _c : hp, party = (raid2 == null ? void 0 : raid2.members) || [];
+    const hp = (_a2 = raid2 == null ? void 0 : raid2.hp) != null ? _a2 : rare ? profile.hp : raidProfile(map).hp, maxHp = (_b2 = raid2 == null ? void 0 : raid2.maxHp) != null ? _b2 : hp, party = (raid2 == null ? void 0 : raid2.members) || [], capacity = (raid2 == null ? void 0 : raid2.capacity) || RAID_CAPACITY;
     const requiredLevel = rare ? profile.level : m.level, remaining = Math.max(0, 3 - (save2.districtRuns[map] || 0));
-    const accessReason = allowed ? "\u0414\u043E\u0441\u0442\u0443\u043F \u043E\u0442\u043A\u0440\u044B\u0442" : !unlocked(save2, map) ? "\u041F\u043E\u0431\u0435\u0434\u0438 \u0431\u043E\u0441\u0441\u0430 \u043F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0435\u0433\u043E \u0440\u0430\u0439\u043E\u043D\u0430" : playerLevel(save2) < requiredLevel ? "\u041D\u0443\u0436\u0435\u043D \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + requiredLevel : remaining ? "\u041E\u0441\u0442\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0447\u0438\u0441\u0442\u043E\u043A: " + remaining : rare && !save2.cleared.includes(map) ? "\u041F\u043E\u0431\u0435\u0434\u0438 \u043E\u0431\u044B\u0447\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E" : "\u041D\u0443\u0436\u0435\u043D \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u0440\u0430\u0439\u043E\u043D\u0430";
+    const accessReason = allowed ? "\u0411\u043E\u0441\u0441 \u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D" : !unlocked(save2, map) ? "\u041F\u043E\u0431\u0435\u0434\u0438 \u0431\u043E\u0441\u0441\u0430 \u043F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0435\u0433\u043E \u0440\u0430\u0439\u043E\u043D\u0430" : playerLevel(save2) < requiredLevel ? "\u041D\u0443\u0436\u0435\u043D \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + requiredLevel : remaining ? "\u0415\u0449\u0451 " + remaining + " \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0440\u0430\u0439\u043E\u043D\u0430" : rare && !save2.cleared.includes(map) ? "\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043E\u0431\u044B\u0447\u043D\u0430\u044F \u0432\u0435\u0440\u0441\u0438\u044F" : "\u041D\u0443\u0436\u0435\u043D \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u0440\u0430\u0439\u043E\u043D\u0430";
     const encounter = (raid2 == null ? void 0 : raid2.id) || "catalog-" + map + "-" + rare, same = root.dataset.encounter === encounter;
-    const oldArena = (_d = root.querySelector(".arena-guide")) == null ? void 0 : _d.open, oldDetails = (_e = root.querySelector(".raid-rules")) == null ? void 0 : _e.open, oldParty = (_f = root.querySelector(".raid-party")) == null ? void 0 : _f.open, oldPage = Number(root.dataset.partyPage || 0);
+    const oldParty = (_c = root.querySelector(".raid-party")) == null ? void 0 : _c.open, oldLoot = (_d = root.querySelector(".raid-loot")) == null ? void 0 : _d.open, oldPage = Number(root.dataset.partyPage || 0);
     const main = root.closest("main"), scroll = (main == null ? void 0 : main.scrollTop) || 0, focused = root.contains(document.activeElement) ? document.activeElement.id : null;
     const previous = observations.get(root), seen = raid2 ? observeRaid(previous, raid2, Date.now() + offset) : null;
     observations.set(root, seen);
     root.dataset.encounter = encounter;
     root.dataset.partyPage = String(same ? oldPage : 0);
     const leaders = raidRanking(party).slice(0, 5), contribution = (mine == null ? void 0 : mine.damage) || 0;
-    const lootLabel = raid2 ? hp > 0 ? "\u0422\u0432\u043E\u044F \u0434\u043E\u043B\u044F \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B" : "\u0422\u0432\u043E\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430" : rare ? "\u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434 \u043E\u0442\u0440\u044F\u0434\u0430" : "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430";
-    const lootHint = raid2 && hp <= 0 ? "\u0418\u0442\u043E\u0433 \u043F\u043E \u0442\u0432\u043E\u0435\u043C\u0443 \u0432\u043A\u043B\u0430\u0434\u0443." : rare ? "\u0424\u043E\u043D\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u0444\u0430\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u043C\u0443 \u0443\u0440\u043E\u043D\u0443." : raid2 ? "\u0414\u043E \u043F\u043E\u043B\u043D\u043E\u0439 \u043D\u0430\u0433\u0440\u0430\u0434\u044B: " + fmt(Math.max(0, Math.ceil(maxHp * 0.25 - contribution))) + " \u0443\u0440\u043E\u043D\u0430." : "\u041F\u043E\u043B\u043D\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u2014 \u0437\u0430 25% \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0431\u043E\u0441\u0441\u0430.";
-    const quickAction = !raid2 ? allowed ? '<button class="primary" id="create-raid">\u041D\u0430\u0447\u0430\u0442\u044C \u0440\u0435\u0439\u0434</button>' : '<button class="primary" id="raid-prepare">\u041A \u0440\u0430\u0439\u043E\u043D\u0443</button>' : '<button class="primary" id="raid-attack" aria-describedby="raid-ready-clock">\u0410\u0442\u0430\u043A\u043E\u0432\u0430\u0442\u044C</button>';
-    const arenaAction = !raid2 ? '<button class="secondary" id="arena-practice">\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430</button>' : '<button class="secondary" id="raid-arena" aria-describedby="raid-ready-clock">\u0412\u0441\u0442\u0443\u043F\u0438\u0442\u044C \u0432 \u0431\u043E\u0439</button>';
-    root.innerHTML = `<div class="raid-toolbar"><div class="raid-tabs" role="group" aria-label="\u0422\u0438\u043F \u0431\u043E\u0441\u0441\u0430">${raid2 && hp > 0 ? `<span class="raid-active-state">${rare ? "\u0420\u0435\u0434\u043A\u0438\u0439" : "\u041E\u0431\u044B\u0447\u043D\u044B\u0439"} \u0440\u0435\u0439\u0434 \xB7 ${raid2.blockedBy ? "\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440" : "\u0430\u043A\u0442\u0438\u0432\u0435\u043D"}</span>` : `<button class="secondary" data-mode="normal" aria-pressed="${!rare}">\u041E\u0431\u044B\u0447\u043D\u044B\u0435</button><button class="secondary" data-mode="rare" aria-pressed="${rare}">\u0420\u0435\u0434\u043A\u0438\u0435</button>`}</div>${!raid2 ? `<select id="raid-map" class="boss-select" aria-label="\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430">${MAPS.map((v, i) => `<option value="${i}" ${map === i ? "selected" : ""}>${v.boss}${rare ? " \xB7 \u0443\u0440. " + RARE_RAIDS[i].level : ""}</option>`).join("")}</select>` : ""}</div>
+    const attacks = options(raid2, save2, map, rare), buyReady = payments2.mode !== "off" && payments2.account === "vk";
+    const feedback = same && Number(root.dataset.hitAt) > Date.now() - 2200 ? '<span class="raid-impact">\u2212' + fmt(Number(root.dataset.hitDamage)) + "</span>" : "";
+    const card = (a) => `<section class="raid-command ${a.sku ? "raid-command-extra" : "raid-command-fire"}"><div class="raid-command-art"><canvas ${a.sku ? 'data-raid-item="' + a.art + '"' : 'data-raid-weapon="' + save2.weapon + '"'} width="256" height="180" aria-hidden="true"></canvas>${a.sku ? '<span class="raid-bonus">+' + a.bonus * 100 + "%</span>" : '<span class="raid-standard">\u0421\u041D\u0410\u0420\u042F\u0416\u0415\u041D\u041E</span>'}</div><div class="raid-command-copy"><h3>${escape(a.name)}</h3><p>${a.sku ? "\u0412\u044B\u0441\u0442\u0440\u0435\u043B + " + fmt(a.extra) + " \u0434\u043E\u043F. \u0443\u0440\u043E\u043D\u0430" : escape(WEAPONS[save2.weapon].name)}</p><div class="raid-command-values"><span><b>${fmt(a.expected)}</b> \u0443\u0440\u043E\u043D\u0430</span><span>${a.cost} \u03DF</span></div></div>${a.sku ? '<small class="raid-ammo">' + (a.charges ? "\u0417\u0430\u0440\u044F\u0434\u043E\u0432: " + fmt(a.charges) : a.pack + " \u0443\u0434\u0430\u0440\u043E\u0432 \xB7 " + a.votes + " " + (a.votes < 5 ? "\u0433\u043E\u043B\u043E\u0441\u0430" : "\u0433\u043E\u043B\u043E\u0441\u043E\u0432")) + "</small>" : '<small class="raid-ammo">\u0411\u0435\u0437 \u0440\u0430\u0441\u0445\u043E\u0434\u043D\u0438\u043A\u043E\u0432</small>'}${raid2 ? '<button class="' + (a.id === "gun" ? "primary" : "secondary") + '" id="strike-' + a.id + '" data-raid-attack="' + a.id + '" aria-describedby="raid-ready-clock">' + (a.id === "gun" ? "\u0412\u044B\u0441\u0442\u0440\u0435\u043B\u0438\u0442\u044C" : "\u041D\u0430\u043D\u0435\u0441\u0442\u0438 \u0443\u0434\u0430\u0440") + "</button>" : '<button class="secondary" disabled>' + (allowed ? "\u0410\u043A\u0442\u0438\u0432\u0438\u0440\u0443\u0439 \u0431\u043E\u0441\u0441\u0430" : "\u0411\u043E\u0441\u0441 \u0437\u0430\u043A\u0440\u044B\u0442") + "</button>"}${a.sku && raid2 && !a.locked && !a.charges && hp > 0 ? '<button class="raid-buy" id="buy-' + a.id + '" data-raid-buy="' + a.id + '" ' + (!buyReady ? "disabled" : "") + ">" + (!buyReady ? payments2.account !== "vk" ? "\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u0432\u043D\u0443\u0442\u0440\u0438 VK" : "\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B" : "\u041A\u0443\u043F\u0438\u0442\u044C \xB7 " + a.votes + " " + (a.votes < 5 ? "\u0433\u043E\u043B\u043E\u0441\u0430" : "\u0433\u043E\u043B\u043E\u0441\u043E\u0432")) + "</button>" : ""}</section>`;
+    root.innerHTML = `<div class="raid-toolbar"><div class="raid-tabs" role="group" aria-label="\u0422\u0438\u043F \u0431\u043E\u0441\u0441\u0430">${raid2 && hp > 0 ? `<span class="raid-active-state">${rare ? "\u0420\u0435\u0434\u043A\u0438\u0439" : "\u041E\u0431\u044B\u0447\u043D\u044B\u0439"} \u0440\u0435\u0439\u0434 \xB7 ${raid2.blockedBy ? "\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440" : "\u0430\u043A\u0442\u0438\u0432\u0435\u043D"}</span>` : `<button class="secondary" data-mode="normal" aria-pressed="${!rare}">\u041E\u0431\u044B\u0447\u043D\u044B\u0435</button><button class="secondary" data-mode="rare" aria-pressed="${rare}">\u0420\u0435\u0434\u043A\u0438\u0435</button>`}</div>${!raid2 ? `<select id="raid-map" class="boss-select" aria-label="\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430">${MAPS.map((v, i) => `<option value="${i}" ${map === i ? "selected" : ""}>${v.boss}${rare ? " \xB7 \u0443\u0440. " + RARE_RAIDS[i].level : ""}</option>`).join("")}</select>` : `<small>${party.length} / ${capacity} \u0431\u043E\u0439\u0446\u043E\u0432</small>`}</div>
  <article class="raid-console ${rare ? "is-rare" : ""}">
-  <div class="raid-dossier"><div class="boss-stage" style="--boss-scene:url('assets/district-${map}.webp')"><span class="boss-rarity">${rare ? "\u0420\u0415\u0414\u041A\u0410\u042F \u0426\u0415\u041B\u042C" : "\u0426\u0415\u041B\u042C " + String(map + 1).padStart(2, "0")}</span><img class="boss-character" src="assets/boss-${BOSS_ART[map]}.png" alt="${escape(m.boss)} \u2014 ${roles[map]}" width="512" height="512" decoding="async"><span class="boss-stage-caption">${escape(m.name)}</span></div>
-  <div class="raid-vitals"><span>${roles[map]}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt(hp)}</b><span>/ ${fmt(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt(hp)} \u0438\u0437 ${fmt(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div><small>${raid2 ? "\u041E\u0431\u0449\u0438\u0439 \u0443\u0440\u043E\u043D: " + fmt(maxHp - hp) : "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + requiredLevel + " \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438"}</small></div></div>
-  <div class="raid-command-center"><div class="raid-command-header"><span class="eyebrow">${raid2 ? "\u0411\u041E\u0419 \u0421 \u041E\u0422\u0420\u042F\u0414\u041E\u041C" : "\u041F\u041E\u0414\u0413\u041E\u0422\u041E\u0412\u041A\u0410 \u041A \u0411\u041E\u042E"}</span><span>${party.length} / ${capacity} \u0431\u043E\u0439\u0446\u043E\u0432</span></div>
-   <div class="raid-command-grid"><section class="raid-command raid-command-fire"><div class="raid-command-art"><canvas data-raid-weapon="${save2.weapon}" width="190" height="72" aria-hidden="true"></canvas><span>01 / \u041E\u0420\u0423\u0416\u0418\u0415</span></div><div class="raid-command-copy"><h3>\u0411\u044B\u0441\u0442\u0440\u044B\u0439 \u043D\u0430\u043B\u0451\u0442</h3><p>${escape(WEAPONS[save2.weapon].name)} \xB7 \u0431\u0435\u0437 \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F</p><div class="raid-command-values"><span><b>${fmt(hit)}</b> \u0443\u0440\u043E\u043D\u0430</span><span><b>12</b> \u044D\u043D\u0435\u0440\u0433\u0438\u0438</span></div></div>${quickAction}<small>\u041F\u0435\u0440\u0435\u0440\u044B\u0432: ${raidProfile(map).cooldown / 1e3} \u0441\u0435\u043A</small></section>
-   <section class="raid-command raid-command-arena"><div class="raid-command-art arena-command-art"><span>02 / \u0422\u0410\u041A\u0422\u0418\u041A\u0410</span></div><div class="raid-command-copy"><h3>\u0411\u043E\u0439 \u043D\u0430 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0435</h3><p>\u0423\u043A\u043B\u043E\u043D\u044F\u0439\u0441\u044F \u0438 \u043D\u0430\u0445\u043E\u0434\u0438 \u043E\u043A\u043D\u043E \u0434\u043B\u044F \u0441\u0442\u0440\u0435\u043B\u044C\u0431\u044B</p><div class="raid-command-values"><span>${raid2 ? "\u0434\u043E" : "\u0412 \u0440\u0435\u0439\u0434\u0435 \u0434\u043E"} <b>${fmt(arena.cap)}</b> \u0443\u0440\u043E\u043D\u0430</span><span class="raid-arena-cost">${raid2 ? "12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438" : "\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u0430\u044F \u043F\u0440\u043E\u0431\u0430"}</span></div></div>${arenaAction}<small>${raid2 ? "30 \u0441\u0435\u043A \u0431\u043E\u044F \xB7 \u043E\u0431\u0449\u0438\u0439 \u043F\u0435\u0440\u0435\u0440\u044B\u0432" : "\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442 \u0443\u0440\u043E\u043D \u0440\u0435\u0439\u0434\u0443"}</small></section></div>
-   <div class="raid-readiness"><span id="raid-ready-clock" tabindex="-1">${raid2 ? "\u041E\u0442\u0440\u044F\u0434 \u0433\u043E\u0442\u043E\u0432 \u043A \u0430\u0442\u0430\u043A\u0435" : accessReason}</span>${!raid2 ? `<small>\u0423\u0441\u043B\u043E\u0432\u0438\u044F: \u0443\u0440\u043E\u0432\u0435\u043D\u044C ${requiredLevel}${rare ? " \u0438 \u043F\u043E\u0431\u0435\u0434\u0430 \u043D\u0430\u0434 \u043E\u0431\u044B\u0447\u043D\u043E\u0439 \u0432\u0435\u0440\u0441\u0438\u0435\u0439" : ""}</small>` : !raid2.joined && hp > 0 ? `<button class="secondary" id="join-raid" ${raid2.blockedBy || !allowed || party.length >= capacity ? "disabled" : ""}>${!allowed ? "\u041D\u0443\u0436\u0435\u043D \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441" : party.length >= capacity ? "\u041E\u0442\u0440\u044F\u0434 \u0437\u0430\u043F\u043E\u043B\u043D\u0435\u043D" : "\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u044C\u0441\u044F"}</button>` : `<small>\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434: ${fmt(contribution)} \u0443\u0440\u043E\u043D\u0430</small>`}</div>
-   <section class="raid-loot"><div class="raid-loot-title"><b>${lootLabel}</b><small>${lootHint}</small></div><div class="raid-rewards">${rewards(raid2 ? reward : rare ? profile.pool : reward)}</div>${raid2 && hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0430\u0431\u0440\u0430\u0442\u044C \u043D\u0430\u0433\u0440\u0430\u0434\u0443</button>' : (mine == null ? void 0 : mine.claimed) ? '<p class="raid-loot-claimed">\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</p>' : ""}</section>
+  <div class="raid-dossier"><div class="boss-stage" style="--boss-scene:url('assets/district-${map}.webp')"><span class="boss-rarity">${rare ? "\u0420\u0415\u0414\u041A\u0410\u042F \u0426\u0415\u041B\u042C" : "\u0426\u0415\u041B\u042C " + String(map + 1).padStart(2, "0")}</span><img class="boss-character" src="assets/boss-${BOSS_ART[map]}.png" alt="${escape(m.boss)} \u2014 ${roles[map]}" width="512" height="512" decoding="async">${feedback}<span class="boss-stage-caption">${escape(m.name)}</span></div>
+  <div class="raid-vitals"><span>${roles[map]}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt(hp)}</b><span>/ ${fmt(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt(hp)} \u0438\u0437 ${fmt(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div><small>${raid2 ? "\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434: " + fmt(contribution) : "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + requiredLevel + " \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438"}</small>${raid2 && hp > 0 ? '<button class="secondary" id="raid-arena">\u041D\u0430 \u0430\u0440\u0435\u043D\u0443 \xB7 12 \u03DF</button>' : ""}</div></div>
+  <div class="raid-command-center"><div class="raid-command-header"><div><span class="eyebrow">${raid2 ? "\u041E\u0411\u0429\u0418\u0419 \u0411\u041E\u0419" : "\u0410\u0420\u0421\u0415\u041D\u0410\u041B \u0420\u0415\u0419\u0414\u0410"}</span><span id="raid-ready-clock" tabindex="-1">${raid2 ? "\u0412\u044B\u0431\u0435\u0440\u0438 \u0443\u0434\u0430\u0440" : accessReason}</span></div>${!raid2 ? allowed ? '<button class="primary" id="create-raid">\u0410\u043A\u0442\u0438\u0432\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430</button>' : '<button class="secondary" id="raid-prepare">\u041A \u0440\u0430\u0439\u043E\u043D\u0443</button>' : !raid2.joined && hp > 0 ? '<button class="primary" id="join-raid" ' + (raid2.blockedBy || !allowed || party.length >= capacity ? "disabled" : "") + ">\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u044C\u0441\u044F</button>" : ""}</div>
+   ${raid2 && hp > 0 ? '<div class="raid-recovery" aria-hidden="true"><i></i></div>' : ""}
+   <div class="raid-command-grid">${raid2 && hp <= 0 ? '<div class="raid-victory"><span>\u0426\u0415\u041B\u042C \u0423\u0421\u0422\u0420\u0410\u041D\u0415\u041D\u0410</span><h3>\u041E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430</h3><p>\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434: ' + fmt(contribution) + " \u0443\u0440\u043E\u043D\u0430.</p></div>" : attacks.map(card).join("")}</div>
+   ${raid2 ? `<details class="raid-loot" ${hp <= 0 || oldLoot && same ? "open" : ""}><summary>${hp > 0 ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B" : "\u0422\u0432\u043E\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430"}<span>${fmt(contribution)} \u0443\u0440\u043E\u043D\u0430 \xB7 ${share(contribution, maxHp)}</span></summary><div class="raid-loot-title"><small>${rare ? "\u0424\u043E\u043D\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u0444\u0430\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u043C\u0443 \u0443\u0440\u043E\u043D\u0443." : hp > 0 ? "\u0414\u043E \u043F\u043E\u043B\u043D\u043E\u0439 \u043D\u0430\u0433\u0440\u0430\u0434\u044B: " + fmt(Math.max(0, Math.ceil(maxHp * 0.25 - contribution))) + " \u0443\u0440\u043E\u043D\u0430." : "\u0418\u0442\u043E\u0433 \u043F\u043E \u0442\u0432\u043E\u0435\u043C\u0443 \u0432\u043A\u043B\u0430\u0434\u0443."}</small></div><div class="raid-rewards">${rewards(raid2.reward)}</div>${hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0430\u0431\u0440\u0430\u0442\u044C \u043D\u0430\u0433\u0440\u0430\u0434\u0443</button>' : (mine == null ? void 0 : mine.claimed) ? '<p class="raid-loot-claimed">\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</p>' : ""}</details>` : ""}
   </div>
  </article>
- ${raid2 ? `<div class="raid-after-action"><section class="raid-activity"><div class="raid-block-title"><h3>\u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u044F \u0431\u043E\u044F</h3><small>\u0421 \u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u0430</small></div>${seen.entries.length ? "<ol>" + seen.entries.map((e) => `<li><time>${new Date(e.at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</time><span>\u041E\u0431\u0449\u0438\u0439 \u0443\u0440\u043E\u043D <b>+${fmt(e.damage)}</b><small>${e.mine ? "\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434 +" + fmt(e.mine) : "\u0412\u043A\u043B\u0430\u0434 \u0434\u0440\u0443\u0433\u0438\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432"} \xB7 \u043E\u0441\u0442\u0430\u043B\u043E\u0441\u044C ${fmt(e.hp)} HP</small></span></li>`).join("") + "</ol>" : "<p>\u0418\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u043F\u043E\u044F\u0432\u044F\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0439 \u0430\u0442\u0430\u043A\u0438. \u0421\u0442\u0430\u0440\u044B\u0435 \u0441\u043E\u0431\u044B\u0442\u0438\u044F \u043D\u0435 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u0430\u0432\u043B\u0438\u0432\u0430\u044E\u0442\u0441\u044F.</p>"}</section><section class="raid-damage-ranking"><div class="raid-block-title"><h3>\u041B\u0438\u0434\u0435\u0440\u044B \u043F\u043E \u0443\u0440\u043E\u043D\u0443</h3><small>\u0412 \u044D\u0442\u043E\u043C \u0440\u0435\u0439\u0434\u0435</small></div>${leaders.length ? "<ol>" + leaders.map((p, i) => `<li ${p.me ? 'class="is-me"' : ""}><span class="damage-rank">${i + 1}</span>${portrait(p)}<span class="damage-player">${escape(p.name)}${p.me ? " \xB7 \u0442\u044B" : ""}<small>${share(p.damage, maxHp)} \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0431\u043E\u0441\u0441\u0430</small></span><b>${fmt(p.damage)}</b></li>`).join("") + "</ol>" : "<p>\u0417\u0434\u0435\u0441\u044C \u043F\u043E\u044F\u0432\u044F\u0442\u0441\u044F \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438, \u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u0443\u0436\u0435 \u043D\u0430\u043D\u0435\u0441\u043B\u0438 \u0443\u0440\u043E\u043D.</p>"}</section></div>` : ""}
- <div class="arena-tools">${raid2 ? '<button class="secondary" id="arena-practice">\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430</button><p>\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E \xB7 \u0431\u0435\u0437 \u043E\u043F\u044B\u0442\u0430 \u0438 \u043D\u0430\u0433\u0440\u0430\u0434</p>' : ""}<details class="arena-guide" ${oldArena && same ? "open" : ""}><summary>\u0422\u0430\u043A\u0442\u0438\u043A\u0430 \u0430\u0440\u0435\u043D\u044B \xB7 30 \u0441\u0435\u043A</summary><p>\u041D\u0430\u0431\u043B\u044E\u0434\u0435\u043D\u0438\u0435 \u2192 \u043F\u043E\u0434\u043A\u0440\u0435\u043F\u043B\u0435\u043D\u0438\u0435 \u2192 \u044F\u0440\u043E\u0441\u0442\u044C. \u0423\u0445\u043E\u0434\u0438 \u0438\u0437 \u043E\u0442\u043C\u0435\u0447\u0435\u043D\u043D\u044B\u0445 \u0437\u043E\u043D, \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439 \u043E\u0442\u043F\u043E\u0440 \u0438 \u0441\u0442\u0440\u0435\u043B\u044F\u0439 \u0432 \u043E\u043A\u043D\u043E \u0443\u044F\u0437\u0432\u0438\u043C\u043E\u0441\u0442\u0438. \u0412\u043A\u043B\u0430\u0434 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F \u0431\u043E\u044F. \u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u2014 \u0434\u043E +20% \u043A \u0431\u044B\u0441\u0442\u0440\u043E\u043C\u0443 \u043D\u0430\u043B\u0451\u0442\u0443.</p></details></div>
- <details class="raid-rules" ${oldDetails && same ? "open" : ""}><summary>\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u043E\u0431\u0449\u0435\u0433\u043E \u0440\u0435\u0439\u0434\u0430</summary><p>\u0423 \u0432\u0441\u0435\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432 \u043E\u0434\u043D\u043E \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430. \u0410\u0442\u0430\u043A\u0443\u0439 \u0432 \u0443\u0434\u043E\u0431\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F; \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u0432\u043A\u043B\u0430\u0434\u0430 \u2014 \u043A\u0430\u0436\u0434\u044B\u0435 4 \u0441\u0435\u043A\u0443\u043D\u0434\u044B \u043F\u0440\u0438 \u043E\u0442\u043A\u0440\u044B\u0442\u043E\u043C \u044D\u043A\u0440\u0430\u043D\u0435. \u041E\u0431\u0430 \u0441\u043F\u043E\u0441\u043E\u0431\u0430 \u0430\u0442\u0430\u043A\u0438 \u0441\u0442\u043E\u044F\u0442 12 \u044D\u043D\u0435\u0440\u0433\u0438\u0438 \u0438 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u044E\u0442 \u043E\u0431\u0449\u0438\u0439 \u043F\u0435\u0440\u0435\u0440\u044B\u0432. ${rare ? "\u041E\u0441\u0430\u0434\u043D\u043E\u0435 \u0443\u0441\u0438\u043B\u0435\u043D\u0438\u0435 \xD7" + profile.multiplier.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + ". \u041E\u0431\u0449\u0438\u0439 \u0444\u043E\u043D\u0434 \u043D\u0430\u0433\u0440\u0430\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u0443\u0440\u043E\u043D\u0443; \u0441\u0440\u043E\u043A\u0430 \u0438\u0441\u0442\u0435\u0447\u0435\u043D\u0438\u044F \u0440\u0435\u0439\u0434\u0430 \u043D\u0435\u0442." : raidProfile(map).trait}</p><p>\u041E\u0434\u0438\u043D \u0430\u043A\u0442\u0438\u0432\u043D\u044B\u0439 \u0431\u043E\u0441\u0441 \u0434\u043E \u043F\u043E\u0431\u0435\u0434\u044B. \u041F\u0440\u0438 \u0432\u044B\u0431\u043E\u0440\u0435 \u0442\u043E\u0433\u043E \u0436\u0435 \u0431\u043E\u0441\u0441\u0430 \u0438\u0433\u0440\u0430 \u043F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u044F\u0435\u0442 \u043A \u043E\u0431\u0449\u0435\u043C\u0443 \u0440\u0435\u0439\u0434\u0443, \u0432 \u043F\u0435\u0440\u0432\u0443\u044E \u043E\u0447\u0435\u0440\u0435\u0434\u044C \u0441 \u0434\u0440\u0443\u0437\u044C\u044F\u043C\u0438. \u0412 \u043E\u0442\u0440\u044F\u0434\u0435 \u0434\u043E 300 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432; \u043F\u0440\u0438 \u0437\u0430\u043F\u043E\u043B\u043D\u0435\u043D\u0438\u0438 \u043E\u0442\u043A\u0440\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0440\u0435\u0439\u0434.</p></details>
+ ${raid2 ? `<div class="raid-after-action"><section class="raid-activity"><div class="raid-block-title"><h3>\u0425\u043E\u0434 \u0431\u043E\u044F</h3><small>\u0421 \u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u0430</small></div>${seen.entries.length ? "<ol>" + seen.entries.map((e) => `<li><time>${new Date(e.at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</time><span>\u041E\u0431\u0449\u0438\u0439 \u0443\u0440\u043E\u043D <b>+${fmt(e.damage)}</b><small>${e.mine ? "\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434 +" + fmt(e.mine) : "\u0412\u043A\u043B\u0430\u0434 \u0434\u0440\u0443\u0433\u0438\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432"} \xB7 \u043E\u0441\u0442\u0430\u043B\u043E\u0441\u044C ${fmt(e.hp)} HP</small></span></li>`).join("") + "</ol>" : "<p>\u0410\u0442\u0430\u043A\u0438 \u043E\u0442\u0440\u044F\u0434\u0430 \u043F\u043E\u044F\u0432\u044F\u0442\u0441\u044F \u0437\u0434\u0435\u0441\u044C.</p>"}</section><section class="raid-damage-ranking"><div class="raid-block-title"><h3>\u041B\u0438\u0434\u0435\u0440\u044B \u043F\u043E \u0443\u0440\u043E\u043D\u0443</h3><small>\u0412 \u044D\u0442\u043E\u043C \u0440\u0435\u0439\u0434\u0435</small></div>${leaders.length ? "<ol>" + leaders.map((p, i) => `<li ${p.me ? 'class="is-me"' : ""}><span class="damage-rank">${i + 1}</span>${portrait(p)}<span class="damage-player">${escape(p.name)}${p.me ? " \xB7 \u0442\u044B" : ""}<small>${share(p.damage, maxHp)} \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0431\u043E\u0441\u0441\u0430</small></span><b>${fmt(p.damage)}</b></li>`).join("") + "</ol>" : "<p>\u041F\u0435\u0440\u0432\u044B\u0439 \u0443\u0434\u0430\u0440 \u043E\u0442\u043A\u0440\u043E\u0435\u0442 \u0440\u0435\u0439\u0442\u0438\u043D\u0433.</p>"}</section></div>` : ""}
  ${raid2 ? (raid2.blockedBy || hp <= 0 ? '<div class="raid-controls"><button class="secondary" id="close-raid">' + (raid2.blockedBy ? "\u041A \u043C\u043E\u0435\u043C\u0443 \u0431\u043E\u0441\u0441\u0443" : "\u041A \u0441\u043F\u0438\u0441\u043A\u0443 \u0431\u043E\u0441\u0441\u043E\u0432") + "</button></div>" : "") + `<details class="raid-party" ${oldParty && same ? "open" : ""}><summary>\u0412\u0435\u0441\u044C \u043E\u0442\u0440\u044F\u0434 \xB7 ${party.length} / ${capacity}</summary><div class="party-list"></div><div class="party-pagination"></div></details>` : ""}`;
     root.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => onMode(b.dataset.mode === "rare"));
     const bind = (id, fn) => {
@@ -1237,14 +1450,18 @@
     const select = root.querySelector("#raid-map");
     if (select) select.onchange = (e) => onMap(Number(e.target.value));
     bind("raid-prepare", onPrepare);
-    bind("arena-practice", onPractice);
     bind("raid-arena", onArena);
     bind("create-raid", onCreate);
-    bind("raid-attack", onAttack);
     bind("join-raid", onJoin);
     bind("raid-claim", onClaim);
     bind("close-raid", onClose);
+    root.querySelectorAll("[data-raid-attack]").forEach((b) => b.onclick = () => onAttack(b.dataset.raidAttack));
+    root.querySelectorAll("[data-raid-buy]").forEach((b) => b.onclick = () => onBuy(b.dataset.raidBuy));
     root.querySelectorAll("[data-raid-weapon]").forEach((c) => drawWeapon(c, Number(c.dataset.raidWeapon)));
+    const drawKit = () => root.querySelectorAll("[data-raid-item]").forEach((c) => drawRaidItem(c, Number(c.dataset.raidItem)));
+    drawKit();
+    loadRaidKit().then(drawKit).catch(() => {
+    });
     root.querySelectorAll("[data-raid-resource]").forEach((c) => drawItem(c, Number(c.dataset.raidResource)));
     if (raid2) {
       const sorted = [...party].sort((a, b) => b.damage - a.damage), pages = Math.ceil(sorted.length / 20);
@@ -1272,14 +1489,14 @@
     if (main) main.scrollTop = same ? scroll : 0;
     const focus = focused && root.querySelector("#" + focused);
     if (focus && !focus.disabled) focus.focus({ preventScroll: true });
-    else if (focus == null ? void 0 : focus.disabled) (_g = root.querySelector("#raid-ready-clock")) == null ? void 0 : _g.focus({ preventScroll: true });
+    else if (focus == null ? void 0 : focus.disabled) (_e = root.querySelector("#raid-ready-clock")) == null ? void 0 : _e.focus({ preventScroll: true });
   }
-  var BOSS_ART, roles, observations, fmt, share, escape, rewards;
+  var BOSS_ART, roles, observations, fmt, share, escape, rewards, options;
   var init_raid_view = __esm({
     "raid-view.js"() {
-      init_boss_arena();
       init_friends_ui();
       init_art();
+      init_raid_attacks();
       init_raid_observation();
       init_balance();
       init_rare_raids();
@@ -1293,6 +1510,10 @@
       };
       escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
       rewards = (r) => Object.entries({ scrap: "\u0414\u0435\u0442\u0430\u043B\u0438", xp: "\u041E\u043F\u044B\u0442", cores: "\u042F\u0434\u0440\u0430", cloth: "\u0422\u043A\u0430\u043D\u044C" }).map(([k, name]) => "<div>" + (k === "xp" ? '<i class="raid-xp-seal" aria-hidden="true">XP</i>' : '<canvas data-raid-resource="' + { scrap: 0, cores: 1, cloth: 2 }[k] + '" width="42" height="42" aria-hidden="true"></canvas>') + "<span><strong>" + fmt(r[k]) + "</strong><small>" + name + "</small></span></div>").join("");
+      options = (raid2, save2, map, rare) => RAID_ATTACKS.map((a) => {
+        var _a2, _b2;
+        return ((_a2 = raid2 == null ? void 0 : raid2.attackOptions) == null ? void 0 : _a2.find((o) => o.id === a.id)) || raidAttackPlan(save2, map, rare, a.id, (_b2 = raid2 == null ? void 0 : raid2.hp) != null ? _b2 : Infinity, (raid2 == null ? void 0 : raid2.paymentMode) === "test");
+      });
     }
   });
 
@@ -1714,9 +1935,9 @@
     var _a2;
     const workshopOpen = (_a2 = root.querySelector(".garage-workshop")) == null ? void 0 : _a2.open;
     const current = vehicleFor(save2), owned = save2.ownedVehicles || ["nomad"];
-    const options = [["all", "\u0412\u0441\u0435 \xB7 20"], ["scrap", "\u0417\u0430 \u0434\u0435\u0442\u0430\u043B\u0438 \xB7 13"], ["votes", "\u0417\u0430 \u0433\u043E\u043B\u043E\u0441\u0430 \xB7 6"], ["owned", "\u041C\u043E\u0438 \xB7 " + owned.length]];
+    const options2 = [["all", "\u0412\u0441\u0435 \xB7 20"], ["scrap", "\u0417\u0430 \u0434\u0435\u0442\u0430\u043B\u0438 \xB7 13"], ["votes", "\u0417\u0430 \u0433\u043E\u043B\u043E\u0441\u0430 \xB7 6"], ["owned", "\u041C\u043E\u0438 \xB7 " + owned.length]];
     const list = VEHICLES.filter((v) => filter === "all" || filter === "scrap" && v.cost > 0 || filter === "votes" && v.votes || filter === "owned" && owned.includes(v.id));
-    root.innerHTML = `<div class="garage-showroom"><div class="garage-platform">${art(current)}<span class="garage-stamp">\u041C\u041E\u0411\u0418\u041B\u042C\u041D\u0410\u042F \u0411\u0410\u0417\u0410 / ${String(current.art + 1).padStart(2, "0")}</span></div><div class="garage-summary"><span class="eyebrow orange">\u0410\u041A\u0422\u0418\u0412\u041D\u042B\u0419 \u0410\u0412\u0422\u041E\u041C\u041E\u0411\u0418\u041B\u042C</span><h2>\xAB${current.name}\xBB</h2><p>${current.description}</p><div class="vehicle-bonuses">${bonus(current)}</div><small>\u0411\u043E\u043D\u0443\u0441\u044B \u043A\u0443\u0437\u043E\u0432\u0430 \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u044E\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u0443 \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0439 \u043C\u0430\u0448\u0438\u043D\u044B. \u0423\u043B\u0443\u0447\u0448\u0435\u043D\u0438\u044F \u043C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u043E\u0439 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043F\u0440\u0438 \u0441\u043C\u0435\u043D\u0435 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u044F.</small></div></div><details class="garage-workshop" ${workshopOpen ? "open" : ""}><summary>\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0430\u044F <small>\u0413\u0435\u043D\u0435\u0440\u0430\u0442\u043E\u0440 ${save2.engine} \xB7 \u043A\u043E\u0440\u043F\u0443\u0441 ${save2.body} \xB7 \u043E\u0442\u0441\u0435\u043A ${save2.trunk}</small></summary><div class="item-grid">${upgrades}</div></details><div class="section-title"><h3>\u0410\u0432\u0442\u043E\u043F\u0430\u0440\u043A \u0443\u0431\u0435\u0436\u0438\u0449\u0430</h3><span>${owned.length} / 20 \u0412 \u041A\u041E\u041B\u041B\u0415\u041A\u0426\u0418\u0418</span></div><div class="vehicle-filters" role="group" aria-label="\u0424\u0438\u043B\u044C\u0442\u0440 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u0435\u0439">${options.map(([id, label2]) => `<button class="secondary ${filter === id ? "selected" : ""}" data-vehicle-filter="${id}" aria-pressed="${filter === id}">${label2}</button>`).join("")}</div><p class="garage-tip">\u041F\u043E\u043A\u0443\u043F\u043A\u0430 \u0437\u0430 \u0434\u0435\u0442\u0430\u043B\u0438 \u043D\u0430\u0432\u0441\u0435\u0433\u0434\u0430. \u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0435 \u043A\u0443\u0437\u043E\u0432\u0430 \u0437\u0430 \u0433\u043E\u043B\u043E\u0441\u0430 \u0438\u043C\u0435\u044E\u0442 \u0445\u0430\u0440\u0430\u043A\u0442\u0435\u0440\u0438\u0441\u0442\u0438\u043A\u0438 \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u044B\u0445 \u0430\u043D\u0430\u043B\u043E\u0433\u043E\u0432 \u0438 \u0442\u0435 \u0436\u0435 \u0442\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u044F \u043A \u0443\u0440\u043E\u0432\u043D\u044E. \u041E\u043F\u043B\u0430\u0442\u0430 \u0433\u043E\u043B\u043E\u0441\u0430\u043C\u0438 \u043F\u043E\u043A\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 \u2014 \u0443\u043A\u0430\u0437\u0430\u043D\u044B \u043F\u043B\u0430\u043D\u0438\u0440\u0443\u0435\u043C\u044B\u0435 \u0446\u0435\u043D\u044B.</p><div class="vehicle-grid">${list.map((v) => {
+    root.innerHTML = `<div class="garage-showroom"><div class="garage-platform">${art(current)}<span class="garage-stamp">\u041C\u041E\u0411\u0418\u041B\u042C\u041D\u0410\u042F \u0411\u0410\u0417\u0410 / ${String(current.art + 1).padStart(2, "0")}</span></div><div class="garage-summary"><span class="eyebrow orange">\u0410\u041A\u0422\u0418\u0412\u041D\u042B\u0419 \u0410\u0412\u0422\u041E\u041C\u041E\u0411\u0418\u041B\u042C</span><h2>\xAB${current.name}\xBB</h2><p>${current.description}</p><div class="vehicle-bonuses">${bonus(current)}</div><small>\u0411\u043E\u043D\u0443\u0441\u044B \u043A\u0443\u0437\u043E\u0432\u0430 \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u044E\u0442 \u0442\u043E\u043B\u044C\u043A\u043E \u0443 \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0439 \u043C\u0430\u0448\u0438\u043D\u044B. \u0423\u043B\u0443\u0447\u0448\u0435\u043D\u0438\u044F \u043C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u043E\u0439 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043F\u0440\u0438 \u0441\u043C\u0435\u043D\u0435 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u044F.</small></div></div><details class="garage-workshop" ${workshopOpen ? "open" : ""}><summary>\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0430\u044F <small>\u0413\u0435\u043D\u0435\u0440\u0430\u0442\u043E\u0440 ${save2.engine} \xB7 \u043A\u043E\u0440\u043F\u0443\u0441 ${save2.body} \xB7 \u043E\u0442\u0441\u0435\u043A ${save2.trunk}</small></summary><div class="item-grid">${upgrades}</div></details><div class="section-title"><h3>\u0410\u0432\u0442\u043E\u043F\u0430\u0440\u043A \u0443\u0431\u0435\u0436\u0438\u0449\u0430</h3><span>${owned.length} / 20 \u0412 \u041A\u041E\u041B\u041B\u0415\u041A\u0426\u0418\u0418</span></div><div class="vehicle-filters" role="group" aria-label="\u0424\u0438\u043B\u044C\u0442\u0440 \u0430\u0432\u0442\u043E\u043C\u043E\u0431\u0438\u043B\u0435\u0439">${options2.map(([id, label2]) => `<button class="secondary ${filter === id ? "selected" : ""}" data-vehicle-filter="${id}" aria-pressed="${filter === id}">${label2}</button>`).join("")}</div><p class="garage-tip">\u041F\u043E\u043A\u0443\u043F\u043A\u0430 \u0437\u0430 \u0434\u0435\u0442\u0430\u043B\u0438 \u043D\u0430\u0432\u0441\u0435\u0433\u0434\u0430. \u041A\u043E\u043B\u043B\u0435\u043A\u0446\u0438\u043E\u043D\u043D\u044B\u0435 \u043A\u0443\u0437\u043E\u0432\u0430 \u0437\u0430 \u0433\u043E\u043B\u043E\u0441\u0430 \u0438\u043C\u0435\u044E\u0442 \u0445\u0430\u0440\u0430\u043A\u0442\u0435\u0440\u0438\u0441\u0442\u0438\u043A\u0438 \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u044B\u0445 \u0430\u043D\u0430\u043B\u043E\u0433\u043E\u0432 \u0438 \u0442\u0435 \u0436\u0435 \u0442\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u044F \u043A \u0443\u0440\u043E\u0432\u043D\u044E. \u041E\u043F\u043B\u0430\u0442\u0430 \u0433\u043E\u043B\u043E\u0441\u0430\u043C\u0438 \u043F\u043E\u043A\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430 \u2014 \u0443\u043A\u0430\u0437\u0430\u043D\u044B \u043F\u043B\u0430\u043D\u0438\u0440\u0443\u0435\u043C\u044B\u0435 \u0446\u0435\u043D\u044B.</p><div class="vehicle-grid">${list.map((v) => {
       const have = owned.includes(v.id), active = current.id === v.id, locked = level < v.level, disabled = active || locked || !have && (!!v.votes || save2.scrap < v.cost);
       const label2 = active ? "\u0412\u044B\u0431\u0440\u0430\u043D" : have ? "\u0412\u044B\u0431\u0440\u0430\u0442\u044C" : v.votes ? "\u0421\u043A\u043E\u0440\u043E" : "\u041A\u0443\u043F\u0438\u0442\u044C";
       const reason = active ? "\u0411\u043E\u043D\u0443\u0441\u044B \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u044E\u0442" : locked ? "\u041E\u0442\u043A\u0440\u044B\u0432\u0430\u0435\u0442\u0441\u044F \u043D\u0430 \u0443\u0440\u043E\u0432\u043D\u0435 " + v.level : have ? "\u0421\u043C\u0435\u043D\u0430 \u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u0430" : v.votes ? "\u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u043A\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430" : save2.scrap < v.cost ? "\u041D\u0435 \u0445\u0432\u0430\u0442\u0430\u0435\u0442 " + (v.cost - save2.scrap).toLocaleString("ru-RU") + " \u0434\u0435\u0442\u0430\u043B\u0435\u0439" : "\u041E\u0441\u0442\u0430\u043D\u0435\u0442\u0441\u044F " + (save2.scrap - v.cost).toLocaleString("ru-RU") + " \u0434\u0435\u0442\u0430\u043B\u0435\u0439";
@@ -2193,6 +2414,7 @@
     }
   }
   function applyControlPrefs() {
+    audio.set(prefs);
     document.body.classList.toggle("high-contrast", prefs.contrast);
     document.body.classList.toggle("left-handed", prefs.leftHanded);
     document.body.classList.toggle("large-controls", prefs.largeControls);
@@ -2218,6 +2440,11 @@
       }
       const profile = await api("profile");
       networkReady = true;
+      try {
+        payments = await api("payments");
+      } catch (e) {
+        payments = { mode: "off", account: profile.account || "guest" };
+      }
       if (profile.account === "vk" && canSyncVKFriendsSilently()) syncVKFriends(api).catch(() => {
       });
       if (profile.account === "vk") currentVKUser().then((user) => {
@@ -2610,6 +2837,7 @@
   }
   function repulse() {
     if (!repel(run)) return;
+    audio.play("metal", { gain: 0.6 });
     run.repulseVisual = 0.3;
     burst(run.x, run.y, "#d9bf80", 12);
     updateHud(true);
@@ -2660,6 +2888,7 @@
     var _a2;
     if (!run || run.ended) return;
     run.paused = !run.paused;
+    audio.stop();
     pointer = null;
     joy.firstElementChild.style.transform = "";
     keys.clear();
@@ -2715,11 +2944,16 @@
         r.next = 1.8;
       }
     }
+    if (r.moving && r.time >= (r.stepAt || 0)) {
+      audio.play("step", { rate: r.running ? 1.1 : 1 });
+      r.stepAt = r.time + (r.running ? 0.2 : 0.32);
+    }
     let weapon = WEAPONS[(_a2 = r.weapon) != null ? _a2 : save.weapon];
     r.shotCd -= dt;
     let target = nearestTarget(r.enemies, r.x, r.y, weapon.range);
     r.target = target;
     if (target && r.shotCd <= 0) {
+      audio.play(weapon.pellets ? "shotgun" : "shot");
       r.face = target.x > r.x ? 1 : -1;
       let angle = Math.atan2(target.y - r.y, target.x - r.x);
       for (let j = 0; j < (weapon.pellets || 1); j++) {
@@ -2738,7 +2972,9 @@
     }
     for (let e of r.enemies) {
       if (r.kind === "arena" && e.type === "boss") {
+        const before = r.hits;
         updateArenaBoss(r, e, dt);
+        if (r.hits > before) audio.play("hit");
         continue;
       }
       e.cd -= dt;
@@ -2754,6 +2990,7 @@
           if (strikeContains(e.attack, r.x, r.y) && r.invulnerable <= 0) {
             r.hp -= e.damage * (e.type === "boss" ? 1.6 : 1);
             r.hits++;
+            audio.play("hit");
             r.invulnerable = 0.65;
           }
           burst(e.attack.x, e.attack.y, "#d2a270", 18);
@@ -2804,6 +3041,7 @@
       if (Math.hypot(d.x - r.x, d.y - r.y) < 33) {
         if (d.kind === "health") {
           if (r.hp >= r.maxHp) continue;
+          audio.play("success", { gain: 0.5 });
           r.hp = Math.min(r.maxHp, r.hp + EXPEDITION_LOOT.heal);
         } else r.loot += d.amount;
         d.taken = true;
@@ -2968,6 +3206,7 @@
   }
   function leaveRun() {
     var _a2, _b2;
+    audio.stop();
     $("#game").hidden = true;
     $("#overlay").hidden = true;
     (_a2 = $("#battle-report")) == null ? void 0 : _a2.remove();
@@ -3005,6 +3244,7 @@
         $("#result-tag").textContent = result.win ? "\u041F\u0420\u0418\u041F\u0410\u0421\u042B \u0414\u041E\u0421\u0422\u0410\u0412\u041B\u0415\u041D\u042B" : "\u041E\u0422\u0420\u042F\u0414 \u042D\u0412\u0410\u041A\u0423\u0418\u0420\u041E\u0412\u0410\u041D";
         $("#result-title").textContent = result.win ? "\u0420\u0430\u0439\u043E\u043D \u0437\u0430\u0447\u0438\u0449\u0435\u043D." : "\u0422\u044B \u0432\u0435\u0440\u043D\u0443\u043B\u0441\u044F \u0436\u0438\u0432\u044B\u043C.";
         $("#result-text").textContent = result.win ? "\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0434\u043B\u044F \u0434\u043E\u0441\u0442\u0443\u043F\u0430 \u043A \u0431\u043E\u0441\u0441\u0443: " + Math.min(3, save.districtRuns[r.map] || 0) + " / 3." : "\u0421\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E 35% \u043F\u043E\u0434\u043E\u0431\u0440\u0430\u043D\u043D\u044B\u0445 \u0434\u0435\u0442\u0430\u043B\u0435\u0439.";
+        audio.play(result.win ? "success" : "error");
         showBattleReport(r, result);
         const next = activeRaidId ? { page: "raids", map: (_a2 = raid == null ? void 0 : raid.map) != null ? _a2 : r.map, label: "\u041A \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u043C\u0443 \u0440\u0435\u0439\u0434\u0443", description: "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438 \u043E\u0431\u0449\u0438\u0439 \u0431\u043E\u0439 \u0441 \u0442\u0435\u043A\u0443\u0449\u0438\u043C \u0431\u043E\u0441\u0441\u043E\u043C." } : sortieNextStep(save, r.map);
         $("#battle-report .result-metrics").insertAdjacentHTML("beforebegin", '<div class="result-next"><small>\u0421\u041B\u0415\u0414\u0423\u042E\u0429\u0410\u042F \u0426\u0415\u041B\u042C</small><p>' + next.description + "</p></div>");
@@ -3044,6 +3284,7 @@
     const submit = async () => {
       try {
         const result = r.practice ? { damage: 0, cap: r.contract.cap } : await api("raids/" + r.arenaRaidId + "/attack", { arena: "finish", ticket: r.ticket, damage: r.rawDamage });
+        audio.play(result.damage > 0 ? "success" : "error");
         r.confirmedDamage = result.damage;
         if (result.raid) {
           raid = result.raid;
@@ -3150,11 +3391,25 @@
         var _a2;
         return startArena(true, (_a2 = raid == null ? void 0 : raid.map) != null ? _a2 : selected);
       }),
-      onAttack: () => action(async () => {
-        const result = await api("raids/" + raid.id + "/attack", {});
+      onAttack: (style) => action(async () => {
+        var _a2;
+        const result = await api("raids/" + raid.id + "/attack", { style });
         raid = result.raid;
-        toast("\u0423\u0440\u043E\u043D: " + raidNumber(result.damage));
+        const root2 = $("#raids-page");
+        root2.dataset.hitAt = Date.now();
+        root2.dataset.hitDamage = result.damage;
+        audio.play(((_a2 = RAID_ATTACKS.find((a) => a.id === style)) == null ? void 0 : _a2.sound) || "shot");
+        toast("\u0417\u0430\u0447\u0442\u0435\u043D\u043E " + raidNumber(result.damage) + " \u0443\u0440\u043E\u043D\u0430");
       }),
+      onBuy: (style) => action(async () => {
+        const item2 = RAID_ATTACKS.find((a) => a.id === style);
+        if (payments.mode === "off" || playerProfile.account !== "vk") throw new Error("\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u0437\u0430 \u0433\u043E\u043B\u043E\u0441\u0430 \u043F\u043E\u043A\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B.");
+        await buyRaidCharges(item2.sku);
+        await api("profile");
+        await pollRaid();
+        toast("\u041F\u043B\u0430\u0442\u0451\u0436 \u043F\u0440\u0438\u043D\u044F\u0442 VK. \u0417\u0430\u0440\u044F\u0434\u044B \u043F\u043E\u044F\u0432\u044F\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0438\u044F \u0441\u0435\u0440\u0432\u0435\u0440\u0430.");
+      }),
+      payments,
       onJoin: () => action(async () => {
         raid = (await api("raids/" + raid.id + "/join", {})).raid;
       }),
@@ -3192,7 +3447,7 @@
   }
   function renderSettings() {
     const el = $("#settings-page");
-    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["leftHanded", "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439", "\u0414\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043F\u0440\u0430\u0432\u0430, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440 \u0441\u043B\u0435\u0432\u0430."], ["largeControls", "\u041A\u0440\u0443\u043F\u043D\u044B\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438", "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u043A\u043D\u043E\u043F\u043A\u0438 \u0431\u043E\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>Q</kbd> \u2014 \u043E\u0442\u043F\u043E\u0440: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u0434\u0432\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F. \u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440; \u0443\u0440\u043E\u043D\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.14</span></div></div>';
+    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["sound", "\u0417\u0432\u0443\u043A \u0438\u0433\u0440\u044B", "\u0412\u044B\u0441\u0442\u0440\u0435\u043B\u044B, \u0443\u0434\u0430\u0440\u044B, \u0448\u0430\u0433\u0438 \u0438 \u0441\u0438\u0433\u043D\u0430\u043B\u044B \u0438\u043D\u0442\u0435\u0440\u0444\u0435\u0439\u0441\u0430."], ["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["leftHanded", "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439", "\u0414\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043F\u0440\u0430\u0432\u0430, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440 \u0441\u043B\u0435\u0432\u0430."], ["largeControls", "\u041A\u0440\u0443\u043F\u043D\u044B\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438", "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u043A\u043D\u043E\u043F\u043A\u0438 \u0431\u043E\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>Q</kbd> \u2014 \u043E\u0442\u043F\u043E\u0440: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u0434\u0432\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F. \u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440; \u0443\u0440\u043E\u043D\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.15</span></div></div>';
     el.insertAdjacentHTML("beforeend", '<button class="secondary" id="repeat-tutorial">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C \u041E\u0411\u0423\u0427\u0415\u041D\u0418\u0415</button>');
     el.querySelector("#repeat-tutorial").onclick = () => onboarding(navigate, true);
     const account = document.createElement("p");
@@ -3200,6 +3455,19 @@
     account.textContent = playerProfile.account === "vk" ? "\u041F\u0440\u043E\u0444\u0438\u043B\u044C \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A VK. \u041D\u0430 \u0434\u0440\u0443\u0433\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435 \u043E\u0442\u043A\u0440\u043E\u0439 \u0438\u0433\u0440\u0443 \u0438\u0437 \u0442\u043E\u0433\u043E \u0436\u0435 \u0430\u043A\u043A\u0430\u0443\u043D\u0442\u0430 VK." : "\u0413\u043E\u0441\u0442\u0435\u0432\u043E\u0439 \u043F\u0440\u043E\u0444\u0438\u043B\u044C: \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D \u043A \u044D\u0442\u043E\u043C\u0443 \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0443. \u0421\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0430\u0446\u0438\u044F \u043C\u0435\u0436\u0434\u0443 \u041F\u041A \u0438 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u043E\u043C \u043F\u043E\u043A\u0430 \u043D\u0435 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430.";
     el.prepend(account);
     profileEditor(el, playerProfile, api, toast, showProfile);
+    el.insertAdjacentHTML("beforeend", '<details class="audio-credits"><summary>\u0410\u0432\u0442\u043E\u0440\u044B \u0437\u0432\u0443\u043A\u0430</summary><p>\u042D\u0444\u0444\u0435\u043A\u0442\u044B: <a href="https://kenney.nl/assets/impact-sounds" target="_blank" rel="noopener">Kenney</a> \xB7 CC0.</p><p>\u0412\u044B\u0441\u0442\u0440\u0435\u043B\u044B: <a href="https://opengameart.org/content/gunshot-sounds" target="_blank" rel="noopener">Gunshot Sounds \u2014 Tabasco</a>. \xA9 2009 Vincent Sevedge, <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. \u0417\u0430\u043F\u0438\u0441\u0438 \u0443\u043A\u043E\u0440\u043E\u0447\u0435\u043D\u044B \u0438 \u043E\u0442\u0444\u0438\u043B\u044C\u0442\u0440\u043E\u0432\u0430\u043D\u044B.</p></details>');
+    el.querySelector(".settings-layout .settings-card").insertAdjacentHTML("beforeend", '<div class="audio-settings"><label for="sound-volume">\u0413\u0440\u043E\u043C\u043A\u043E\u0441\u0442\u044C</label><input id="sound-volume" type="range" min="0" max="100" value="' + Math.round(prefs.soundVolume * 100) + '"><output id="sound-volume-value">' + Math.round(prefs.soundVolume * 100) + '%</output><button class="secondary" id="test-audio">\u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u0437\u0432\u0443\u043A</button><small id="audio-status" aria-live="polite"></small></div>');
+    el.querySelector("#sound-volume").oninput = (e) => {
+      prefs.soundVolume = Number(e.target.value) / 100;
+      el.querySelector("#sound-volume-value").value = e.target.value + "%";
+      localStorage.setItem(prefsKey, JSON.stringify(prefs));
+      audio.set(prefs);
+    };
+    el.querySelector("#test-audio").onclick = async () => {
+      await audio.unlock();
+      const played = audio.play("success");
+      el.querySelector("#audio-status").textContent = !prefs.sound ? "\u0417\u0432\u0443\u043A \u0432\u044B\u043A\u043B\u044E\u0447\u0435\u043D" : played ? "\u0421\u0438\u0433\u043D\u0430\u043B \u0432\u043E\u0441\u043F\u0440\u043E\u0438\u0437\u0432\u0435\u0434\u0451\u043D" : "\u0417\u0432\u0443\u043A \u043F\u043E\u043A\u0430 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D";
+    };
     el.querySelectorAll("[data-setting]").forEach((input) => input.onchange = () => {
       prefs[input.dataset.setting] = input.checked;
       localStorage.setItem(prefsKey, JSON.stringify(prefs));
@@ -3257,10 +3525,12 @@
     if (launchValue("friend")) navigate("friends");
     else if (!invited) onboarding(navigate);
   }
-  var playerProfile, $, key, save, gearTab, journalTab, sortieMode, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
+  var playerProfile, $, key, save, gearTab, journalTab, sortieMode, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, payments, audio, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
       init_boss_arena();
+      init_game_audio();
+      init_raid_attacks();
       init_arena_art();
       init_campaign();
       init_campaign_ui();
@@ -3308,13 +3578,23 @@
       networkReady = false;
       busy = false;
       sprintHeld = false;
+      payments = { mode: "off", account: "guest" };
+      audio = createGameAudio();
       prefsKey = "obitel-settings-v1";
-      prefs = { particles: true, contrast: false, runToggle: false, leftHanded: false, largeControls: false };
+      prefs = { sound: true, soundVolume: 0.45, particles: true, contrast: false, runToggle: false, leftHanded: false, largeControls: false };
       try {
         prefs = { ...prefs, ...JSON.parse(localStorage.getItem(prefsKey) || "{}") };
       } catch (e) {
       }
       applyControlPrefs();
+      for (const type of ["pointerdown", "keydown"]) document.addEventListener(type, (e) => {
+        if (e.isTrusted) audio.unlock();
+      }, { capture: true });
+      document.addEventListener("click", (e) => {
+        if (e.isTrusted && e.target.closest("button:not(:disabled)") && !e.target.closest("[data-raid-attack]")) audio.play("click");
+      });
+      document.addEventListener("visibilitychange", () => audio.hold(document.hidden));
+      document.addEventListener("obitel-media-hold", (e) => audio.hold(e.detail));
       item = (glyph, title, badge, desc, action2) => `<article class="item"><div class="item-icon">${shelterIcon({ "\u25A4": "daily", "\u25C7": "diamond", "\u271A": "medical", "\u25B0": "garage", "\u26A1": "energy", "\u2699": "settings" }[glyph] || "gear")}</div><span class="badge">${badge}</span><h3>${title}</h3><p>${desc}</p>${action2}</article>`;
       upgrade = (field, name, desc) => item(field === "engine" ? "\u2699" : field === "trunk" ? "\u25A4" : "\u25C7", name, `\u0423\u0420\u041E\u0412\u0415\u041D\u042C ${save[field]} / 10`, desc, `<button class="primary" data-upgrade="${field}" ${save[field] >= 10 || save.scrap < upgradeCost(save[field]) ? "disabled" : ""}>${save[field] >= 10 ? "\u041C\u0410\u041A\u0421\u0418\u041C\u0423\u041C" : `\u0423\u041B\u0423\u0427\u0428\u0418\u0422\u042C \xB7 ${upgradeCost(save[field])} \u0414\u0415\u0422.`}</button>`);
       itemArt = (i) => '<canvas class="loot-art" data-item="' + i + '" width="180" height="180"></canvas>';

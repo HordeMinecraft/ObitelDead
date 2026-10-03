@@ -1,6 +1,7 @@
 import {createHandler} from './domain.js';
 import {verifyVKLaunch,bindVKAccount} from './vk-auth.js';
 import {verifiedVKFriends} from './vk-friends.js';
+import {paymentMode,verifyPayment,processPayment} from './vk-payments.js';
 
 const DEFAULT_ORIGINS=[
  'https://hordeminecraft.github.io',
@@ -45,11 +46,16 @@ export async function api(request,env){
  if(!['GET','POST'].includes(request.method))return json({error:'Метод не поддерживается'},405,cors);
  if(!env.DB)return json({error:'D1 не подключена к Worker'},503,cors);
  if(url.pathname==='/api/health'){
-  try{await env.DB.prepare('SELECT 1').first();return json({ok:true,service:'obitel-api',time:Date.now()},200,cors)}
+  try{await env.DB.prepare('SELECT 1').first();return json({ok:true,service:'obitel-api',raidAttackVersion:2,payments:paymentMode(env),time:Date.now()},200,cors)}
   catch(error){console.error('D1 health error',error);return json({ok:false,error:'База данных недоступна'},503,cors)}
  }
  if(Number(request.headers.get('content-length')||0)>8192)return new Response(null,{status:413,headers:cors});
  const raw=await request.text();if(raw.length>8192)return new Response(null,{status:413,headers:cors});
+ let payment=null;
+ if(url.pathname==='/api/payments/vk'){
+  if(request.method!=='POST')return json({error:{error_code:100,error_msg:'POST required',critical:true}},200,cors);
+  try{payment=verifyPayment(raw,env.VK_APP_SECRET)}catch{return json({error:{error_code:100,error_msg:'Invalid signature',critical:true}},200,cors)}
+ }
  let vkUser=null,authSession=null;
  if(url.pathname==='/api/auth/vk'){
   if(request.method!=='POST')return json({error:'Метод не поддерживается'},405,cors);
@@ -67,6 +73,13 @@ export async function api(request,env){
   let db;
   try{db=JSON.parse(row.data)}catch{db={version:2,players:{},raids:{}}}
   db.players??={};db.raids??={};db.version=2;
+  if(payment){
+   const result=processPayment(db,payment,paymentMode(env));
+   if(result.error||payment.notification_type.startsWith('get_item'))return json(result,200,cors);
+   const written=await env.DB.prepare('UPDATE game_world SET data = ?, revision = revision + 1 WHERE id = ? AND revision = ?').bind(JSON.stringify(db),'beta',row.revision).run();
+   if(written.meta.changes!==1)continue;
+   return json(result,200,cors);
+  }
   const headers=new Headers(cors);let status=200,body='';
   const inbound=Object.fromEntries(request.headers);delete inbound.origin;
   const session=request.headers.get('x-obitel-session')||authSession;
@@ -102,12 +115,13 @@ export async function api(request,env){
    writeHead(s,h){status=s;for(const [k,v]of Object.entries(h||{}))headers.set(k,v)},
    end(v=''){body=String(v)}
   };
-  await createHandler(db,()=>{},()=>crypto.randomUUID().replaceAll('-',''),{resolveVKFriends:token=>friendsPromise??=verifiedVKFriends(token)})(req,res,url);
+  await createHandler(db,()=>{},()=>crypto.randomUUID().replaceAll('-',''),{paymentMode:paymentMode(env),resolveVKFriends:token=>friendsPromise??=verifiedVKFriends(token)})(req,res,url);
   if(status>=400)return new Response(body,{status,headers});
   if(readOnlyPoll)return new Response(body,{status,headers});
   const committed=await env.DB.prepare('UPDATE game_world SET data = ?, revision = revision + 1 WHERE id = ? AND revision = ?').bind(JSON.stringify(db),'beta',row.revision).run();
   if(committed.meta.changes===1)return new Response(body,{status,headers});
  }
+ if(payment)return json({error:{error_code:100,error_msg:'Database busy',critical:false}},200,cors);
  return json({error:'Сервер занят. Повтори через несколько секунд.'},503,new Headers([...cors,['Retry-After','2']]));
 }
 
@@ -124,6 +138,7 @@ export default {
   }catch(error){
    console.error('Worker error',error);
    const cors=corsFor(request,env,new URL(request.url));
+   if(new URL(request.url).pathname==='/api/payments/vk')return json({error:{error_code:100,error_msg:'Temporary server error',critical:false}},200,cors||{'Cache-Control':'no-store'});
    return json({error:'Ошибка игрового сервера. Код SERVER_INTERNAL. Повтори подключение.'},503,cors||{'Cache-Control':'no-store'});
   }
  }

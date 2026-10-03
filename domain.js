@@ -1,3 +1,4 @@
+import {RAID_ATTACKS,raidAttackPlan} from './raid-attacks.js';
 import {sortiePlan,sortiePayout,operationState,operationView,claimOperation} from './operations.js';
 import {vkPhoto,rankedPlayers} from './vk-profile.js';
 import {RARE_RAIDS,RAID_CAPACITY,raidAllowed,raidHit,raidReward} from './rare-raids.js';
@@ -35,7 +36,7 @@ export function createHandler(db,commit,id,services={}){
   const mine=rows.findIndex(x=>x.pid===uid),friends=new Set(friendIds(db,uid));
   return {updatedAt:t,total:rows.length,online:rows.filter(x=>x.online).length,meRank:mine<0?null:mine+1,players:rows.slice(0,100).map((x,i)=>({rank:i+1,code:x.code,name:x.name,avatar:x.avatar,photo:x.photo,level:x.level,xp:x.xp,kills:x.kills,bossKills:x.bossKills,online:x.online,me:x.pid===uid,friend:friends.has(x.pid),requested:db.players[x.pid].friendRequests.includes(uid)}))};
  }
- function viewRaid(r,uid){const active=activeRaid(db,uid);return {arenaVersion:1,arenaPending:pendingArena(db.players[uid],now())?.raidId===r.id,blockedBy:active&&active.id!==r.id?active.id:null,totalDamage:r.maxHp-r.hp,id:r.id,map:r.map,rare:!!r.rare,capacity:RAID_CAPACITY,reward:raidReward(r,r.members[uid]?.damage||0),estimatedDamage:raidHit(db.players[uid].save,r.map,r.rare),hp:r.hp,maxHp:r.maxHp,created:r.created,owner:r.owner===uid,members:Object.entries(r.members).map(([pid,v])=>({name:db.players[pid]?.name||'Выживший',avatar:db.players[pid]?.avatar||0,photo:vkPhoto(db.players[pid]?.vkPhoto),damage:v.damage,me:pid===uid,claimed:!!v.claimed,online:online(db.players[pid])})),nextAttack:r.members[uid]?.nextAttack||0,joined:!!r.members[uid]}}
+ function viewRaid(r,uid){const active=activeRaid(db,uid);return {attackVersion:2,attackOptions:RAID_ATTACKS.map(a=>raidAttackPlan(db.players[uid].save,r.map,r.rare,a.id,r.hp,services.paymentMode=='test')),paymentMode:services.paymentMode||'off',arenaVersion:1,arenaPending:pendingArena(db.players[uid],now())?.raidId===r.id,blockedBy:active&&active.id!==r.id?active.id:null,totalDamage:r.maxHp-r.hp,id:r.id,map:r.map,rare:!!r.rare,capacity:RAID_CAPACITY,reward:raidReward(r,r.members[uid]?.damage||0),estimatedDamage:raidHit(db.players[uid].save,r.map,r.rare),hp:r.hp,maxHp:r.maxHp,created:r.created,owner:r.owner===uid,members:Object.entries(r.members).map(([pid,v])=>({name:db.players[pid]?.name||'Выживший',avatar:db.players[pid]?.avatar||0,photo:vkPhoto(db.players[pid]?.vkPhoto),damage:v.damage,me:pid===uid,claimed:!!v.claimed,online:online(db.players[pid])})),attackCooldown:r.members[uid]?.attackCooldown||raidProfile(r.map).cooldown,nextAttack:r.members[uid]?.nextAttack||0,joined:!!r.members[uid]}}
  return async function handle(req,res,url){
   if(!url.pathname.startsWith('/api/'))return false;
   const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data))};
@@ -74,6 +75,7 @@ export function createHandler(db,commit,id,services={}){
     if(b.name!==undefined)p.name=name;if(b.avatar!==undefined)p.avatar=b.avatar;
     result={name:p.name,avatar:p.avatar||0,photo:vkPhoto(p.vkPhoto),code:p.publicId,online:true};
    }
+   else if(req.method==='GET'&&path==='/api/payments')result={mode:services.paymentMode||'off',account:p.vkUserId?'vk':'guest'};
    else if(req.method==='GET'&&path==='/api/online')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='POST'&&path==='/api/online/ping')result={online:onlineCount(),windowSeconds:Math.round(ONLINE_WINDOW/1000)};
    else if(req.method==='GET'&&path==='/api/operations')result=operationView(p);
@@ -146,10 +148,10 @@ export function createHandler(db,commit,id,services={}){
     if(req.method==='POST'&&action==='join'){
      if(r.hp<=0)err('Босс уже повержен');if(!r.members[session]){if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(Object.keys(r.members).length>=RAID_CAPACITY)err('В рейде уже 300 игроков');r.members[session]={damage:0,nextAttack:0,claimed:false}}p.activeRaid=r.id;
     }else if(req.method==='POST'&&action==='attack'){
-     if(b.arena!==undefined){Object.assign(result,arenaAction(p,r,session,b,id,now()));}
+     if(b.arena!==undefined){if(b.style!==undefined)err('Выбери один способ атаки');Object.assign(result,arenaAction(p,r,session,b,id,now()));}
      else{
      if(pendingArena(p,now()))err('Сначала заверши бой на арене',409);
-     const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(r.hp<=0)err('Босс уже повержен');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,BOSS_COST))err('Недостаточно энергии');const damage=Math.min(r.hp,raidHit(s,r.map,r.rare));r.hp-=damage;member.damage+=damage;member.nextAttack=now()+raidProfile(r.map).cooldown;result.damage=damage;operationState(p).attacks++;
+     const member=r.members[session];if(!member)err('Сначала присоединись к рейду');if(!raidAllowed(s,r.map,r.rare))err('Недостаточно прогресса для этого босса');if(r.hp<=0)err('Босс уже повержен');const attack=raidAttackPlan(s,r.map,r.rare,b.style===undefined?'gun':b.style,r.hp,services.paymentMode==='test');if(!attack)err('Неизвестная атака');if(attack.locked)err('Для этой атаки нужен уровень '+attack.level);if(attack.sku&&!attack.charges)err('Нет зарядов дополнительного оружия');if(member.nextAttack>now())err('Отряд ещё возвращается');if(!spendEnergy(s,attack.cost))err('Недостаточно энергии');if(attack.sku){const stock=services.paymentMode==='test'?'raidTestCharges':'raidCharges';s[stock][attack.id]--;}const damage=attack.expected;r.hp-=damage;member.damage+=damage;member.nextAttack=now()+attack.cooldown;member.lastAttack=attack.id;member.attackCooldown=attack.cooldown;result.damage=damage;result.attack=attack.id;operationState(p).attacks++;
      }
     }else if(req.method==='POST'&&action==='claim'){
      const member=r.members[session];if(!member||!member.damage||member.claimed||r.hp>0)err('Награда недоступна');member.claimed=true;const reward=raidReward(r,member.damage);for(const [key,value] of Object.entries(reward))s[key]+=value;s.bossKills++;if(!r.rare&&!s.cleared.includes(r.map))s.cleared.push(r.map);

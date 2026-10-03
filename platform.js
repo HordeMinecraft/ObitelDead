@@ -1,10 +1,15 @@
 // ads-bridge.js
 async function playRewardedAd(bridge) {
-  const available = await bridge.send("VKWebAppCheckNativeAds", { ad_format: "reward" });
-  if (available?.result !== true) throw new Error("\u0421\u0435\u0439\u0447\u0430\u0441 \u043D\u0435\u0442 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E\u0439 \u0440\u0435\u043A\u043B\u0430\u043C\u044B. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439 \u043F\u043E\u0437\u0436\u0435.");
-  const shown = await bridge.send("VKWebAppShowNativeAds", { ad_format: "reward" });
-  if (shown?.result !== true) throw new Error("\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D. \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043D\u0435 \u0432\u044B\u0434\u0430\u043D\u0430.");
-  return true;
+  globalThis.document?.dispatchEvent(new CustomEvent("obitel-media-hold", { detail: true }));
+  try {
+    const available = await bridge.send("VKWebAppCheckNativeAds", { ad_format: "reward" });
+    if (available?.result !== true) throw new Error("\u0421\u0435\u0439\u0447\u0430\u0441 \u043D\u0435\u0442 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E\u0439 \u0440\u0435\u043A\u043B\u0430\u043C\u044B. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439 \u043F\u043E\u0437\u0436\u0435.");
+    const shown = await bridge.send("VKWebAppShowNativeAds", { ad_format: "reward" });
+    if (shown?.result !== true) throw new Error("\u041F\u0440\u043E\u0441\u043C\u043E\u0442\u0440 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D. \u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043D\u0435 \u0432\u044B\u0434\u0430\u043D\u0430.");
+    return true;
+  } finally {
+    globalThis.document?.dispatchEvent(new CustomEvent("obitel-media-hold", { detail: false }));
+  }
 }
 
 // ../обитель/node_modules/.pnpm/@vkontakte+vk-bridge@3.0.2/node_modules/@vkontakte/vk-bridge/dist/index.js
@@ -267,6 +272,19 @@ var dist_default = src_bridge;
 
 // platform-entry.js
 var VK_APP_ID = 54626490;
+async function buyRaidCharges(item) {
+  if (!inVK) throw new Error("\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u0437\u0430 \u0433\u043E\u043B\u043E\u0441\u0430 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u0432\u043D\u0443\u0442\u0440\u0438 VK.");
+  if (!dist_default.supports("VKWebAppShowOrderBox")) throw new Error("\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B \u043D\u0430 \u044D\u0442\u043E\u0439 \u043F\u043B\u0430\u0442\u0444\u043E\u0440\u043C\u0435 VK.");
+  document.dispatchEvent(new CustomEvent("obitel-media-hold", { detail: true }));
+  try {
+    const result = await dist_default.send("VKWebAppShowOrderBox", { type: "item", item });
+    if (result?.status === "cancel") throw new Error("\u041F\u043E\u043A\u0443\u043F\u043A\u0430 \u043E\u0442\u043C\u0435\u043D\u0435\u043D\u0430.");
+    if (result?.status !== "success") throw new Error("VK \u043D\u0435 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u043B \u043E\u043F\u043B\u0430\u0442\u0443. \u0417\u0430\u0440\u044F\u0434\u044B \u043D\u0435 \u043D\u0430\u0447\u0438\u0441\u043B\u0435\u043D\u044B.");
+    return result.order_id;
+  } finally {
+    document.dispatchEvent(new CustomEvent("obitel-media-hold", { detail: false }));
+  }
+}
 var launch = new URLSearchParams(location.search);
 var inVK = launch.has("vk_app_id") || launch.has("api_id") || dist_default.isEmbedded() || Boolean(window.ReactNativeWebView);
 if (inVK && !window.__obitelVKStarted) {
@@ -347,6 +365,7 @@ async function showRewardedAd() {
 }
 export {
   VK_APP_ID,
+  buyRaidCharges,
   canSyncVKFriendsSilently,
   currentVKUser,
   inVK,
