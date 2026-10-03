@@ -2,7 +2,7 @@
 
 ## Подготовлено и проверено кодом
 
-VK Bridge `VKWebAppShowOrderBox({type:'item', item:sku})`. Серверный callback: **https://obiteldead.deniswww127.workers.dev/api/payments/vk**. VK отправляет server-to-server запрос: телефоны по-прежнему работают через прежний шлюз, новый адрес клиентского API не добавлен.
+VK Bridge `VKWebAppShowOrderBox({type:'item', item:sku})`. Серверный callback: **https://api.hordeminecraft.ru/obitel-gateway.php/?route=payments/vk**. Шлюз пересылает исходное тело запроса серверу; подпись проверяется в Worker. D1 и авторизация не меняются. Прямой адрес Worker /api/payments/vk тоже остаётся доступен.
 
 Товары: `raid_bat_10` — 10 ударов, 3 голоса, +20%; `raid_pipe_10` — 10 ударов, 5 голосов, +40%; `raid_fire_10` — 10 ударов, 8 голосов, +70%, уровень 5. Это расходуемые заряды, не постоянные улучшения. Бонус считается от реального снаряжённого оружия и осадного усиления. Одна атака — один выбранный бонус, 12 энергии и общий перерыв; бесплатный выстрел всегда остаётся.
 

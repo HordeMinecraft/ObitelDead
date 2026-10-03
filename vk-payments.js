@@ -24,11 +24,12 @@ export function processPayment(db,input,mode){
  if(mode==='off'||test!== (mode==='test'))return error('Payments are disabled for this mode');
  const item=goods.find(a=>a.sku===input.item);
  if(!item)return error('Unknown product');
- const order=Number(input.order_id);
- if(!Number.isSafeInteger(order)||order<=0||!/^\d{1,20}$/.test(input.user_id||'')||input.user_id!==input.receiver_id)return error('Invalid payment recipient');
+ if(!/^\d{1,20}$/.test(input.user_id||'')||input.user_id!==input.receiver_id)return error('Invalid payment recipient');
  const uid=db.vkAccounts?.[input.receiver_id],p=db.players?.[uid];
  if(!p||p.vkUserId!==input.receiver_id)return error('Open the game through VK before purchasing');
  if(type==='get_item')return {response:{item_id:item.sku,title:item.name+' · '+item.pack+' ударов',photo_url:'https://hordeminecraft.github.io/ObitelDead/assets/raid-kit.png',price:item.votes}};
+ const order=Number(input.order_id);
+ if(!Number.isSafeInteger(order)||order<=0)return error('Invalid payment order');
  if(type!=='order_status_change'||!['chargeable','refunded'].includes(input.status))return error('Unsupported notification');
  if(Number(input.item_price)!==item.votes||input.item_id!==undefined&&input.item_id!==item.sku)return error('Product price mismatch');
  db.paymentOrders??={};const key=(test?'test:':'live:')+order,old=db.paymentOrders[key];

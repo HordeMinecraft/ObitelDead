@@ -46,7 +46,7 @@ export async function api(request,env){
  if(!['GET','POST'].includes(request.method))return json({error:'Метод не поддерживается'},405,cors);
  if(!env.DB)return json({error:'D1 не подключена к Worker'},503,cors);
  if(url.pathname==='/api/health'){
-  try{await env.DB.prepare('SELECT 1').first();return json({ok:true,service:'obitel-api',raidAttackVersion:2,payments:paymentMode(env),time:Date.now()},200,cors)}
+  try{await env.DB.prepare('SELECT 1').first();return json({ok:true,service:'obitel-api',raidAttackVersion:2,clanVersion:1,payments:paymentMode(env),time:Date.now()},200,cors)}
   catch(error){console.error('D1 health error',error);return json({ok:false,error:'База данных недоступна'},503,cors)}
  }
  if(Number(request.headers.get('content-length')||0)>8192)return new Response(null,{status:413,headers:cors});

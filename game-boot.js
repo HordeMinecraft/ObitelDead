@@ -366,6 +366,39 @@
     }
   });
 
+  // player-profile-ui.js
+  function bindPlayerProfiles(root, api2, toast2) {
+    root.querySelectorAll("[data-player]").forEach((b) => b.onclick = () => openPlayerProfile(b.dataset.player, api2, toast2));
+  }
+  async function openPlayerProfile(code, api2, toast2) {
+    var _a2, _b2, _c;
+    let dialog;
+    try {
+      const { player: p } = await api2("players/" + code);
+      (_a2 = document.querySelector("#player-dossier")) == null ? void 0 : _a2.remove();
+      dialog = document.createElement("dialog");
+      dialog.id = "player-dossier";
+      dialog.className = "player-dossier";
+      dialog.setAttribute("aria-labelledby", "dossier-name");
+      dialog.innerHTML = '<div class="dossier-head"><div><span class="eyebrow">\u041B\u0418\u0427\u041D\u041E\u0415 \u0414\u0415\u041B\u041E \xB7 ' + esc(p.code) + '</span><h2 id="dossier-name">' + esc(p.name) + "</h2><p>\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + p.level + " \xB7 " + fmt(p.xp) + ' XP</p></div><button class="secondary" aria-label="\u0417\u0430\u043A\u0440\u044B\u0442\u044C \u043F\u0440\u043E\u0444\u0438\u043B\u044C">\u0417\u0430\u043A\u0440\u044B\u0442\u044C</button></div><div class="dossier-columns"><section><h3>\u0411\u043E\u0435\u0432\u043E\u0439 \u043A\u043E\u043C\u043F\u043B\u0435\u043A\u0442</h3><dl class="dossier-stats">' + [["\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435", fmt(p.stats.health)], ["\u0423\u0440\u043E\u043D \u043E\u0440\u0443\u0436\u0438\u044F", fmt(p.stats.damage)], ["\u041E\u0440\u0443\u0436\u0438\u0435", esc(p.weapon)], ["\u0411\u0440\u043E\u043D\u044F", esc(p.armor)], ["\u0423\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u043E", fmt(p.kills)], ["\u041F\u043E\u0431\u0435\u0434\u044B \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u0430\u043C\u0438", fmt(p.bossKills)], ["\u041A\u043B\u0430\u043D\u043E\u0432\u044B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B", fmt(p.clanBossKills)]].map(([a, b]) => "<div><dt>" + a + "</dt><dd>" + b + "</dd></div>").join("") + "</dl></section><section><h3>" + (p.clan ? "\u041A\u043B\u0430\u043D \xAB" + esc(p.clan.name) + "\xBB" : "\u0411\u0435\u0437 \u043A\u043B\u0430\u043D\u0430") + "</h3>" + (p.clan ? "<p>" + (p.clan.leader ? "\u0413\u043B\u0430\u0432\u0430" : "\u0423\u0447\u0430\u0441\u0442\u043D\u0438\u043A") + " \xB7 " + esc(p.clan.code) + "</p>" : "<p>\u0412\u0441\u0442\u0443\u043F\u043B\u0435\u043D\u0438\u0435 \u0432 \u043A\u043B\u0430\u043D \u0434\u043E\u0431\u0440\u043E\u0432\u043E\u043B\u044C\u043D\u043E\u0435.</p>") + '<div class="medal-board">' + (((_c = (_b2 = p.clan) == null ? void 0 : _b2.medals) == null ? void 0 : _c.map((m) => "<article>" + medalMarkup(m) + "</article>").join("")) || "") + '</div><h3>\u0414\u043E\u0441\u043A\u0430 \u0442\u0440\u043E\u0444\u0435\u0435\u0432</h3><div class="medal-board">' + (p.display.map((m) => "<article>" + medalMarkup(m) + "</article>").join("") || "<p>\u041C\u0435\u0434\u0430\u043B\u0438 \u043F\u043E\u043A\u0430 \u043D\u0435 \u0432\u044B\u0441\u0442\u0430\u0432\u043B\u0435\u043D\u044B.</p>") + "</div><small>\u0412\u0441\u0435\u0433\u043E \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u043E: " + p.medals.length + "</small></section></div>";
+      document.body.append(dialog);
+      dialog.querySelector("button").onclick = () => dialog.close();
+      dialog.addEventListener("close", () => dialog.remove(), { once: true });
+      dialog.showModal();
+    } catch (e) {
+      dialog == null ? void 0 : dialog.remove();
+      toast2(e.message);
+    }
+  }
+  var esc, fmt, medalMarkup;
+  var init_player_profile_ui = __esm({
+    "player-profile-ui.js"() {
+      esc = (s) => String(s != null ? s : "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      fmt = (n) => Number(n || 0).toLocaleString("ru-RU");
+      medalMarkup = (m) => '<span class="medal-seal" aria-hidden="true"><span>' + (m.symbol ? esc(m.symbol) : "\u2605") + "</span></span><span><b>" + esc(m.title) + "</b><small>" + esc(m.description || "\u041A\u043B\u0430\u043D\u043E\u0432\u043E\u0435 \u0434\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u0435") + "</small></span>";
+    }
+  });
+
   // vehicles.js
   var VEHICLES, vehicleFor;
   var init_vehicles = __esm({
@@ -750,20 +783,21 @@
     await Promise.all([...Array.from({ length: 8 }, (_, i) => track(loadArtImage("assets/district-" + i + ".png").then((img) => environments[i] = img))), track(loadSprite("assets/characters.png").then((c) => spriteAtlas = c)), track(loadSprite("assets/equipment.png").then((c) => equipmentAtlas = c)), track(loadSprite("assets/armor-tiers.png").then((c) => armorAtlas = c)), track(loadSprite("assets/items.png").then((c) => itemAtlas = c)), track(loadSprite("assets/weapons-loot.png").then((c) => weaponAtlas = c)), track(loadSprite("assets/arsenal-expanded.png").then((c) => expandedAtlas = c)), track(loadRaidKit())]);
   }
   function drawRig(g2, atlas, index, size, time, moving, running, type) {
-    const sw = atlas.width / 3, sh = atlas.height / 2, sx = index % 3 * sw, sy = Math.floor(index / 3) * sh, k = size / sw, hip = sh * (type === "runner" ? 0.53 : 0.59), knee = sh * 0.77, phase = time * 8, swing = moving ? Math.sin(phase) * (running ? 0.25 : 0.13) : 0, bob = moving ? Math.abs(Math.sin(phase)) * 2 : 0, originX = -size * 0.5, originY = -size * 0.94 - bob;
+    const sw = atlas.width / 3, sh = atlas.height / 2, sx = index % 3 * sw, sy = Math.floor(index / 3) * sh, k = size / sw, hip = sh * (type === "runner" ? 0.53 : 0.59), phase = time * (running ? 12 : 8), swing = moving ? Math.sin(phase) * (running ? 0.18 : 0.1) : 0, bob = moving ? Math.abs(Math.sin(phase)) * (running ? 2.5 : 1) : 0, originX = -size * 0.5, originY = -size * 0.94 - bob;
     g2.imageSmoothingEnabled = false;
+    if (!moving) {
+      g2.drawImage(atlas, sx, sy, sw, sh, originX, originY, size, sh * k);
+      return;
+    }
     for (let leg = 0; leg < 2; leg++) {
-      const lx = leg * sw / 2, pivot = sw * (leg ? 0.57 : 0.43), angle = swing * (leg ? 1 : -1), bend = moving ? Math.max(0, -Math.sin(phase + (leg ? Math.PI : 0))) * (running ? 0.38 : 0.17) : 0;
+      const lx = leg * sw / 2, pivot = sw * (leg ? 0.57 : 0.43), angle = swing * (leg ? 1 : -1);
       g2.save();
       g2.translate(originX + pivot * k, originY + hip * k);
       g2.rotate(angle);
-      g2.drawImage(atlas, sx + lx, sy + hip, sw / 2, knee - hip, (lx - pivot) * k, 0, size / 2, (knee - hip) * k);
-      g2.translate(0, (knee - hip) * k);
-      g2.rotate(bend);
-      g2.drawImage(atlas, sx + lx, sy + knee, sw / 2, sh - knee, (lx - pivot) * k, 0, size / 2, (sh - knee) * k);
+      g2.drawImage(atlas, sx + lx, sy + hip, sw / 2, sh - hip, (lx - pivot) * k, 0, size / 2, (sh - hip) * k);
       g2.restore();
     }
-    g2.drawImage(atlas, sx, sy, sw, hip + 5, originX, originY, size, (hip + 5) * k);
+    g2.drawImage(atlas, sx, sy, sw, hip + 12, originX, originY, size, (hip + 12) * k);
   }
   function scene(c, map = 0, phase = 0) {
     const g2 = c.getContext("2d"), w = c.width, h = c.height;
@@ -1006,12 +1040,12 @@
   }
   function fitSprite(canvas2, atlas, cell, columns = 3, rows = 2, isolated = false) {
     const ctx = canvas2.getContext("2d"), sw = Math.floor(atlas.width / columns), sh = Math.floor(atlas.height / rows), sx = cell % columns * sw, sy = Math.floor(cell / columns) * sh;
-    let frames = spriteFrames.get(atlas);
-    if (!frames) {
-      frames = /* @__PURE__ */ new Map();
-      spriteFrames.set(atlas, frames);
+    let frames2 = spriteFrames.get(atlas);
+    if (!frames2) {
+      frames2 = /* @__PURE__ */ new Map();
+      spriteFrames.set(atlas, frames2);
     }
-    let frame2 = frames.get(cell);
+    let frame2 = frames2.get(cell);
     if (!frame2) {
       const pixels = atlas.getContext("2d").getImageData(sx, sy, sw, sh).data;
       let left = sw, top = sh, right = -1, bottom = -1;
@@ -1066,7 +1100,7 @@
         bottom = Math.max(bottom, y);
       }
       frame2 != null ? frame2 : frame2 = right < 0 ? { x: 0, y: 0, w: sw, h: sh } : { x: left, y: top, w: right - left + 1, h: bottom - top + 1 };
-      frames.set(cell, frame2);
+      frames2.set(cell, frame2);
     }
     ctx.clearRect(0, 0, canvas2.width, canvas2.height);
     ctx.imageSmoothingEnabled = false;
@@ -1206,171 +1240,6 @@
     }
   });
 
-  // vk-profile.js
-  function vkPhoto(value) {
-    try {
-      const u = new URL(value);
-      return u.protocol === "https:" && !u.username && !u.password && (!u.port || u.port === "443") && ["userapi.com", "vkuserphoto.ru", "vkuserlive.ru", "vk.com", "vk.ru", "vk.me"].some((d) => u.hostname === d || u.hostname.endsWith("." + d)) ? u.href : "";
-    } catch (e) {
-      return "";
-    }
-  }
-  var init_vk_profile = __esm({
-    "vk-profile.js"() {
-    }
-  });
-
-  // ui-icons.js
-  var line, accent, symbols, ICON_NAMES, icon, shelterIcon;
-  var init_ui_icons = __esm({
-    "ui-icons.js"() {
-      line = (d) => '<path class="icon-detail" d="' + d + '"/>';
-      accent = (d) => '<path class="icon-accent" d="' + d + '"/>';
-      symbols = {
-        map: line("M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16m6-14v16") + accent("M5 9h2v2H5z"),
-        gear: line("M3 9h5l2-3h10v4h2v2H12l-2 5H7l-2 4H2l4-9H3zM11 4h6m-5 8h6v5h-3l-2-5") + accent("M17 7h2v2h-2z"),
-        garage: line("M3 11l3-6h12l3 6v8H3zM3 11h18M5 19v2m14-2v2M6 14h2m8 0h2M10 17h4") + accent("M11 7h2v2h-2z"),
-        daily: line("M8 4H4v17h16V4h-4M8 2h8v5H8zM8 11h8m-8 4h5") + accent("M15 15h2v2h-2z"),
-        raids: line("M12 2l8 4v7c0 4-5 7-8 9-3-2-8-5-8-9V6zM8 9l2-2h4l2 2v5l-2 2h-4l-2-2zm2 7v2m4-2v2") + accent("M9 10h2v2H9zm4 0h2v2h-2z"),
-        guide: line("M3 4h6l3 2 3-2h6v16h-6l-3 2-3-2H3zM12 6v16M6 8h3m-3 4h3m6 3h3") + accent("M16 5h2v6h-2z"),
-        leaderboard: line("M7 3h10v8l-3 5h-4l-3-5zM7 5H3v4l4 3m10-7h4v4l-4 3M12 16v5m-5 0h10") + accent("M11 6h2v4h-2z"),
-        friends: line("M10 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0m10 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0M2 20v-4l2-3h6l2 3v4m2-7h6l2 3v4") + accent("M15 18h2v2h-2z"),
-        clans: line("M4 3h16v11l-8 8-8-8zM7 6h10v7l-5 5-5-5z") + accent("M10 8h4v2h-4z"),
-        conflict: line("M3 3l4 1 14 16-2 2L3 7zM21 3l-4 1-4 5m-3 4-7 7 2 2 6-5M2 17l5 5m10-5 5 5") + accent("M17 5h2v2h-2z"),
-        settings: line("M6 3v18M12 3v18M18 3v18M4 7h4v4H4zm6 8h4v4h-4z") + accent("M16 6h4v4h-4z"),
-        medical: line("M3 7h18v14H3zM8 7V3h8v4M10 10h4v3h3v3h-3v3h-4v-3H7v-3h3z") + accent("M19 18h2v2h-2z"),
-        energy: line("M13 2L4 14h7l-1 8 10-12h-7z") + accent("M12 10h2v2h-2z"),
-        diamond: line("M7 3h10l5 7-10 12L2 10zM2 10h20M7 3l-1 7 6 12 6-12-1-7") + accent("M11 6h2v2h-2z"),
-        skull: line("M6 4l6-2 6 2 3 6-2 7-4 2v3H9v-3l-4-2-2-7zM7 8h3v4H7zm7 0h3v4h-3zM10 20v2m4-2v2") + accent("M12 13l2 3h-4z"),
-        star: line("M12 2l3 6 7 1-5 5 1 8-6-4-6 4 1-8-5-5 7-1z") + accent("M11 10h2v3h-2z"),
-        menu: line("M4 6h16M4 12h11M4 18h16") + accent("M18 11h2v2h-2z"),
-        close: line("M6 6l12 12M18 6L6 18"),
-        pause: line("M6 4h3v16H6zm9 0h3v16h-3z"),
-        repulse: line("M12 2l8 4v8l-8 8-8-8V6zM8 12l4 4 4-4M12 6v10") + accent("M11 18h2v2h-2z"),
-        run: line("M16 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4M5 12l5-4 5 1 3 4h4M12 9l-2 6 5 3-1 4m-4-7-4 6H2") + accent("M1 8h3v2H1z"),
-        arrow: line("M4 12h16M14 6l6 6-6 6"),
-        refresh: line("M20 10a8 8 0 1 0-2 8M20 3v7h-7") + accent("M20 15h2v2h-2z"),
-        unknown: line("M8 7a4 4 0 1 1 6 4c-2 1-2 3-2 4m0 4v1")
-      };
-      ICON_NAMES = Object.freeze(Object.keys(symbols).filter((name) => name !== "unknown"));
-      icon = (name) => {
-        const key2 = Object.prototype.hasOwnProperty.call(symbols, name) ? name : "unknown";
-        return '<svg class="ui-icon obitel-glyph shelter-insignia" data-icon="' + key2 + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + symbols[key2] + "</svg>";
-      };
-      shelterIcon = icon;
-    }
-  });
-
-  // profile-ui.js
-  function profileEditor(root, profile, api2, toast2, onSave) {
-    const panel = document.createElement("section");
-    panel.className = "settings-card profile-editor";
-    panel.innerHTML = '<span class="eyebrow">\u041B\u0418\u0427\u041D\u041E\u0415 \u0414\u0415\u041B\u041E</span><h2>\u0422\u0432\u043E\u0439 \u043F\u043E\u0437\u044B\u0432\u043D\u043E\u0439.</h2><form><label for="player-name">\u041D\u0438\u043A \u0438\u0433\u0440\u043E\u043A\u0430</label><input id="player-name" name="name" minlength="2" maxlength="32" required autocomplete="nickname"><fieldset><legend>\u0410\u0432\u0430\u0442\u0430\u0440</legend><div class="avatar-picker">' + AVATARS.map((symbol, i) => '<button type="button" class="avatar-option avatar-' + i + '" data-avatar="' + i + '" aria-label="\u0410\u0432\u0430\u0442\u0430\u0440 ' + (i + 1) + '" aria-pressed="' + (i === (profile.avatar || 0)) + '">' + symbol + "</button>").join("") + '</div></fieldset><button class="primary" type="submit">\u0421\u041E\u0425\u0420\u0410\u041D\u0418\u0422\u042C \u041F\u0420\u041E\u0424\u0418\u041B\u042C</button><p role="status" class="profile-status"></p></form>';
-    panel.querySelector("input").value = profile.name || "";
-    let avatar = profile.avatar || 0;
-    panel.querySelectorAll("[data-avatar]").forEach((button) => button.onclick = () => {
-      avatar = Number(button.dataset.avatar);
-      panel.querySelectorAll("[data-avatar]").forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
-    });
-    panel.querySelector("form").onsubmit = async (e) => {
-      e.preventDefault();
-      const button = panel.querySelector("[type=submit]");
-      button.disabled = true;
-      try {
-        const data = await api2("profile", { name: panel.querySelector("input").value, avatar });
-        onSave(data);
-        panel.querySelector(".profile-status").textContent = "\u041F\u0440\u043E\u0444\u0438\u043B\u044C \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D";
-        toast2("\u041F\u043E\u0437\u044B\u0432\u043D\u043E\u0439 \u0438 \u0430\u0432\u0430\u0442\u0430\u0440 \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u044B");
-      } catch (error) {
-        panel.querySelector(".profile-status").textContent = error.message;
-      } finally {
-        button.disabled = false;
-      }
-    };
-    root.prepend(panel);
-  }
-  var AVATARS;
-  var init_profile_ui = __esm({
-    "profile-ui.js"() {
-      init_ui_icons();
-      AVATARS = ["medical", "diamond", "clans", "energy", "skull", "star"].map(icon);
-    }
-  });
-
-  // friends-ui.js
-  function friendsUI(root, api2, toast2, openRaid) {
-    async function render() {
-      var _a2;
-      if (pending.has(root)) return;
-      pending.add(root);
-      try {
-        let data = await api2("friends");
-        if (data.account === "vk" && canSyncVKFriendsSilently() && !autoSyncAttempted) {
-          autoSyncAttempted = true;
-          try {
-            data = await syncVKFriends(api2);
-          } catch (e) {
-            toast2(e.message);
-          }
-        }
-        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u0412\u041E\u0419 \u041E\u0422\u0420\u042F\u0414 \xB7 ${data.friends.length}</span><h2>\u0414\u0440\u0443\u0437\u044C\u044F \u0432 \u0433\u043E\u0440\u043E\u0434\u0435</h2><p>\u0414\u0440\u0443\u0437\u044C\u044F VK, \u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u0443\u0436\u0435 \u0432\u043E\u0448\u043B\u0438 \u0432 \u0438\u0433\u0440\u0443, \u043F\u043E\u044F\u0432\u043B\u044F\u044E\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0441\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0430\u0446\u0438\u0438. \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u043E\u0434\u043D\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430 \u2014 \u0430\u0442\u0430\u043A\u0438 \u043F\u043E\u043F\u0430\u0434\u0430\u044E\u0442 \u0432 \u043E\u0431\u0449\u0438\u0439 \u0440\u0435\u0439\u0434, \u0434\u0430\u0436\u0435 \u0435\u0441\u043B\u0438 \u0432\u044B \u0438\u0433\u0440\u0430\u0435\u0442\u0435 \u0432 \u0440\u0430\u0437\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F.</p>${inVK && data.account === "vk" ? `<button class="primary" id="vk-sync">${data.vkSyncedAt ? "\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C \u0414\u0420\u0423\u0417\u0415\u0419 VK" : "\u041F\u041E\u041A\u0410\u0417\u0410\u0422\u042C \u0414\u0420\u0423\u0417\u0415\u0419 VK"}</button><small>VK \u043C\u043E\u0436\u0435\u0442 \u0437\u0430\u043F\u0440\u043E\u0441\u0438\u0442\u044C \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043D\u0438\u0435 \u043D\u0430 \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439. \u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u043D\u0435 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u044E\u0442\u0441\u044F.</small>` : "<p>\u0414\u043B\u044F \u0434\u0440\u0443\u0437\u0435\u0439 VK \u043E\u0442\u043A\u0440\u043E\u0439 \u0438\u0433\u0440\u0443 \u0432\u043D\u0443\u0442\u0440\u0438 VK. \u0414\u0440\u0443\u0433\u0438\u0445 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 \u043C\u043E\u0436\u043D\u043E \u0434\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0438\u0437 \u0422\u041E\u041F\u0430.</p>"}</div>
-   <div class="section-title"><h3>\u0412\u0445\u043E\u0434\u044F\u0449\u0438\u0435 \u0437\u0430\u044F\u0432\u043A\u0438 \xB7 ${data.requests.length}</h3><button class="secondary" id="friends-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div>
-   <div class="social-list">${data.requests.map((p) => `<article class="friend-person">${portrait(p)}<span class="friend-person-info"><b>${esc(p.name)}</b><small>\u0423\u0440\u043E\u0432\u0435\u043D\u044C ${p.level}</small></span><button class="primary" data-accept="${p.code}">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-decline="${p.code}">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button></article>`).join("") || '<p class="page-intro">\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043D\u0435\u0442.</p>'}</div>
-   <div class="section-title"><h3>\u041C\u043E\u0438 \u0434\u0440\u0443\u0437\u044C\u044F \xB7 ${data.friends.length}</h3></div><div class="social-list">${data.friends.map((p) => `<article class="friend-person">${portrait(p)}<span class="friend-person-info"><b>${esc(p.name)}</b><small>${p.vk ? "VK \xB7 " : ""}${p.online ? "\u0412 \u0441\u0435\u0442\u0438" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440. ${p.level}${p.raid ? " \xB7 \u0431\u043E\u0441\u0441: " + Math.floor(p.raid.hp).toLocaleString("ru-RU") + " HP" : ""}</small></span>${p.raid ? `<button class="primary" data-raid="${p.raid.id}">\u041A \u0411\u041E\u0421\u0421\u0423</button>` : ""}${!p.vk ? `<button class="secondary" data-remove="${p.code}">\u0423\u0414\u0410\u041B\u0418\u0422\u042C</button>` : ""}</article>`).join("") || '<div class="friends-empty">' + icon("friends") + "<h3>\u041E\u0442\u0440\u044F\u0434 \u043F\u043E\u043A\u0430 \u043F\u0443\u0441\u0442</h3><p>\u0421\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0438\u0440\u0443\u0439 \u0434\u0440\u0443\u0437\u0435\u0439 VK \u0438\u043B\u0438 \u0434\u043E\u0431\u0430\u0432\u044C \u0438\u0433\u0440\u043E\u043A\u043E\u0432 \u0438\u0437 \u0432\u043A\u043B\u0430\u0434\u043A\u0438 \xAB\u0422\u041E\u041F \u0438\u0433\u0440\u043E\u043A\u043E\u0432\xBB. \u0417\u0434\u0435\u0441\u044C \u043D\u0435\u0442 \u0431\u043E\u0442\u043E\u0432 \u0438 \u0441\u043B\u0443\u0447\u0430\u0439\u043D\u044B\u0445 \u043F\u0440\u043E\u0444\u0438\u043B\u0435\u0439.</p></div>"}</div>
-   <details class="settings-card"><summary>\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043E \u0438\u0433\u0440\u043E\u0432\u043E\u043C\u0443 \u043A\u043E\u0434\u0443</summary><p>\u0422\u0432\u043E\u0439 \u043A\u043E\u0434: <strong>${esc(data.code)}</strong></p><form id="friend-form" class="friend-form"><input aria-label="\u041A\u043E\u0434 \u0438\u0433\u0440\u043E\u043A\u0430" maxlength="12" required pattern="[a-fA-F0-9]{12}" placeholder="12 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432"><button class="secondary">\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C</button></form></details>`;
-        const mutate = async (path, code, button) => {
-          button.disabled = true;
-          try {
-            await api2(path, { code });
-            await render();
-            toast2("\u0421\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D");
-          } catch (e) {
-            toast2(e.message);
-            button.disabled = false;
-          }
-        };
-        root.querySelector("#friends-refresh").onclick = render;
-        (_a2 = root.querySelector("#vk-sync")) == null ? void 0 : _a2.addEventListener("click", async (e) => {
-          const b = e.currentTarget;
-          b.disabled = true;
-          try {
-            await syncVKFriends(api2);
-            await render();
-            toast2("\u0414\u0440\u0443\u0437\u044C\u044F VK \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u044B");
-          } catch (err) {
-            toast2(err.message);
-            b.disabled = false;
-          }
-        });
-        for (const name of ["accept", "decline", "remove"]) root.querySelectorAll("[data-" + name + "]").forEach((b) => b.onclick = () => mutate("friends/" + name, b.dataset[name], b));
-        root.querySelectorAll("[data-raid]").forEach((b) => b.onclick = () => openRaid(b.dataset.raid));
-        root.querySelector("#friend-form").onsubmit = (e) => {
-          e.preventDefault();
-          mutate("friends/request", e.target.querySelector("input").value.trim().toLowerCase(), e.target.querySelector("button"));
-        };
-      } catch (e) {
-        root.innerHTML = '<div class="settings-card"><p>' + esc(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
-        root.querySelector("button").onclick = render;
-      } finally {
-        pending.delete(root);
-      }
-    }
-    render();
-  }
-  var esc, portrait, autoSyncAttempted, pending;
-  var init_friends_ui = __esm({
-    "friends-ui.js"() {
-      init_vk_profile();
-      init_profile_ui();
-      init_ui_icons();
-      init_platform_entry();
-      esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-      portrait = (p) => '<span class="friend-avatar avatar-' + (Number(p.avatar) || 0) + '" aria-hidden="true">' + (vkPhoto(p.photo) ? '<img src="' + esc(vkPhoto(p.photo)) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : AVATARS[p.avatar] || AVATARS[0]) + "</span>";
-      autoSyncAttempted = false;
-      pending = /* @__PURE__ */ new WeakSet();
-    }
-  });
-
   // raid-observation.js
   function observeRaid(previous, raid2, at) {
     var _a2;
@@ -1392,9 +1261,10 @@
 
   // raid-view.js
   function tickRaid(root, raid2, save2, offset) {
+    var _a2;
     if (!raid2) return;
     const seconds = Math.max(0, Math.ceil((raid2.nextAttack - Date.now() - offset) / 1e3));
-    const blocked = !!raid2.blockedBy || !raid2.joined || !raidAllowed(save2, raid2.map, raid2.rare) || raid2.hp <= 0;
+    const blocked = !!raid2.blockedBy || !raid2.joined || !((_a2 = raid2.allowed) != null ? _a2 : raidAllowed(save2, raid2.map, raid2.rare)) || raid2.hp <= 0;
     for (const attack of options(raid2, save2, raid2.map, raid2.rare)) {
       const button = root.querySelector('[data-raid-attack="' + attack.id + '"]');
       if (!button) continue;
@@ -1413,14 +1283,14 @@
       arena.textContent = raid2.arenaPending ? "\u041F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C \u0431\u043E\u0439" : seconds ? "\u0410\u0440\u0435\u043D\u0430 \xB7 " + seconds + " \u0441" : "\u041D\u0430 \u0430\u0440\u0435\u043D\u0443 \xB7 12 \u03DF";
     }
   }
-  function renderRaidView(root, { raid: raid2, save: save2, selected: selected2, rareMode: rareMode2, offset, onMode, onMap, onCreate, onAttack, onBuy, onArena, onJoin, onClaim, onClose, onPrepare, payments: payments2 = { mode: "off", account: "guest" } }) {
-    var _a2, _b2, _c, _d, _e;
-    const map = raid2 ? raid2.map : selected2, rare = raid2 ? !!raid2.rare : rareMode2, m = MAPS[map], profile = RARE_RAIDS[map], allowed = raidAllowed(save2, map, rare), mine = raid2 == null ? void 0 : raid2.members.find((p) => p.me);
-    const hp = (_a2 = raid2 == null ? void 0 : raid2.hp) != null ? _a2 : rare ? profile.hp : raidProfile(map).hp, maxHp = (_b2 = raid2 == null ? void 0 : raid2.maxHp) != null ? _b2 : hp, party = (raid2 == null ? void 0 : raid2.members) || [], capacity = (raid2 == null ? void 0 : raid2.capacity) || RAID_CAPACITY;
-    const requiredLevel = rare ? profile.level : m.level, remaining = Math.max(0, 3 - (save2.districtRuns[map] || 0));
+  function renderRaidView(root, { raid: raid2, save: save2, selected: selected2, rareMode: rareMode2, offset, onMode, onMap, onCreate, onAttack, onBuy, onArena, onJoin, onClaim, onClose, onPrepare, onProfile, payments: payments2 = { mode: "off", account: "guest" } }) {
+    var _a2, _b2, _c, _d, _e, _f, _g, _h;
+    const map = raid2 ? raid2.map : selected2, rare = raid2 ? !!raid2.rare : rareMode2, m = (raid2 == null ? void 0 : raid2.clanBoss) ? { ...MAPS[map], boss: raid2.clanBoss.name } : MAPS[map], role = ((_a2 = raid2 == null ? void 0 : raid2.clanBoss) == null ? void 0 : _a2.role) || roles[map], profile = RARE_RAIDS[map], allowed = (_b2 = raid2 == null ? void 0 : raid2.allowed) != null ? _b2 : raidAllowed(save2, map, rare), mine = raid2 == null ? void 0 : raid2.members.find((p) => p.me);
+    const hp = (_c = raid2 == null ? void 0 : raid2.hp) != null ? _c : rare ? profile.hp : raidProfile(map).hp, maxHp = (_d = raid2 == null ? void 0 : raid2.maxHp) != null ? _d : hp, party = (raid2 == null ? void 0 : raid2.members) || [], capacity = (raid2 == null ? void 0 : raid2.capacity) || RAID_CAPACITY;
+    const requiredLevel = ((_e = raid2 == null ? void 0 : raid2.clanBoss) == null ? void 0 : _e.level) || (rare ? profile.level : m.level), remaining = Math.max(0, 3 - (save2.districtRuns[map] || 0));
     const accessReason = allowed ? "\u0411\u043E\u0441\u0441 \u0434\u043E\u0441\u0442\u0443\u043F\u0435\u043D" : !unlocked(save2, map) ? "\u041F\u043E\u0431\u0435\u0434\u0438 \u0431\u043E\u0441\u0441\u0430 \u043F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0435\u0433\u043E \u0440\u0430\u0439\u043E\u043D\u0430" : playerLevel(save2) < requiredLevel ? "\u041D\u0443\u0436\u0435\u043D \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + requiredLevel : remaining ? "\u0415\u0449\u0451 " + remaining + " \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438 \u0440\u0430\u0439\u043E\u043D\u0430" : rare && !save2.cleared.includes(map) ? "\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043E\u0431\u044B\u0447\u043D\u0430\u044F \u0432\u0435\u0440\u0441\u0438\u044F" : "\u041D\u0443\u0436\u0435\u043D \u043F\u0440\u043E\u0433\u0440\u0435\u0441\u0441 \u0440\u0430\u0439\u043E\u043D\u0430";
     const encounter = (raid2 == null ? void 0 : raid2.id) || "catalog-" + map + "-" + rare, same = root.dataset.encounter === encounter;
-    const oldParty = (_c = root.querySelector(".raid-party")) == null ? void 0 : _c.open, oldLoot = (_d = root.querySelector(".raid-loot")) == null ? void 0 : _d.open, oldPage = Number(root.dataset.partyPage || 0);
+    const oldParty = (_f = root.querySelector(".raid-party")) == null ? void 0 : _f.open, oldLoot = (_g = root.querySelector(".raid-loot")) == null ? void 0 : _g.open, oldPage = Number(root.dataset.partyPage || 0);
     const main = root.closest("main"), scroll = (main == null ? void 0 : main.scrollTop) || 0, focused = root.contains(document.activeElement) ? document.activeElement.id : null;
     const previous = observations.get(root), seen = raid2 ? observeRaid(previous, raid2, Date.now() + offset) : null;
     observations.set(root, seen);
@@ -1428,19 +1298,19 @@
     root.dataset.partyPage = String(same ? oldPage : 0);
     const leaders = raidRanking(party).slice(0, 5), contribution = (mine == null ? void 0 : mine.damage) || 0;
     const attacks = options(raid2, save2, map, rare), buyReady = payments2.mode !== "off" && payments2.account === "vk";
-    const feedback = same && Number(root.dataset.hitAt) > Date.now() - 2200 ? '<span class="raid-impact">\u2212' + fmt(Number(root.dataset.hitDamage)) + "</span>" : "";
-    const card = (a) => `<section class="raid-command ${a.sku ? "raid-command-extra" : "raid-command-fire"}"><div class="raid-command-art"><canvas ${a.sku ? 'data-raid-item="' + a.art + '"' : 'data-raid-weapon="' + save2.weapon + '"'} width="256" height="180" aria-hidden="true"></canvas>${a.sku ? '<span class="raid-bonus">+' + a.bonus * 100 + "%</span>" : '<span class="raid-standard">\u0421\u041D\u0410\u0420\u042F\u0416\u0415\u041D\u041E</span>'}</div><div class="raid-command-copy"><h3>${escape(a.name)}</h3><p>${a.sku ? "\u0412\u044B\u0441\u0442\u0440\u0435\u043B + " + fmt(a.extra) + " \u0434\u043E\u043F. \u0443\u0440\u043E\u043D\u0430" : escape(WEAPONS[save2.weapon].name)}</p><div class="raid-command-values"><span><b>${fmt(a.expected)}</b> \u0443\u0440\u043E\u043D\u0430</span><span>${a.cost} \u03DF</span></div></div>${a.sku ? '<small class="raid-ammo">' + (a.charges ? "\u0417\u0430\u0440\u044F\u0434\u043E\u0432: " + fmt(a.charges) : a.pack + " \u0443\u0434\u0430\u0440\u043E\u0432 \xB7 " + a.votes + " " + (a.votes < 5 ? "\u0433\u043E\u043B\u043E\u0441\u0430" : "\u0433\u043E\u043B\u043E\u0441\u043E\u0432")) + "</small>" : '<small class="raid-ammo">\u0411\u0435\u0437 \u0440\u0430\u0441\u0445\u043E\u0434\u043D\u0438\u043A\u043E\u0432</small>'}${raid2 ? '<button class="' + (a.id === "gun" ? "primary" : "secondary") + '" id="strike-' + a.id + '" data-raid-attack="' + a.id + '" aria-describedby="raid-ready-clock">' + (a.id === "gun" ? "\u0412\u044B\u0441\u0442\u0440\u0435\u043B\u0438\u0442\u044C" : "\u041D\u0430\u043D\u0435\u0441\u0442\u0438 \u0443\u0434\u0430\u0440") + "</button>" : '<button class="secondary" disabled>' + (allowed ? "\u0410\u043A\u0442\u0438\u0432\u0438\u0440\u0443\u0439 \u0431\u043E\u0441\u0441\u0430" : "\u0411\u043E\u0441\u0441 \u0437\u0430\u043A\u0440\u044B\u0442") + "</button>"}${a.sku && raid2 && !a.locked && !a.charges && hp > 0 ? '<button class="raid-buy" id="buy-' + a.id + '" data-raid-buy="' + a.id + '" ' + (!buyReady ? "disabled" : "") + ">" + (!buyReady ? payments2.account !== "vk" ? "\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u0432\u043D\u0443\u0442\u0440\u0438 VK" : "\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B" : "\u041A\u0443\u043F\u0438\u0442\u044C \xB7 " + a.votes + " " + (a.votes < 5 ? "\u0433\u043E\u043B\u043E\u0441\u0430" : "\u0433\u043E\u043B\u043E\u0441\u043E\u0432")) + "</button>" : ""}</section>`;
-    root.innerHTML = `<div class="raid-toolbar"><div class="raid-tabs" role="group" aria-label="\u0422\u0438\u043F \u0431\u043E\u0441\u0441\u0430">${raid2 && hp > 0 ? `<span class="raid-active-state">${rare ? "\u0420\u0435\u0434\u043A\u0438\u0439" : "\u041E\u0431\u044B\u0447\u043D\u044B\u0439"} \u0440\u0435\u0439\u0434 \xB7 ${raid2.blockedBy ? "\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440" : "\u0430\u043A\u0442\u0438\u0432\u0435\u043D"}</span>` : `<button class="secondary" data-mode="normal" aria-pressed="${!rare}">\u041E\u0431\u044B\u0447\u043D\u044B\u0435</button><button class="secondary" data-mode="rare" aria-pressed="${rare}">\u0420\u0435\u0434\u043A\u0438\u0435</button>`}</div>${!raid2 ? `<select id="raid-map" class="boss-select" aria-label="\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430">${MAPS.map((v, i) => `<option value="${i}" ${map === i ? "selected" : ""}>${v.boss}${rare ? " \xB7 \u0443\u0440. " + RARE_RAIDS[i].level : ""}</option>`).join("")}</select>` : `<small>${party.length} / ${capacity} \u0431\u043E\u0439\u0446\u043E\u0432</small>`}</div>
+    const feedback = same && Number(root.dataset.hitAt) > Date.now() - 2200 ? '<span class="raid-impact">\u2212' + fmt2(Number(root.dataset.hitDamage)) + "</span>" : "";
+    const card = (a) => `<section class="raid-command ${a.sku ? "raid-command-extra" : "raid-command-fire"}"><div class="raid-command-art"><canvas ${a.sku ? 'data-raid-item="' + a.art + '"' : 'data-raid-weapon="' + save2.weapon + '"'} width="256" height="180" aria-hidden="true"></canvas>${a.sku ? '<span class="raid-bonus">+' + a.bonus * 100 + "%</span>" : '<span class="raid-standard">\u0421\u041D\u0410\u0420\u042F\u0416\u0415\u041D\u041E</span>'}</div><div class="raid-command-copy"><h3>${escape(a.name)}</h3><p>${a.sku ? "\u0412\u044B\u0441\u0442\u0440\u0435\u043B + " + fmt2(a.extra) + " \u0434\u043E\u043F. \u0443\u0440\u043E\u043D\u0430" : escape(WEAPONS[save2.weapon].name)}</p><div class="raid-command-values"><span><b>${fmt2(a.expected)}</b> \u0443\u0440\u043E\u043D\u0430</span><span>${a.cost} \u03DF</span></div></div>${a.sku ? '<small class="raid-ammo">' + (a.charges ? "\u0417\u0430\u0440\u044F\u0434\u043E\u0432: " + fmt2(a.charges) : a.pack + " \u0443\u0434\u0430\u0440\u043E\u0432 \xB7 " + a.votes + " " + (a.votes < 5 ? "\u0433\u043E\u043B\u043E\u0441\u0430" : "\u0433\u043E\u043B\u043E\u0441\u043E\u0432")) + "</small>" : '<small class="raid-ammo">\u0411\u0435\u0437 \u0440\u0430\u0441\u0445\u043E\u0434\u043D\u0438\u043A\u043E\u0432</small>'}${raid2 ? '<button class="' + (a.id === "gun" ? "primary" : "secondary") + '" id="strike-' + a.id + '" data-raid-attack="' + a.id + '" aria-describedby="raid-ready-clock">' + (a.id === "gun" ? "\u0412\u044B\u0441\u0442\u0440\u0435\u043B\u0438\u0442\u044C" : "\u041D\u0430\u043D\u0435\u0441\u0442\u0438 \u0443\u0434\u0430\u0440") + "</button>" : '<button class="secondary" disabled>' + (allowed ? "\u0410\u043A\u0442\u0438\u0432\u0438\u0440\u0443\u0439 \u0431\u043E\u0441\u0441\u0430" : "\u0411\u043E\u0441\u0441 \u0437\u0430\u043A\u0440\u044B\u0442") + "</button>"}${a.sku && raid2 && !a.locked && !a.charges && hp > 0 ? '<button class="raid-buy" id="buy-' + a.id + '" data-raid-buy="' + a.id + '" ' + (!buyReady ? "disabled" : "") + ">" + (!buyReady ? payments2.account !== "vk" ? "\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u0432\u043D\u0443\u0442\u0440\u0438 VK" : "\u041F\u043E\u043A\u0443\u043F\u043A\u0438 \u043D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u044B" : "\u041A\u0443\u043F\u0438\u0442\u044C \xB7 " + a.votes + " " + (a.votes < 5 ? "\u0433\u043E\u043B\u043E\u0441\u0430" : "\u0433\u043E\u043B\u043E\u0441\u043E\u0432")) + "</button>" : ""}</section>`;
+    root.innerHTML = `<div class="raid-toolbar"><div class="raid-tabs" role="group" aria-label="\u0422\u0438\u043F \u0431\u043E\u0441\u0441\u0430">${raid2 && hp > 0 ? `<span class="raid-active-state">${raid2.clanBoss ? "\u041A\u043B\u0430\u043D\u043E\u0432\u044B\u0439" : rare ? "\u0420\u0435\u0434\u043A\u0438\u0439" : "\u041E\u0431\u044B\u0447\u043D\u044B\u0439"} \u0440\u0435\u0439\u0434 \xB7 ${raid2.blockedBy ? "\u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440" : "\u0430\u043A\u0442\u0438\u0432\u0435\u043D"}</span>` : `<button class="secondary" data-mode="normal" aria-pressed="${!rare}">\u041E\u0431\u044B\u0447\u043D\u044B\u0435</button><button class="secondary" data-mode="rare" aria-pressed="${rare}">\u0420\u0435\u0434\u043A\u0438\u0435</button>`}</div>${!raid2 ? `<select id="raid-map" class="boss-select" aria-label="\u0412\u044B\u0431\u0440\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430">${MAPS.map((v, i) => `<option value="${i}" ${map === i ? "selected" : ""}>${v.boss}${rare ? " \xB7 \u0443\u0440. " + RARE_RAIDS[i].level : ""}</option>`).join("")}</select>` : `<small>${party.length} / ${capacity} \u0431\u043E\u0439\u0446\u043E\u0432</small>`}</div>
  <article class="raid-console ${rare ? "is-rare" : ""}">
-  <div class="raid-dossier"><div class="boss-stage" style="--boss-scene:url('assets/district-${map}.webp')"><span class="boss-rarity">${rare ? "\u0420\u0415\u0414\u041A\u0410\u042F \u0426\u0415\u041B\u042C" : "\u0426\u0415\u041B\u042C " + String(map + 1).padStart(2, "0")}</span><img class="boss-character" src="assets/boss-${BOSS_ART[map]}.png" alt="${escape(m.boss)} \u2014 ${roles[map]}" width="512" height="512" decoding="async">${feedback}<span class="boss-stage-caption">${escape(m.name)}</span></div>
-  <div class="raid-vitals"><span>${roles[map]}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt(hp)}</b><span>/ ${fmt(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt(hp)} \u0438\u0437 ${fmt(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div><small>${raid2 ? "\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434: " + fmt(contribution) : "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + requiredLevel + " \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438"}</small>${raid2 && hp > 0 ? '<button class="secondary" id="raid-arena">\u041D\u0430 \u0430\u0440\u0435\u043D\u0443 \xB7 12 \u03DF</button>' : ""}</div></div>
+  <div class="raid-dossier"><div class="boss-stage" style="--boss-scene:url('assets/district-${map}.webp')"><span class="boss-rarity">${rare ? "\u0420\u0415\u0414\u041A\u0410\u042F \u0426\u0415\u041B\u042C" : "\u0426\u0415\u041B\u042C " + String(map + 1).padStart(2, "0")}</span><img class="boss-character" src="assets/boss-${BOSS_ART[map]}.png" alt="${escape(m.boss)} \u2014 ${role}" width="512" height="512" decoding="async">${feedback}<span class="boss-stage-caption">${escape(m.name)}</span></div>
+  <div class="raid-vitals"><span>${role}</span><h2>${m.boss}</h2><div class="boss-hp-label"><b>${fmt2(hp)}</b><span>/ ${fmt2(maxHp)} HP</span></div><div class="raid-health" role="progressbar" aria-label="\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0431\u043E\u0441\u0441\u0430" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(hp / maxHp * 1e4) / 100}" aria-valuetext="${fmt2(hp)} \u0438\u0437 ${fmt2(maxHp)} HP"><i style="width:${hp / maxHp * 100}%"></i></div><small>${raid2 ? "\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434: " + fmt2(contribution) : "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + requiredLevel + " \xB7 3 \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0438"}</small>${raid2 && hp > 0 && raid2.arenaVersion === 1 ? '<button class="secondary" id="raid-arena">\u041D\u0430 \u0430\u0440\u0435\u043D\u0443 \xB7 12 \u03DF</button>' : ""}</div></div>
   <div class="raid-command-center"><div class="raid-command-header"><div><span class="eyebrow">${raid2 ? "\u041E\u0411\u0429\u0418\u0419 \u0411\u041E\u0419" : "\u0410\u0420\u0421\u0415\u041D\u0410\u041B \u0420\u0415\u0419\u0414\u0410"}</span><span id="raid-ready-clock" tabindex="-1">${raid2 ? "\u0412\u044B\u0431\u0435\u0440\u0438 \u0443\u0434\u0430\u0440" : accessReason}</span></div>${!raid2 ? allowed ? '<button class="primary" id="create-raid">\u0410\u043A\u0442\u0438\u0432\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0431\u043E\u0441\u0441\u0430</button>' : '<button class="secondary" id="raid-prepare">\u041A \u0440\u0430\u0439\u043E\u043D\u0443</button>' : !raid2.joined && hp > 0 ? '<button class="primary" id="join-raid" ' + (raid2.blockedBy || !allowed || party.length >= capacity ? "disabled" : "") + ">\u041F\u0440\u0438\u0441\u043E\u0435\u0434\u0438\u043D\u0438\u0442\u044C\u0441\u044F</button>" : ""}</div>
    ${raid2 && hp > 0 ? '<div class="raid-recovery" aria-hidden="true"><i></i></div>' : ""}
-   <div class="raid-command-grid">${raid2 && hp <= 0 ? '<div class="raid-victory"><span>\u0426\u0415\u041B\u042C \u0423\u0421\u0422\u0420\u0410\u041D\u0415\u041D\u0410</span><h3>\u041E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430</h3><p>\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434: ' + fmt(contribution) + " \u0443\u0440\u043E\u043D\u0430.</p></div>" : attacks.map(card).join("")}</div>
-   ${raid2 ? `<details class="raid-loot" ${hp <= 0 || oldLoot && same ? "open" : ""}><summary>${hp > 0 ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B" : "\u0422\u0432\u043E\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430"}<span>${fmt(contribution)} \u0443\u0440\u043E\u043D\u0430 \xB7 ${share(contribution, maxHp)}</span></summary><div class="raid-loot-title"><small>${rare ? "\u0424\u043E\u043D\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u0444\u0430\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u043C\u0443 \u0443\u0440\u043E\u043D\u0443." : hp > 0 ? "\u0414\u043E \u043F\u043E\u043B\u043D\u043E\u0439 \u043D\u0430\u0433\u0440\u0430\u0434\u044B: " + fmt(Math.max(0, Math.ceil(maxHp * 0.25 - contribution))) + " \u0443\u0440\u043E\u043D\u0430." : "\u0418\u0442\u043E\u0433 \u043F\u043E \u0442\u0432\u043E\u0435\u043C\u0443 \u0432\u043A\u043B\u0430\u0434\u0443."}</small></div><div class="raid-rewards">${rewards(raid2.reward)}</div>${hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0430\u0431\u0440\u0430\u0442\u044C \u043D\u0430\u0433\u0440\u0430\u0434\u0443</button>' : (mine == null ? void 0 : mine.claimed) ? '<p class="raid-loot-claimed">\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</p>' : ""}</details>` : ""}
+   <div class="raid-command-grid">${raid2 && hp <= 0 ? '<div class="raid-victory"><span>\u0426\u0415\u041B\u042C \u0423\u0421\u0422\u0420\u0410\u041D\u0415\u041D\u0410</span><h3>\u041E\u0431\u0449\u0430\u044F \u043F\u043E\u0431\u0435\u0434\u0430</h3><p>\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434: ' + fmt2(contribution) + " \u0443\u0440\u043E\u043D\u0430.</p></div>" : attacks.map(card).join("")}</div>
+   ${raid2 ? `<details class="raid-loot" ${hp <= 0 || oldLoot && same ? "open" : ""}><summary>${hp > 0 ? "\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u0441\u043B\u0435 \u043F\u043E\u0431\u0435\u0434\u044B" : "\u0422\u0432\u043E\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430"}<span>${fmt2(contribution)} \u0443\u0440\u043E\u043D\u0430 \xB7 ${share(contribution, maxHp)}</span></summary><div class="raid-loot-title"><small>${rare || raid2.clanBoss ? "\u0424\u043E\u043D\u0434 \u0434\u0435\u043B\u0438\u0442\u0441\u044F \u043F\u043E \u0444\u0430\u043A\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u043C\u0443 \u0443\u0440\u043E\u043D\u0443." : hp > 0 ? "\u0414\u043E \u043F\u043E\u043B\u043D\u043E\u0439 \u043D\u0430\u0433\u0440\u0430\u0434\u044B: " + fmt2(Math.max(0, Math.ceil(maxHp * 0.25 - contribution))) + " \u0443\u0440\u043E\u043D\u0430." : "\u0418\u0442\u043E\u0433 \u043F\u043E \u0442\u0432\u043E\u0435\u043C\u0443 \u0432\u043A\u043B\u0430\u0434\u0443."}</small></div><div class="raid-rewards">${rewards(raid2.reward)}</div>${hp === 0 && (mine == null ? void 0 : mine.damage) && !mine.claimed ? '<button class="primary" id="raid-claim">\u0417\u0430\u0431\u0440\u0430\u0442\u044C \u043D\u0430\u0433\u0440\u0430\u0434\u0443</button>' : (mine == null ? void 0 : mine.claimed) ? '<p class="raid-loot-claimed">\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</p>' : ""}</details>` : ""}
   </div>
  </article>
- ${raid2 ? `<div class="raid-after-action"><section class="raid-activity"><div class="raid-block-title"><h3>\u0425\u043E\u0434 \u0431\u043E\u044F</h3><small>\u0421 \u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u0430</small></div>${seen.entries.length ? "<ol>" + seen.entries.map((e) => `<li><time>${new Date(e.at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</time><span>\u041E\u0431\u0449\u0438\u0439 \u0443\u0440\u043E\u043D <b>+${fmt(e.damage)}</b><small>${e.mine ? "\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434 +" + fmt(e.mine) : "\u0412\u043A\u043B\u0430\u0434 \u0434\u0440\u0443\u0433\u0438\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432"} \xB7 \u043E\u0441\u0442\u0430\u043B\u043E\u0441\u044C ${fmt(e.hp)} HP</small></span></li>`).join("") + "</ol>" : "<p>\u0410\u0442\u0430\u043A\u0438 \u043E\u0442\u0440\u044F\u0434\u0430 \u043F\u043E\u044F\u0432\u044F\u0442\u0441\u044F \u0437\u0434\u0435\u0441\u044C.</p>"}</section><section class="raid-damage-ranking"><div class="raid-block-title"><h3>\u041B\u0438\u0434\u0435\u0440\u044B \u043F\u043E \u0443\u0440\u043E\u043D\u0443</h3><small>\u0412 \u044D\u0442\u043E\u043C \u0440\u0435\u0439\u0434\u0435</small></div>${leaders.length ? "<ol>" + leaders.map((p, i) => `<li ${p.me ? 'class="is-me"' : ""}><span class="damage-rank">${i + 1}</span>${portrait(p)}<span class="damage-player">${escape(p.name)}${p.me ? " \xB7 \u0442\u044B" : ""}<small>${share(p.damage, maxHp)} \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0431\u043E\u0441\u0441\u0430</small></span><b>${fmt(p.damage)}</b></li>`).join("") + "</ol>" : "<p>\u041F\u0435\u0440\u0432\u044B\u0439 \u0443\u0434\u0430\u0440 \u043E\u0442\u043A\u0440\u043E\u0435\u0442 \u0440\u0435\u0439\u0442\u0438\u043D\u0433.</p>"}</section></div>` : ""}
+ ${raid2 ? `<div class="raid-after-action"><section class="raid-activity"><div class="raid-block-title"><h3>\u0425\u043E\u0434 \u0431\u043E\u044F</h3><small>\u0421 \u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440\u0430</small></div>${seen.entries.length ? "<ol>" + seen.entries.map((e) => `<li><time>${new Date(e.at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</time><span>\u041E\u0431\u0449\u0438\u0439 \u0443\u0440\u043E\u043D <b>+${fmt2(e.damage)}</b><small>${e.mine ? "\u0422\u0432\u043E\u0439 \u0432\u043A\u043B\u0430\u0434 +" + fmt2(e.mine) : "\u0412\u043A\u043B\u0430\u0434 \u0434\u0440\u0443\u0433\u0438\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432"} \xB7 \u043E\u0441\u0442\u0430\u043B\u043E\u0441\u044C ${fmt2(e.hp)} HP</small></span></li>`).join("") + "</ol>" : "<p>\u0410\u0442\u0430\u043A\u0438 \u043E\u0442\u0440\u044F\u0434\u0430 \u043F\u043E\u044F\u0432\u044F\u0442\u0441\u044F \u0437\u0434\u0435\u0441\u044C.</p>"}</section><section class="raid-damage-ranking"><div class="raid-block-title"><h3>\u041B\u0438\u0434\u0435\u0440\u044B \u043F\u043E \u0443\u0440\u043E\u043D\u0443</h3><small>\u0412 \u044D\u0442\u043E\u043C \u0440\u0435\u0439\u0434\u0435</small></div>${leaders.length ? "<ol>" + leaders.map((p, i) => `<li ${p.me ? 'class="is-me"' : ""}><span class="damage-rank">${i + 1}</span><span class="damage-player"><button class="player-name-link" data-player="${escape(p.code || "")}">${escape(p.name)}${p.me ? " \xB7 \u0442\u044B" : ""}</button><small>${share(p.damage, maxHp)} \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F \u0431\u043E\u0441\u0441\u0430</small></span><b>${fmt2(p.damage)}</b></li>`).join("") + "</ol>" : "<p>\u041F\u0435\u0440\u0432\u044B\u0439 \u0443\u0434\u0430\u0440 \u043E\u0442\u043A\u0440\u043E\u0435\u0442 \u0440\u0435\u0439\u0442\u0438\u043D\u0433.</p>"}</section></div>` : ""}
  ${raid2 ? (raid2.blockedBy || hp <= 0 ? '<div class="raid-controls"><button class="secondary" id="close-raid">' + (raid2.blockedBy ? "\u041A \u043C\u043E\u0435\u043C\u0443 \u0431\u043E\u0441\u0441\u0443" : "\u041A \u0441\u043F\u0438\u0441\u043A\u0443 \u0431\u043E\u0441\u0441\u043E\u0432") + "</button></div>" : "") + `<details class="raid-party" ${oldParty && same ? "open" : ""}><summary>\u0412\u0435\u0441\u044C \u043E\u0442\u0440\u044F\u0434 \xB7 ${party.length} / ${capacity}</summary><div class="party-list"></div><div class="party-pagination"></div></details>` : ""}`;
     root.querySelectorAll("[data-mode]").forEach((b) => b.onclick = () => onMode(b.dataset.mode === "rare"));
     const bind = (id, fn) => {
@@ -1468,9 +1338,10 @@
       const paint = () => {
         const page2 = Math.min(Number(root.dataset.partyPage), Math.max(0, pages - 1));
         root.dataset.partyPage = page2;
-        root.querySelector(".party-list").innerHTML = sorted.slice(page2 * 20, page2 * 20 + 20).map((p) => `<div>${portrait(p)}<span><b>${escape(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</b><small>${p.online ? "\u0412 \u0441\u0435\u0442\u0438" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"}</small></span><div class="party-contribution"><b>${fmt(p.damage)} \u0443\u0440\u043E\u043D\u0430</b><div><i style="width:${Math.min(100, p.damage / maxHp * 100)}%"></i></div></div>${p.claimed ? "<small>\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</small>" : ""}</div>`).join("");
+        root.querySelector(".party-list").innerHTML = sorted.slice(page2 * 20, page2 * 20 + 20).map((p) => `<div><span><button class="player-name-link" data-player="${escape(p.code || "")}">${escape(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</button><small>${p.online ? "\u0412 \u0441\u0435\u0442\u0438" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"}</small></span><div class="party-contribution"><b>${fmt2(p.damage)} \u0443\u0440\u043E\u043D\u0430</b><div><i style="width:${Math.min(100, p.damage / maxHp * 100)}%"></i></div></div>${p.claimed ? "<small>\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430</small>" : ""}</div>`).join("");
         const nav = root.querySelector(".party-pagination");
         nav.innerHTML = pages > 1 ? `<button class="secondary" ${page2 === 0 ? "disabled" : ""} aria-label="\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438">\u2190</button><span>${page2 + 1} / ${pages}</span><button class="secondary" ${page2 === pages - 1 ? "disabled" : ""} aria-label="\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u0438">\u2192</button>` : "";
+        root.querySelectorAll("[data-player]").forEach((b) => b.onclick = () => onProfile == null ? void 0 : onProfile(b.dataset.player));
         const buttons = nav.querySelectorAll("button");
         if (buttons.length) {
           buttons[0].onclick = () => {
@@ -1489,12 +1360,11 @@
     if (main) main.scrollTop = same ? scroll : 0;
     const focus = focused && root.querySelector("#" + focused);
     if (focus && !focus.disabled) focus.focus({ preventScroll: true });
-    else if (focus == null ? void 0 : focus.disabled) (_e = root.querySelector("#raid-ready-clock")) == null ? void 0 : _e.focus({ preventScroll: true });
+    else if (focus == null ? void 0 : focus.disabled) (_h = root.querySelector("#raid-ready-clock")) == null ? void 0 : _h.focus({ preventScroll: true });
   }
-  var BOSS_ART, roles, observations, fmt, share, escape, rewards, options;
+  var BOSS_ART, roles, observations, fmt2, share, escape, rewards, options;
   var init_raid_view = __esm({
     "raid-view.js"() {
-      init_friends_ui();
       init_art();
       init_raid_attacks();
       init_raid_observation();
@@ -1503,13 +1373,13 @@
       BOSS_ART = ["watcher", "arsonist", "crane", "doctor", "root", "driver", "smelter", "admiral"];
       roles = ["\u0425\u0440\u0430\u043D\u0438\u0442\u0435\u043B\u044C \u043F\u0443\u0441\u0442\u044B\u0445 \u0434\u043E\u043C\u043E\u0432", "\u041E\u0433\u043E\u043D\u044C \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u0439 \u0437\u0430\u043F\u0440\u0430\u0432\u043A\u0438", "\u0425\u043E\u0437\u044F\u0438\u043D \u0433\u0440\u0443\u0437\u043E\u0432\u043E\u0433\u043E \u0434\u0432\u043E\u0440\u0430", "\u041A\u0430\u0440\u0430\u043D\u0442\u0438\u043D \u043D\u0435 \u043E\u043A\u043E\u043D\u0447\u0435\u043D", "\u0421\u0435\u0440\u0434\u0446\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u043E\u0433\u043E \u043B\u0435\u0441\u0430", "\u041F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u0440\u0435\u0439\u0441", "\u0416\u0430\u0440 \u043C\u0451\u0440\u0442\u0432\u044B\u0445 \u043F\u0435\u0447\u0435\u0439", "\u041A\u043E\u043C\u0430\u043D\u0434\u0438\u0440 \u0437\u0430\u0442\u043E\u043D\u0443\u0432\u0448\u0435\u0433\u043E \u0444\u043B\u043E\u0442\u0430"];
       observations = /* @__PURE__ */ new WeakMap();
-      fmt = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
+      fmt2 = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
       share = (damage, max) => {
         const percent = damage / max * 100;
         return percent > 0 && percent < 0.01 ? "\u043C\u0435\u043D\u044C\u0448\u0435 0,01%" : percent.toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + "%";
       };
       escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-      rewards = (r) => Object.entries({ scrap: "\u0414\u0435\u0442\u0430\u043B\u0438", xp: "\u041E\u043F\u044B\u0442", cores: "\u042F\u0434\u0440\u0430", cloth: "\u0422\u043A\u0430\u043D\u044C" }).map(([k, name]) => "<div>" + (k === "xp" ? '<i class="raid-xp-seal" aria-hidden="true">XP</i>' : '<canvas data-raid-resource="' + { scrap: 0, cores: 1, cloth: 2 }[k] + '" width="42" height="42" aria-hidden="true"></canvas>') + "<span><strong>" + fmt(r[k]) + "</strong><small>" + name + "</small></span></div>").join("");
+      rewards = (r) => Object.entries({ scrap: "\u0414\u0435\u0442\u0430\u043B\u0438", xp: "\u041E\u043F\u044B\u0442", cores: "\u042F\u0434\u0440\u0430", cloth: "\u0422\u043A\u0430\u043D\u044C" }).map(([k, name]) => "<div>" + (k === "xp" ? '<i class="raid-xp-seal" aria-hidden="true">XP</i>' : '<canvas data-raid-resource="' + { scrap: 0, cores: 1, cloth: 2 }[k] + '" width="42" height="42" aria-hidden="true"></canvas>') + "<span><strong>" + fmt2(r[k]) + "</strong><small>" + name + "</small></span></div>").join("");
       options = (raid2, save2, map, rare) => RAID_ATTACKS.map((a) => {
         var _a2, _b2;
         return ((_a2 = raid2 == null ? void 0 : raid2.attackOptions) == null ? void 0 : _a2.find((o) => o.id === a.id)) || raidAttackPlan(save2, map, rare, a.id, (_b2 = raid2 == null ? void 0 : raid2.hp) != null ? _b2 : Infinity, (raid2 == null ? void 0 : raid2.paymentMode) === "test");
@@ -1623,6 +1493,47 @@
         { id: "level-100", title: "\u041E\u043F\u043E\u0440\u0430 \u0443\u0431\u0435\u0436\u0438\u0449\u0430", description: "\u0414\u043E\u0441\u0442\u0438\u0433\u043D\u0438 100 \u0443\u0440\u043E\u0432\u043D\u044F.", metric: "level", goal: 100, icon: "leaderboard", reward: { scrap: 500, cloth: 6 } },
         { id: "level-500", title: "\u041B\u0435\u0433\u0435\u043D\u0434\u0430 \u041E\u0431\u0438\u0442\u0435\u043B\u0438", description: "\u0414\u043E\u0441\u0442\u0438\u0433\u043D\u0438 500 \u0443\u0440\u043E\u0432\u043D\u044F.", metric: "level", goal: 500, icon: "leaderboard", reward: { cores: 10 } }
       ];
+    }
+  });
+
+  // ui-icons.js
+  var line, accent, symbols, ICON_NAMES, icon, shelterIcon;
+  var init_ui_icons = __esm({
+    "ui-icons.js"() {
+      line = (d) => '<path class="icon-detail" d="' + d + '"/>';
+      accent = (d) => '<path class="icon-accent" d="' + d + '"/>';
+      symbols = {
+        map: line("M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16m6-14v16") + accent("M5 9h2v2H5z"),
+        gear: line("M3 9h5l2-3h10v4h2v2H12l-2 5H7l-2 4H2l4-9H3zM11 4h6m-5 8h6v5h-3l-2-5") + accent("M17 7h2v2h-2z"),
+        garage: line("M3 11l3-6h12l3 6v8H3zM3 11h18M5 19v2m14-2v2M6 14h2m8 0h2M10 17h4") + accent("M11 7h2v2h-2z"),
+        daily: line("M8 4H4v17h16V4h-4M8 2h8v5H8zM8 11h8m-8 4h5") + accent("M15 15h2v2h-2z"),
+        raids: line("M12 2l8 4v7c0 4-5 7-8 9-3-2-8-5-8-9V6zM8 9l2-2h4l2 2v5l-2 2h-4l-2-2zm2 7v2m4-2v2") + accent("M9 10h2v2H9zm4 0h2v2h-2z"),
+        guide: line("M3 4h6l3 2 3-2h6v16h-6l-3 2-3-2H3zM12 6v16M6 8h3m-3 4h3m6 3h3") + accent("M16 5h2v6h-2z"),
+        leaderboard: line("M7 3h10v8l-3 5h-4l-3-5zM7 5H3v4l4 3m10-7h4v4l-4 3M12 16v5m-5 0h10") + accent("M11 6h2v4h-2z"),
+        friends: line("M10 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0m10 0a3 3 0 1 1-6 0 3 3 0 0 1 6 0M2 20v-4l2-3h6l2 3v4m2-7h6l2 3v4") + accent("M15 18h2v2h-2z"),
+        clans: line("M4 3h16v11l-8 8-8-8zM7 6h10v7l-5 5-5-5z") + accent("M10 8h4v2h-4z"),
+        conflict: line("M3 3l4 1 14 16-2 2L3 7zM21 3l-4 1-4 5m-3 4-7 7 2 2 6-5M2 17l5 5m10-5 5 5") + accent("M17 5h2v2h-2z"),
+        settings: line("M6 3v18M12 3v18M18 3v18M4 7h4v4H4zm6 8h4v4h-4z") + accent("M16 6h4v4h-4z"),
+        medical: line("M3 7h18v14H3zM8 7V3h8v4M10 10h4v3h3v3h-3v3h-4v-3H7v-3h3z") + accent("M19 18h2v2h-2z"),
+        energy: line("M13 2L4 14h7l-1 8 10-12h-7z") + accent("M12 10h2v2h-2z"),
+        diamond: line("M7 3h10l5 7-10 12L2 10zM2 10h20M7 3l-1 7 6 12 6-12-1-7") + accent("M11 6h2v2h-2z"),
+        skull: line("M6 4l6-2 6 2 3 6-2 7-4 2v3H9v-3l-4-2-2-7zM7 8h3v4H7zm7 0h3v4h-3zM10 20v2m4-2v2") + accent("M12 13l2 3h-4z"),
+        star: line("M12 2l3 6 7 1-5 5 1 8-6-4-6 4 1-8-5-5 7-1z") + accent("M11 10h2v3h-2z"),
+        menu: line("M4 6h16M4 12h11M4 18h16") + accent("M18 11h2v2h-2z"),
+        close: line("M6 6l12 12M18 6L6 18"),
+        pause: line("M6 4h3v16H6zm9 0h3v16h-3z"),
+        repulse: line("M12 2l8 4v8l-8 8-8-8V6zM8 12l4 4 4-4M12 6v10") + accent("M11 18h2v2h-2z"),
+        run: line("M16 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4M5 12l5-4 5 1 3 4h4M12 9l-2 6 5 3-1 4m-4-7-4 6H2") + accent("M1 8h3v2H1z"),
+        arrow: line("M4 12h16M14 6l6 6-6 6"),
+        refresh: line("M20 10a8 8 0 1 0-2 8M20 3v7h-7") + accent("M20 15h2v2h-2z"),
+        unknown: line("M8 7a4 4 0 1 1 6 4c-2 1-2 3-2 4m0 4v1")
+      };
+      ICON_NAMES = Object.freeze(Object.keys(symbols).filter((name) => name !== "unknown"));
+      icon = (name) => {
+        const key2 = Object.prototype.hasOwnProperty.call(symbols, name) ? name : "unknown";
+        return '<svg class="ui-icon obitel-glyph shelter-insignia" data-icon="' + key2 + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + symbols[key2] + "</svg>";
+      };
+      shelterIcon = icon;
     }
   });
 
@@ -1803,12 +1714,12 @@
   // operations-ui.js
   function renderBriefing(root, save2, map, mode) {
     const plan = sortiePlan(save2, map, mode), kills = 27 + map * 3, expected = expeditionReward(map, kills, kills * 2, true, stats(save2).loot * plan.reward);
-    root.innerHTML = `<div class="op-heading"><span class="eyebrow">\u0423\u0421\u041B\u041E\u0412\u0418\u042F \u0412\u042B\u041B\u0410\u0417\u041A\u0418</span><strong>${plan.condition.name}</strong><p>${plan.condition.description} ${map === 0 ? "\u041F\u0435\u0440\u0432\u044B\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B \u0432\u0441\u0435\u0433\u0434\u0430 \u0441\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439." : "\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u043C\u0435\u043D\u044F\u044E\u0442\u0441\u044F \u0432 \u043F\u043E\u043B\u043D\u043E\u0447\u044C \u041C\u0421\u041A."}</p></div><div class="op-forecast" aria-label="\u041E\u0436\u0438\u0434\u0430\u0435\u043C\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430"><span><b>~${fmt2(expected)}</b> \u0434\u0435\u0442\u0430\u043B\u0435\u0439</span><span><b>${Math.round(runXP(kills, true, map, playerLevel(save2)) * plan.xp)}</b> XP</span><span><b>3</b> \u0432\u043E\u043B\u043D\u044B</span></div><p class="op-note">${plan.name}: ${plan.description} \u0414\u0435\u0442\u0430\u043B\u0438 \u0443\u043A\u0430\u0437\u0430\u043D\u044B \u043F\u0440\u0438\u0431\u043B\u0438\u0437\u0438\u0442\u0435\u043B\u044C\u043D\u043E; \u0434\u043E\u0431\u044B\u0447\u0430 \u0441\u043B\u0443\u0447\u0430\u0439\u043D\u0430.</p>`;
+    root.innerHTML = `<div class="op-heading"><span class="eyebrow">\u0423\u0421\u041B\u041E\u0412\u0418\u042F \u0412\u042B\u041B\u0410\u0417\u041A\u0418</span><strong>${plan.condition.name}</strong><p>${plan.condition.description} ${map === 0 ? "\u041F\u0435\u0440\u0432\u044B\u0439 \u043A\u0432\u0430\u0440\u0442\u0430\u043B \u0432\u0441\u0435\u0433\u0434\u0430 \u0441\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439." : "\u0423\u0441\u043B\u043E\u0432\u0438\u044F \u043C\u0435\u043D\u044F\u044E\u0442\u0441\u044F \u0432 \u043F\u043E\u043B\u043D\u043E\u0447\u044C \u041C\u0421\u041A."}</p></div><div class="op-forecast" aria-label="\u041E\u0436\u0438\u0434\u0430\u0435\u043C\u0430\u044F \u043D\u0430\u0433\u0440\u0430\u0434\u0430"><span><b>~${fmt3(expected)}</b> \u0434\u0435\u0442\u0430\u043B\u0435\u0439</span><span><b>${Math.round(runXP(kills, true, map, playerLevel(save2)) * plan.xp)}</b> XP</span><span><b>3</b> \u0432\u043E\u043B\u043D\u044B</span></div><p class="op-note">${plan.name}: ${plan.description} \u0414\u0435\u0442\u0430\u043B\u0438 \u0443\u043A\u0430\u0437\u0430\u043D\u044B \u043F\u0440\u0438\u0431\u043B\u0438\u0437\u0438\u0442\u0435\u043B\u044C\u043D\u043E; \u0434\u043E\u0431\u044B\u0447\u0430 \u0441\u043B\u0443\u0447\u0430\u0439\u043D\u0430.</p>`;
     return plan;
   }
   async function renderOperations(root, api2, toast2, onUpdate) {
-    if (pending2.has(root)) return;
-    pending2.add(root);
+    if (pending.has(root)) return;
+    pending.add(root);
     try {
       const view = await api2("operations");
       if (!root.isConnected) return;
@@ -1834,18 +1745,18 @@
         root.append(b);
       }
     } finally {
-      pending2.delete(root);
+      pending.delete(root);
     }
   }
-  var fmt2, rewardText2, pending2;
+  var fmt3, rewardText2, pending;
   var init_operations_ui = __esm({
     "operations-ui.js"() {
       init_operations();
       init_balance();
       init_ui_icons();
-      fmt2 = (n) => Math.round(n).toLocaleString("ru-RU");
+      fmt3 = (n) => Math.round(n).toLocaleString("ru-RU");
       rewardText2 = (r) => Object.entries(r).map(([key2, n]) => "+" + n + " " + { scrap: "\u0434\u0435\u0442.", xp: "XP", cloth: "\u0442\u043A\u0430\u043D\u0438", cores: "\u044F\u0434\u0440\u043E" }[key2]).join(" \xB7 ");
-      pending2 = /* @__PURE__ */ new WeakSet();
+      pending = /* @__PURE__ */ new WeakSet();
     }
   });
 
@@ -1930,6 +1841,102 @@
     }
   });
 
+  // vehicle-art.js
+  function vehicleSilhouette(pixels, width, height) {
+    const labels = new Int32Array(width * height), stack = new Int32Array(labels.length);
+    let id = 0, largest = 0, size = 0;
+    for (let start2 = 0; start2 < labels.length; start2++) {
+      if (labels[start2] || pixels[start2 * 4 + 3] <= 12) continue;
+      id++;
+      let count2 = 0, head = 1;
+      stack[0] = start2;
+      labels[start2] = id;
+      while (head) {
+        const p = stack[--head], x = p % width, y = Math.floor(p / width);
+        count2++;
+        for (let yy = Math.max(0, y - 1); yy <= Math.min(height - 1, y + 1); yy++) for (let xx = Math.max(0, x - 1); xx <= Math.min(width - 1, x + 1); xx++) {
+          const next = yy * width + xx;
+          if (!labels[next] && pixels[next * 4 + 3] > 12) {
+            labels[next] = id;
+            stack[head++] = next;
+          }
+        }
+      }
+      if (count2 > size) {
+        largest = id;
+        size = count2;
+      }
+    }
+    for (let p = 0; p < labels.length; p++) if (!largest || labels[p] !== largest) pixels[p * 4 + 3] = 0;
+    return pixels;
+  }
+  function loadAtlas() {
+    return atlasPromise != null ? atlasPromise : atlasPromise = loadArtImage("assets/vehicle-collection.png").catch((error) => {
+      atlasPromise = null;
+      throw error;
+    });
+  }
+  function vehicleFrame(image, index) {
+    if (frames.has(index)) return frames.get(index);
+    const bounds = VEHICLE_FRAMES[index];
+    if (!bounds) return null;
+    const [x, y, w, h] = bounds, frame2 = document.createElement("canvas");
+    frame2.width = w;
+    frame2.height = h;
+    const ctx = frame2.getContext("2d");
+    ctx.drawImage(image, x, y, w, h, 0, 0, w, h);
+    const pixels = ctx.getImageData(0, 0, w, h);
+    vehicleSilhouette(pixels.data, w, h);
+    ctx.putImageData(pixels, 0, 0);
+    frames.set(index, frame2);
+    return frame2;
+  }
+  async function paintVehicleArt(root) {
+    const canvases = [...root.querySelectorAll("canvas[data-vehicle-art]")];
+    try {
+      const image = await loadAtlas();
+      for (const canvas2 of canvases) {
+        if (!canvas2.isConnected) continue;
+        const frame2 = vehicleFrame(image, Number(canvas2.dataset.vehicleArt));
+        if (!frame2) continue;
+        const ctx = canvas2.getContext("2d"), scale = Math.min(canvas2.width * 0.9 / frame2.width, canvas2.height * 0.86 / frame2.height), w = frame2.width * scale, h = frame2.height * scale;
+        ctx.clearRect(0, 0, canvas2.width, canvas2.height);
+        ctx.drawImage(frame2, (canvas2.width - w) / 2, (canvas2.height - h) / 2, w, h);
+      }
+    } catch (e) {
+      console.warn("Vehicle artwork unavailable");
+    }
+  }
+  var VEHICLE_FRAMES, atlasPromise, frames;
+  var init_vehicle_art = __esm({
+    "vehicle-art.js"() {
+      init_art();
+      VEHICLE_FRAMES = Object.freeze([
+        [27, 28, 283, 182],
+        [396, 33, 255, 173],
+        [740, 35, 315, 175],
+        [1121, 16, 301, 194],
+        [32, 242, 293, 163],
+        [373, 217, 309, 186],
+        [740, 242, 319, 163],
+        [1103, 221, 315, 186],
+        [24, 413, 293, 202],
+        [364, 420, 326, 192],
+        [733, 417, 327, 201],
+        [1101, 416, 327, 209],
+        [19, 619, 326, 212],
+        [360, 608, 358, 219],
+        [743, 648, 307, 186],
+        [1098, 655, 328, 169],
+        [18, 868, 313, 181],
+        [360, 828, 358, 227],
+        [725, 886, 355, 162],
+        [1107, 835, 322, 224]
+      ].map(Object.freeze));
+      frames = /* @__PURE__ */ new Map();
+    }
+  });
+
   // garage-ui.js
   function garageUI(root, save2, level, upgrades, buy, rerender) {
     var _a2;
@@ -1949,13 +1956,15 @@
       root.querySelector('[data-vehicle-filter="' + filter + '"]').focus();
     });
     root.querySelectorAll("[data-vehicle]").forEach((b) => b.onclick = () => buy(b.dataset.vehicle));
+    paintVehicleArt(root);
   }
   var filter, art, bonus;
   var init_garage_ui = __esm({
     "garage-ui.js"() {
       init_vehicles();
+      init_vehicle_art();
       filter = "all";
-      art = (v) => `<div class="vehicle-art" role="img" aria-label="${v.type} ${v.name}" style="--vx:${v.art % 4 * 100 / 3}%;--vy:${Math.floor(v.art / 4) * 25}%"></div>`;
+      art = (v) => `<canvas class="vehicle-art" data-vehicle-art="${v.art}" width="720" height="432" role="img" aria-label="${v.type} ${v.name}"></canvas>`;
       bonus = (v) => `<span>+${v.damage}% \u0443\u0440\u043E\u043D</span><span>+${v.hp}% \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435</span><span>+${v.loot}% \u0434\u0435\u0442\u0430\u043B\u0438</span>`;
     }
   });
@@ -2011,8 +2020,8 @@
     };
     const renderDetail = () => {
       const p = gearPreview(save2, kind, selection[kind]), w = p.item;
-      const recipe = p.owned ? "\u041F\u0440\u0435\u0434\u043C\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D" : w.votes ? w.votes + " \u0433\u043E\u043B\u043E\u0441\u043E\u0432 \xB7 \u043F\u043B\u0430\u043D\u0438\u0440\u0443\u0435\u043C\u0430\u044F \u0446\u0435\u043D\u0430" : fmt3(w.cost) + " \u0434\u0435\u0442\u0430\u043B\u0435\u0439" + (kind === "armor" ? " \xB7 " + w.cloth + " \u0442\u043A\u0430\u043D\u0438" + (w.cores ? " \xB7 " + w.cores + " \u044F\u0434\u0435\u0440" : "") : "");
-      const statRows = kind === "weapons" ? "<div><dt>\u0423\u0440\u043E\u043D / \u0432\u044B\u0441\u0442\u0440\u0435\u043B</dt><dd>" + fmt3(p.damage) + (w.pellets ? " \xD7 " + w.pellets : "") + "</dd></div><div><dt>\u0423\u0440\u043E\u043D / \u0441\u0435\u043A.</dt><dd>" + fmt3(p.dps) + delta(p.dpsDelta) + "</dd></div><div><dt>\u0414\u0430\u043B\u044C\u043D\u043E\u0441\u0442\u044C</dt><dd>" + w.range + delta(p.rangeDelta) + "</dd></div><div><dt>\u0418\u043D\u0442\u0435\u0440\u0432\u0430\u043B \u043E\u0433\u043D\u044F</dt><dd>" + w.rate + " \u0441</dd></div>" : "<div><dt>\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0433\u0435\u0440\u043E\u044F</dt><dd>" + fmt3(p.hp) + " HP" + delta(p.hpDelta) + "</dd></div><div><dt>\u0417\u0430\u0449\u0438\u0442\u0430 \u043A\u043E\u043C\u043F\u043B\u0435\u043A\u0442\u0430</dt><dd>+" + w.hp + " HP</dd></div>";
+      const recipe = p.owned ? "\u041F\u0440\u0435\u0434\u043C\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D" : w.votes ? w.votes + " \u0433\u043E\u043B\u043E\u0441\u043E\u0432 \xB7 \u043F\u043B\u0430\u043D\u0438\u0440\u0443\u0435\u043C\u0430\u044F \u0446\u0435\u043D\u0430" : fmt4(w.cost) + " \u0434\u0435\u0442\u0430\u043B\u0435\u0439" + (kind === "armor" ? " \xB7 " + w.cloth + " \u0442\u043A\u0430\u043D\u0438" + (w.cores ? " \xB7 " + w.cores + " \u044F\u0434\u0435\u0440" : "") : "");
+      const statRows = kind === "weapons" ? "<div><dt>\u0423\u0440\u043E\u043D / \u0432\u044B\u0441\u0442\u0440\u0435\u043B</dt><dd>" + fmt4(p.damage) + (w.pellets ? " \xD7 " + w.pellets : "") + "</dd></div><div><dt>\u0423\u0440\u043E\u043D / \u0441\u0435\u043A.</dt><dd>" + fmt4(p.dps) + delta(p.dpsDelta) + "</dd></div><div><dt>\u0414\u0430\u043B\u044C\u043D\u043E\u0441\u0442\u044C</dt><dd>" + w.range + delta(p.rangeDelta) + "</dd></div><div><dt>\u0418\u043D\u0442\u0435\u0440\u0432\u0430\u043B \u043E\u0433\u043D\u044F</dt><dd>" + w.rate + " \u0441</dd></div>" : "<div><dt>\u0417\u0434\u043E\u0440\u043E\u0432\u044C\u0435 \u0433\u0435\u0440\u043E\u044F</dt><dd>" + fmt4(p.hp) + " HP" + delta(p.hpDelta) + "</dd></div><div><dt>\u0417\u0430\u0449\u0438\u0442\u0430 \u043A\u043E\u043C\u043F\u043B\u0435\u043A\u0442\u0430</dt><dd>+" + w.hp + " HP</dd></div>";
       const detail = root.querySelector(".catalogue-detail");
       detail.innerHTML = '<div class="catalogue-detail-head">' + art2(kind, p.index, w) + "<div><small>" + state(p) + "</small><h3>" + w.name + '</h3></div></div><div class="catalogue-detail-body"><p>' + w.description + '</p><dl class="catalogue-stats">' + statRows + '</dl><small class="catalogue-compare">\u0418\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435 \u043E\u0442\u043D\u043E\u0441\u0438\u0442\u0435\u043B\u044C\u043D\u043E \u043D\u0430\u0434\u0435\u0442\u043E\u0433\u043E \u0441\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u044F. \u0411\u043E\u043D\u0443\u0441\u044B \u043C\u0430\u0448\u0438\u043D\u044B \u0438 \u043C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u043E\u0439 \u0443\u0447\u0442\u0435\u043D\u044B.' + (w.pellets ? " \u0423\u0440\u043E\u043D \u0432 \u0441\u0435\u043A\u0443\u043D\u0434\u0443 \u2014 \u043F\u0440\u0438 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0438 \u0432\u0441\u0435\u0445 \u0434\u0440\u043E\u0431\u0438\u043D." : "") + "</small>" + (!p.owned ? '<p class="catalogue-unlock">\u0423\u0440\u043E\u0432\u0435\u043D\u044C ' + (w.level || 1) + (kind === "armor" && w.bosses ? " \u0438\u043B\u0438 " + w.bosses + " \u043F\u043E\u0431\u0435\u0434 \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u0430\u043C\u0438" : "") + "</p>" : "") + '</div><div class="catalogue-action"><div><strong>' + recipe + "</strong><small>" + p.reason + '</small></div><button class="' + (p.active ? "secondary" : "primary") + '" data-catalogue-equip ' + (!p.enabled ? "disabled" : "") + ">" + (p.active ? "\u041D\u0430\u0434\u0435\u0442\u043E" : p.owned ? "\u042D\u043A\u0438\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C" : w.votes ? "\u0421\u043A\u043E\u0440\u043E" : "\u0421\u043E\u0437\u0434\u0430\u0442\u044C") + "</button></div>";
       detail.querySelector("[data-catalogue-equip]").onclick = () => equip(p.index);
@@ -2022,7 +2031,7 @@
     const render = () => {
       const list = models.map((w, i) => gearPreview(save2, kind, i)).filter((p) => filters[kind] === "all" || p.owned);
       if (!list.some((p) => p.index === selection[kind])) selection[kind] = list[0].index;
-      root.innerHTML = '<div class="gear-catalogue"><div class="catalogue-master"><div class="catalogue-tools"><span>' + models.length + " " + (kind === "weapons" ? "\u043C\u043E\u0434\u0435\u043B\u0435\u0439" : "\u043A\u043E\u043C\u043F\u043B\u0435\u043A\u0442\u043E\u0432") + '</span><div role="group" aria-label="\u0424\u0438\u043B\u044C\u0442\u0440 \u0441\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u044F">' + [["all", "\u0412\u0441\u0435"], ["owned", "\u041C\u043E\u0438"]].map(([id, label2]) => '<button data-catalogue-filter="' + id + '" aria-pressed="' + (filters[kind] === id) + '">' + label2 + "</button>").join("") + '</div></div><div class="catalogue-list" role="group" aria-label="' + (kind === "weapons" ? "\u041C\u043E\u0434\u0435\u043B\u0438 \u043E\u0440\u0443\u0436\u0438\u044F" : "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442\u044B \u0431\u0440\u043E\u043D\u0438") + '">' + list.map((p) => '<button class="catalogue-row" data-catalogue-select="' + p.index + '" aria-pressed="' + (selection[kind] === p.index) + '">' + art2(kind, p.index, p.item) + '<span class="catalogue-row-copy"><b>' + p.item.name + "</b><small>" + state(p) + " \xB7 " + (kind === "weapons" ? fmt3(p.dps) + " \u0443\u0440\u043E\u043D/\u0441" : fmt3(p.hp) + " HP \u0433\u0435\u0440\u043E\u044F") + '</small></span><span class="catalogue-row-arrow" aria-hidden="true">\u203A</span></button>').join("") + '</div></div><section class="catalogue-detail" aria-label="\u0412\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0435 \u0441\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435"></section></div>';
+      root.innerHTML = '<div class="gear-catalogue"><div class="catalogue-master"><div class="catalogue-tools"><span>' + models.length + " " + (kind === "weapons" ? "\u043C\u043E\u0434\u0435\u043B\u0435\u0439" : "\u043A\u043E\u043C\u043F\u043B\u0435\u043A\u0442\u043E\u0432") + '</span><div role="group" aria-label="\u0424\u0438\u043B\u044C\u0442\u0440 \u0441\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u044F">' + [["all", "\u0412\u0441\u0435"], ["owned", "\u041C\u043E\u0438"]].map(([id, label2]) => '<button data-catalogue-filter="' + id + '" aria-pressed="' + (filters[kind] === id) + '">' + label2 + "</button>").join("") + '</div></div><div class="catalogue-list" role="group" aria-label="' + (kind === "weapons" ? "\u041C\u043E\u0434\u0435\u043B\u0438 \u043E\u0440\u0443\u0436\u0438\u044F" : "\u041A\u043E\u043C\u043F\u043B\u0435\u043A\u0442\u044B \u0431\u0440\u043E\u043D\u0438") + '">' + list.map((p) => '<button class="catalogue-row" data-catalogue-select="' + p.index + '" aria-pressed="' + (selection[kind] === p.index) + '">' + art2(kind, p.index, p.item) + '<span class="catalogue-row-copy"><b>' + p.item.name + "</b><small>" + state(p) + " \xB7 " + (kind === "weapons" ? fmt4(p.dps) + " \u0443\u0440\u043E\u043D/\u0441" : fmt4(p.hp) + " HP \u0433\u0435\u0440\u043E\u044F") + '</small></span><span class="catalogue-row-arrow" aria-hidden="true">\u203A</span></button>').join("") + '</div></div><section class="catalogue-detail" aria-label="\u0412\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0435 \u0441\u043D\u0430\u0440\u044F\u0436\u0435\u043D\u0438\u0435"></section></div>';
       root.querySelectorAll("[data-catalogue-filter]").forEach((b) => b.onclick = () => {
         filters[kind] = b.dataset.catalogueFilter;
         scrollPositions[kind] = 0;
@@ -2061,7 +2070,7 @@
       listNode.scrollTop = scrollPositions[kind];
     };
   }
-  var selection, filters, scrollPositions, fmt3, delta, art2, state;
+  var selection, filters, scrollPositions, fmt4, delta, art2, state;
   var init_gear_catalogue = __esm({
     "gear-catalogue.js"() {
       init_balance();
@@ -2069,8 +2078,8 @@
       selection = { weapons: null, armor: null };
       filters = { weapons: "all", armor: "all" };
       scrollPositions = { weapons: 0, armor: 0 };
-      fmt3 = (n) => Math.round(n).toLocaleString("ru-RU");
-      delta = (n) => Math.round(n) === 0 ? "" : '<em class="' + (n > 0 ? "gain" : n < 0 ? "loss" : "neutral") + '">' + (Math.round(n) > 0 ? "+" : "") + fmt3(n) + "</em>";
+      fmt4 = (n) => Math.round(n).toLocaleString("ru-RU");
+      delta = (n) => Math.round(n) === 0 ? "" : '<em class="' + (n > 0 ? "gain" : n < 0 ? "loss" : "neutral") + '">' + (Math.round(n) > 0 ? "+" : "") + fmt4(n) + "</em>";
       art2 = (kind, i, item2) => kind === "weapons" ? '<canvas data-catalogue-weapon="' + i + '" width="240" height="240" aria-hidden="true"></canvas>' : '<canvas data-catalogue-item="' + item2.icon + '" width="180" height="180" aria-hidden="true"></canvas>';
       state = (p) => p.active ? "\u041D\u0430 \u043F\u0435\u0440\u0441\u043E\u043D\u0430\u0436\u0435" : p.owned ? "\u0412 \u0438\u043D\u0432\u0435\u043D\u0442\u0430\u0440\u0435" : p.item.votes ? "\u0417\u0430 \u0433\u043E\u043B\u043E\u0441\u0430" : p.open ? "\u0427\u0435\u0440\u0442\u0451\u0436 \u043E\u0442\u043A\u0440\u044B\u0442" : "\u0423\u0440. " + p.item.level;
     }
@@ -2226,15 +2235,75 @@
     }
   });
 
+  // profile-ui.js
+  function profileEditor(root, profile, api2, toast2, onSave) {
+    var _a2, _b2, _c, _d, _e;
+    const panel = document.createElement("section");
+    panel.className = "settings-card profile-editor";
+    const earned = (profile.medals || []).filter((m) => m.earned), selected2 = new Set((_d = (_c = profile.displayMedals) != null ? _c : (_b2 = (_a2 = profile.dossier) == null ? void 0 : _a2.display) == null ? void 0 : _b2.map((m) => m.id)) != null ? _d : earned.slice(0, 3).map((m) => m.id));
+    panel.innerHTML = '<span class="eyebrow">\u041B\u0418\u0427\u041D\u041E\u0415 \u0414\u0415\u041B\u041E</span><h2>\u0422\u0432\u043E\u0439 \u043F\u043E\u0437\u044B\u0432\u043D\u043E\u0439.</h2><form><label for="player-name">\u041D\u0438\u043A \u0438\u0433\u0440\u043E\u043A\u0430</label><input id="player-name" name="name" minlength="2" maxlength="32" required autocomplete="nickname"><button class="primary" type="submit">\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u043F\u043E\u0437\u044B\u0432\u043D\u043E\u0439</button><p role="status" class="profile-status"></p></form><div class="section-title"><h3>\u0414\u043E\u0441\u043A\u0430 \u0442\u0440\u043E\u0444\u0435\u0435\u0432</h3><small>\u0414\u043E 3 \u043C\u0435\u0434\u0430\u043B\u0435\u0439 \u0432 \u043F\u0440\u043E\u0444\u0438\u043B\u0435</small></div><div class="medal-picker">' + (earned.map((m) => '<button type="button" class="medal-choice" data-medal="' + m.id + '" aria-pressed="' + selected2.has(m.id) + '">' + medalMarkup(m) + "</button>").join("") || "<p>\u0417\u0430\u0432\u0435\u0440\u0448\u0438 \u0432\u044B\u043B\u0430\u0437\u043A\u0438 \u0438 \u043F\u043E\u0431\u0435\u0436\u0434\u0430\u0439 \u0431\u043E\u0441\u0441\u043E\u0432, \u0447\u0442\u043E\u0431\u044B \u043F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u043F\u0435\u0440\u0432\u044B\u0435 \u043C\u0435\u0434\u0430\u043B\u0438.</p>") + "</div>" + (earned.length ? '<button type="button" class="secondary" id="save-medals">\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0434\u043E\u0441\u043A\u0443</button>' : "") + '<details class="medal-journal"><summary>\u0412\u0441\u0435 \u0434\u043E\u0441\u0442\u0438\u0436\u0435\u043D\u0438\u044F</summary><div class="medal-picker">' + (profile.medals || []).map((m) => '<div class="medal-progress ' + (m.earned ? "earned" : "") + '"><b>' + m.title + "</b><span>" + m.progress + " / " + m.goal + "</span><small>" + m.description + "</small></div>").join("") + "</div></details>";
+    panel.querySelector("input").value = profile.name || "";
+    panel.querySelector("form").onsubmit = async (e) => {
+      e.preventDefault();
+      const button = panel.querySelector("[type=submit]");
+      button.disabled = true;
+      try {
+        const data = await api2("profile", { name: panel.querySelector("input").value });
+        onSave(data);
+        panel.querySelector(".profile-status").textContent = "\u041F\u043E\u0437\u044B\u0432\u043D\u043E\u0439 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D";
+        toast2("\u041F\u043E\u0437\u044B\u0432\u043D\u043E\u0439 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D");
+      } catch (error) {
+        panel.querySelector(".profile-status").textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    };
+    panel.querySelectorAll("[data-medal]").forEach((b) => b.onclick = () => {
+      const id = b.dataset.medal;
+      if (selected2.has(id)) selected2.delete(id);
+      else if (selected2.size < 3) selected2.add(id);
+      else {
+        toast2("\u041D\u0430 \u0434\u043E\u0441\u043A\u0435 \u043F\u043E\u043C\u0435\u0449\u0430\u044E\u0442\u0441\u044F \u0442\u0440\u0438 \u043C\u0435\u0434\u0430\u043B\u0438");
+        return;
+      }
+      b.setAttribute("aria-pressed", selected2.has(id));
+    });
+    (_e = panel.querySelector("#save-medals")) == null ? void 0 : _e.addEventListener("click", async (e) => {
+      const b = e.currentTarget;
+      b.disabled = true;
+      try {
+        onSave(await api2("profile/medals", { medals: [...selected2] }));
+        toast2("\u0414\u043E\u0441\u043A\u0430 \u0442\u0440\u043E\u0444\u0435\u0435\u0432 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0430");
+      } catch (error) {
+        toast2(error.message);
+      } finally {
+        b.disabled = false;
+      }
+    });
+    root.prepend(panel);
+  }
+  var init_profile_ui = __esm({
+    "profile-ui.js"() {
+      init_player_profile_ui();
+    }
+  });
+
   // clans-ui.js
   async function clansUI(root, api2, toast2, openRaid) {
+    var _a2, _b2;
     root.innerHTML = '<p class="page-intro">\u0421\u0432\u044F\u0437\u044B\u0432\u0430\u0435\u043C\u0441\u044F \u0441 \u043A\u043B\u0430\u043D\u0430\u043C\u0438\u2026</p>';
     try {
       const data = await api2("clans");
       if (root.hidden) return;
       const c = data.clan;
       const row = (title, detail, buttons = "") => '<div class="clan-row"><div><strong>' + title + "</strong><small>" + detail + "</small></div>" + buttons + "</div>";
-      root.innerHTML = '<div class="clan-banner"><span class="eyebrow orange">\u0421\u0418\u041B\u0410 \u0412 \u0415\u0414\u0418\u041D\u0421\u0422\u0412\u0415</span><h2>' + esc3((c == null ? void 0 : c.name) || "\u041D\u0430\u0439\u0434\u0438 \u0441\u0432\u043E\u0438\u0445.") + "</h2><p>\u0414\u043E 20 \u0432\u044B\u0436\u0438\u0432\u0448\u0438\u0445. \u0421\u043E\u0432\u043C\u0435\u0441\u0442\u043D\u044B\u0435 \u0440\u0435\u0439\u0434\u044B. \u041E\u0431\u0449\u0430\u044F \u0446\u0435\u043B\u044C.</p></div>" + (c ? '<div class="clan-columns"><section class="settings-card"><h3>\u041E\u0442\u0440\u044F\u0434 \xB7 ' + c.members.length + "/20</h3>" + c.members.map((m) => row(esc3(m.name), "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + m.level)).join("") + '<button class="secondary" data-clan-action="leave">\u041F\u041E\u041A\u0418\u041D\u0423\u0422\u042C \u041A\u041B\u0410\u041D</button></section><section class="settings-card"><h3>\u0410\u043A\u0442\u0438\u0432\u043D\u044B\u0435 \u0440\u0435\u0439\u0434\u044B</h3>' + (c.raids.map((r) => row(esc3(MAPS[r.map].boss), r.hp + " / " + r.maxHp + " HP", '<button class="primary" data-raid="' + r.id + '">\u041A \u0411\u041E\u0421\u0421\u0423</button>')).join("") || "<p>\u0421\u043E\u0437\u0434\u0430\u0439 \u0440\u0435\u0439\u0434 \u043D\u0430 \u043A\u0430\u0440\u0442\u0435. \u041E\u043D \u043F\u043E\u044F\u0432\u0438\u0442\u0441\u044F \u0443 \u0432\u0441\u0435\u0433\u043E \u043A\u043B\u0430\u043D\u0430.</p>") + (c.owner ? "<h3>\u0417\u0430\u044F\u0432\u043A\u0438</h3>" + (c.requests.map((m) => row(esc3(m.name), "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + m.level, '<button class="primary" data-clan-action="accept" data-code="' + m.code + '">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-clan-action="decline" data-code="' + m.code + '">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button>')).join("") || "<p>\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043D\u0435\u0442.</p>") : "") + "</section></div>" : '<div class="clan-columns"><section class="settings-card"><h3>\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u043A\u043B\u0430\u043D</h3><p>\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E \u0441\u043E 2 \u0443\u0440\u043E\u0432\u043D\u044F. \u041F\u0440\u0438\u043D\u0438\u043C\u0430\u0439 \u0437\u0430\u044F\u0432\u043A\u0438 \u0438 \u0441\u043E\u0431\u0438\u0440\u0430\u0439 \u043E\u0442\u0440\u044F\u0434.</p><form id="clan-create" class="friend-form"><input aria-label="\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u043A\u043B\u0430\u043D\u0430" placeholder="\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u043A\u043B\u0430\u043D\u0430" minlength="3" maxlength="28" required><button class="primary">\u0421\u041E\u0417\u0414\u0410\u0422\u042C</button></form></section><section class="settings-card"><h3>\u041E\u0442\u043A\u0440\u044B\u0442\u044B\u0435 \u043A\u043B\u0430\u043D\u044B</h3>' + (data.clans.map((x) => row(esc3(x.name), x.count + "/20 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432", '<button class="secondary" data-clan-action="request" data-code="' + x.code + '" ' + (x.requested || x.count >= 20 ? "disabled" : "") + ">" + (x.requested ? "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410" : "\u0412\u0421\u0422\u0423\u041F\u0418\u0422\u042C") + "</button>")).join("") || "<p>\u0421\u0442\u0430\u043D\u044C \u043E\u0441\u043D\u043E\u0432\u0430\u0442\u0435\u043B\u0435\u043C \u043F\u0435\u0440\u0432\u043E\u0433\u043E \u043A\u043B\u0430\u043D\u0430.</p>") + "</section></div>");
+      const player = (m) => '<button class="player-name-link" data-player="' + esc3(m.code) + '">' + esc3(m.name) + "</button>";
+      const board = c ? new Set(c.progress.display) : /* @__PURE__ */ new Set();
+      const bossCard = (b) => {
+        const live = c.raids.find((r) => r.clan), reason = live ? "\u0417\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u0435 \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430" : playerLevel(data.save) < b.level ? "\u041D\u0443\u0436\u0435\u043D \u0443\u0440\u043E\u0432\u0435\u043D\u044C " + b.level : b.requires && !c.progress.targets.includes(b.requires) ? "\u041F\u043E\u0431\u0435\u0434\u0438\u0442\u0435 \u043F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0443\u044E \u0446\u0435\u043B\u044C" : c.progress.marks < b.entry ? "\u041D\u0435 \u0445\u0432\u0430\u0442\u0430\u0435\u0442 \u0437\u043D\u0430\u043A\u043E\u0432" : !c.owner ? "\u041E\u043F\u0435\u0440\u0430\u0446\u0438\u044E \u043D\u0430\u0447\u0438\u043D\u0430\u0435\u0442 \u0433\u043B\u0430\u0432\u0430" : "";
+        return '<article class="clan-boss-card"><div class="clan-boss-scene" style="--clan-scene:url(assets/district-' + b.map + '.webp)"><img src="assets/boss-' + b.art + '.png" alt="" loading="lazy"></div><div><span class="eyebrow">\u041E\u041F\u0415\u0420\u0410\u0426\u0418\u042F \xB7 \u0423\u0420. ' + b.level + "</span><h3>" + esc3(b.name) + "</h3><b>" + fmt5(b.hp) + " HP</b><p>\u0417\u0430\u043F\u0443\u0441\u043A: " + (b.entry ? b.entry + " \u0437\u043D\u0430\u043A\u043E\u0432" : "\u0431\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E") + "<br>\u041F\u043E\u0431\u0435\u0434\u0430: +" + b.marks + ' \u0437\u043D\u0430\u043A\u043E\u0432 \u043A\u043B\u0430\u043D\u0443</p><button class="' + (reason ? "secondary" : "primary") + '" data-clan-boss="' + b.id + '" ' + (reason ? "disabled" : "") + ">" + (reason ? "\u041D\u0435\u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E" : "\u041D\u0430\u0447\u0430\u0442\u044C \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u044E") + "</button><small>" + esc3(reason || "\u041E\u0431\u0449\u0438\u0439 \u0443\u0440\u043E\u043D \xB7 \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u043F\u043E \u0432\u043A\u043B\u0430\u0434\u0443") + "</small></div></article>";
+      };
+      root.innerHTML = '<div class="clan-banner"><span class="eyebrow orange">\u0421\u0418\u041B\u0410 \u0412 \u0415\u0414\u0418\u041D\u0421\u0422\u0412\u0415</span><h2>' + esc3((c == null ? void 0 : c.name) || "\u041D\u0430\u0439\u0434\u0438 \u0441\u0432\u043E\u0438\u0445") + "</h2><p>\u0414\u043E 20 \u0432\u044B\u0436\u0438\u0432\u0448\u0438\u0445. \u041E\u0431\u0449\u0438\u0439 \u0443\u0440\u043E\u043D, \u043A\u0430\u0437\u043D\u0430 \u0438 \u0434\u043E\u0441\u043A\u0430 \u043F\u043E\u0431\u0435\u0434.</p></div>" + (c ? '<div class="clan-bank"><div><span class="eyebrow">\u041A\u0410\u0417\u041D\u0410 \u041E\u0422\u0420\u042F\u0414\u0410</span><strong>' + fmt5(c.progress.marks) + " <small>\u0437\u043D\u0430\u043A\u043E\u0432</small></strong><p>\u0417\u0430 \u043F\u043E\u0431\u0435\u0434\u044B \u043D\u0430\u0434 \u043A\u043B\u0430\u043D\u043E\u0432\u044B\u043C\u0438 \u0431\u043E\u0441\u0441\u0430\u043C\u0438. \u0422\u0440\u0430\u0442\u044F\u0442\u0441\u044F \u043D\u0430 \u0437\u0430\u043F\u0443\u0441\u043A \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u0439.</p></div><div><b>" + c.progress.wins + '</b><small>\u043E\u0431\u0449\u0438\u0445 \u043F\u043E\u0431\u0435\u0434</small></div><button class="secondary" id="clans-refresh">\u041E\u0431\u043D\u043E\u0432\u0438\u0442\u044C</button></div>' + c.completed.map((r) => row("\u041D\u0430\u0433\u0440\u0430\u0434\u0430 \u0433\u043E\u0442\u043E\u0432\u0430 \xB7 " + esc3(r.name), "\u0411\u043E\u0441\u0441 \u043F\u043E\u0432\u0435\u0440\u0436\u0435\u043D \u043E\u0442\u0440\u044F\u0434\u043E\u043C", '<button class="primary" data-raid="' + r.id + '">\u0417\u0430\u0431\u0440\u0430\u0442\u044C \u043D\u0430\u0433\u0440\u0430\u0434\u0443</button>')).join("") + '<div class="section-title"><h3>\u041E\u043F\u0435\u0440\u0430\u0446\u0438\u0438 \u043A\u043B\u0430\u043D\u0430</h3><small>\u041E\u0434\u0438\u043D \u043A\u043B\u0430\u043D\u043E\u0432\u044B\u0439 \u0431\u043E\u0441\u0441 \u043E\u0434\u043D\u043E\u0432\u0440\u0435\u043C\u0435\u043D\u043D\u043E</small></div><div class="clan-boss-grid">' + c.bosses.map(bossCard).join("") + '</div><div class="clan-columns"><section class="settings-card"><h3>\u0414\u043E\u0441\u043A\u0430 \u043A\u043B\u0430\u043D\u0430</h3><p>' + (c.owner ? "\u0412\u044B\u0431\u0435\u0440\u0438 \u0434\u043E \u0442\u0440\u0451\u0445 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u043D\u044B\u0445 \u043C\u0435\u0434\u0430\u043B\u0435\u0439. \u041E\u043D\u0438 \u0432\u0438\u0434\u043D\u044B \u0432 \u043F\u0440\u043E\u0444\u0438\u043B\u044F\u0445 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432." : "\u041C\u0435\u0434\u0430\u043B\u0438, \u0432\u044B\u0441\u0442\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0435 \u0433\u043B\u0430\u0432\u043E\u0439 \u043A\u043B\u0430\u043D\u0430.") + '</p><div class="medal-picker">' + c.achievements.filter((m) => c.owner || board.has(m.id)).map((m) => c.owner ? '<button class="medal-choice" data-clan-medal="' + m.id + '" aria-pressed="' + board.has(m.id) + '" ' + (!m.earned ? "disabled" : "") + ">" + medalMarkup(m) + "<small>" + fmt5(m.progress) + " / " + fmt5(m.goal) + "</small></button>" : '<article class="medal-choice">' + medalMarkup(m) + "</article>").join("") + "</div>" + (c.owner ? '<button class="secondary" id="clan-board-save">\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0434\u043E\u0441\u043A\u0443</button>' : !board.size ? "<p>\u041C\u0435\u0434\u0430\u043B\u0438 \u043F\u043E\u043A\u0430 \u043D\u0435 \u0432\u044B\u0441\u0442\u0430\u0432\u043B\u0435\u043D\u044B.</p>" : "") + '</section><section class="settings-card"><h3>\u0410\u043A\u0442\u0438\u0432\u043D\u044B\u0435 \u0440\u0435\u0439\u0434\u044B</h3>' + (c.raids.map((r) => row(esc3(r.name || MAPS[r.map].boss), fmt5(r.hp) + " / " + fmt5(r.maxHp) + " HP", '<button class="primary" data-raid="' + r.id + '">\u041A \u0431\u043E\u0441\u0441\u0443</button>')).join("") || "<p>\u0417\u0430\u043F\u0443\u0441\u0442\u0438 \u043A\u043B\u0430\u043D\u043E\u0432\u0443\u044E \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u044E \u0438\u043B\u0438 \u043E\u0431\u044B\u0447\u043D\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430 \u043D\u0430 \u043A\u0430\u0440\u0442\u0435.</p>") + '</section></div><div class="clan-columns"><section class="settings-card"><h3>\u041E\u0442\u0440\u044F\u0434 \xB7 ' + c.members.length + "/20</h3>" + c.members.map((m) => row(player(m), "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + m.level)).join("") + '<button class="secondary" data-clan-action="leave">\u041F\u043E\u043A\u0438\u043D\u0443\u0442\u044C \u043A\u043B\u0430\u043D</button></section>' + (c.owner ? '<section class="settings-card"><h3>\u0417\u0430\u044F\u0432\u043A\u0438</h3>' + (c.requests.map((m) => row(player(m), "\u0423\u0440\u043E\u0432\u0435\u043D\u044C " + m.level, '<button class="primary" data-clan-action="accept" data-code="' + m.code + '">\u041F\u0440\u0438\u043D\u044F\u0442\u044C</button><button class="secondary" data-clan-action="decline" data-code="' + m.code + '">\u041E\u0442\u043A\u043B\u043E\u043D\u0438\u0442\u044C</button>')).join("") || "<p>\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043D\u0435\u0442.</p>") + "</section>" : "") + "</div>" : '<div class="clan-columns"><section class="settings-card"><h3>\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u043A\u043B\u0430\u043D</h3><p>\u0411\u0435\u0441\u043F\u043B\u0430\u0442\u043D\u043E \u0441\u043E 2 \u0443\u0440\u043E\u0432\u043D\u044F. \u041F\u0440\u0438\u043D\u0438\u043C\u0430\u0439 \u0437\u0430\u044F\u0432\u043A\u0438 \u0438 \u0441\u043E\u0431\u0438\u0440\u0430\u0439 \u043E\u0442\u0440\u044F\u0434.</p><form id="clan-create" class="friend-form"><input aria-label="\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u043A\u043B\u0430\u043D\u0430" placeholder="\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u043A\u043B\u0430\u043D\u0430" minlength="3" maxlength="28" required><button class="primary">\u0421\u043E\u0437\u0434\u0430\u0442\u044C</button></form></section><section class="settings-card"><h3>\u041E\u0442\u043A\u0440\u044B\u0442\u044B\u0435 \u043A\u043B\u0430\u043D\u044B</h3>' + (data.clans.map((x) => row(esc3(x.name), x.count + "/20 \u0443\u0447\u0430\u0441\u0442\u043D\u0438\u043A\u043E\u0432", '<button class="secondary" data-clan-action="request" data-code="' + x.code + '" ' + (x.requested || x.count >= 20 ? "disabled" : "") + ">" + (x.requested ? "\u0417\u0430\u044F\u0432\u043A\u0430 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430" : "\u0412\u0441\u0442\u0443\u043F\u0438\u0442\u044C") + "</button>")).join("") || "<p>\u0421\u0442\u0430\u043D\u044C \u043E\u0441\u043D\u043E\u0432\u0430\u0442\u0435\u043B\u0435\u043C \u043F\u0435\u0440\u0432\u043E\u0433\u043E \u043A\u043B\u0430\u043D\u0430.</p>") + "</section></div>");
       const act = async (action2, body) => {
         try {
           await api2("clans/" + action2, body);
@@ -2243,26 +2312,127 @@
           toast2(e.message);
         }
       };
-      root.querySelectorAll("[data-clan-action]").forEach((button) => button.onclick = () => {
-        button.disabled = true;
-        act(button.dataset.clanAction, { code: button.dataset.code }).finally(() => button.disabled = false);
+      root.querySelectorAll("[data-clan-action]").forEach((b) => b.onclick = () => {
+        b.disabled = true;
+        act(b.dataset.clanAction, { code: b.dataset.code }).finally(() => b.disabled = false);
       });
-      root.querySelectorAll("[data-raid]").forEach((button) => button.onclick = () => openRaid(button.dataset.raid));
+      root.querySelectorAll("[data-raid]").forEach((b) => b.onclick = () => openRaid(b.dataset.raid));
+      root.querySelectorAll("[data-clan-boss]").forEach((b) => b.onclick = async () => {
+        b.disabled = true;
+        try {
+          const reply = await api2("clans/boss", { boss: b.dataset.clanBoss });
+          const r = reply.clan.raids.find((r2) => r2.clan);
+          if (r) openRaid(r.id);
+        } catch (e) {
+          toast2(e.message);
+          b.disabled = false;
+        }
+      });
+      root.querySelectorAll("[data-clan-medal]").forEach((b) => b.onclick = () => {
+        const id = b.dataset.clanMedal;
+        if (board.has(id)) board.delete(id);
+        else if (board.size < 3) board.add(id);
+        else {
+          toast2("\u041D\u0430 \u0434\u043E\u0441\u043A\u0435 \u043F\u043E\u043C\u0435\u0449\u0430\u044E\u0442\u0441\u044F \u0442\u0440\u0438 \u043C\u0435\u0434\u0430\u043B\u0438");
+          return;
+        }
+        b.setAttribute("aria-pressed", board.has(id));
+      });
+      (_a2 = root.querySelector("#clan-board-save")) == null ? void 0 : _a2.addEventListener("click", () => act("display", { medals: [...board] }));
+      (_b2 = root.querySelector("#clans-refresh")) == null ? void 0 : _b2.addEventListener("click", () => clansUI(root, api2, toast2, openRaid));
+      bindPlayerProfiles(root, api2, toast2);
       const form = root.querySelector("form");
       if (form) form.onsubmit = (e) => {
         e.preventDefault();
-        act("create", { name: form.querySelector("input").value });
+        const b = form.querySelector("button");
+        b.disabled = true;
+        act("create", { name: form.querySelector("input").value }).finally(() => b.disabled = false);
       };
     } catch (e) {
-      root.innerHTML = '<p class="page-intro">' + esc3(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button>';
+      root.innerHTML = '<p class="page-intro">' + esc3(e.message) + '</p><button class="secondary">\u041F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u044C</button>';
       root.querySelector("button").onclick = () => clansUI(root, api2, toast2, openRaid);
     }
   }
-  var esc3;
+  var esc3, fmt5;
   var init_clans_ui = __esm({
     "clans-ui.js"() {
       init_balance();
-      esc3 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      init_player_profile_ui();
+      esc3 = (s) => String(s != null ? s : "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      fmt5 = (n) => Number(n || 0).toLocaleString("ru-RU");
+    }
+  });
+
+  // friends-ui.js
+  function friendsUI(root, api2, toast2, openRaid) {
+    async function render() {
+      var _a2;
+      if (pending2.has(root)) return;
+      pending2.add(root);
+      try {
+        let data = await api2("friends");
+        if (data.account === "vk" && canSyncVKFriendsSilently() && !autoSyncAttempted) {
+          autoSyncAttempted = true;
+          try {
+            data = await syncVKFriends(api2);
+          } catch (e) {
+            toast2(e.message);
+          }
+        }
+        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u0412\u041E\u0419 \u041E\u0422\u0420\u042F\u0414 \xB7 ${data.friends.length}</span><h2>\u0414\u0440\u0443\u0437\u044C\u044F \u0432 \u0433\u043E\u0440\u043E\u0434\u0435</h2><p>\u0414\u0440\u0443\u0437\u044C\u044F VK, \u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u0443\u0436\u0435 \u0432\u043E\u0448\u043B\u0438 \u0432 \u0438\u0433\u0440\u0443, \u043F\u043E\u044F\u0432\u043B\u044F\u044E\u0442\u0441\u044F \u043F\u043E\u0441\u043B\u0435 \u0441\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0430\u0446\u0438\u0438. \u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u043E\u0434\u043D\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430 \u2014 \u0430\u0442\u0430\u043A\u0438 \u043F\u043E\u043F\u0430\u0434\u0430\u044E\u0442 \u0432 \u043E\u0431\u0449\u0438\u0439 \u0440\u0435\u0439\u0434, \u0434\u0430\u0436\u0435 \u0435\u0441\u043B\u0438 \u0432\u044B \u0438\u0433\u0440\u0430\u0435\u0442\u0435 \u0432 \u0440\u0430\u0437\u043D\u043E\u0435 \u0432\u0440\u0435\u043C\u044F.</p>${inVK && data.account === "vk" ? `<button class="primary" id="vk-sync">${data.vkSyncedAt ? "\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C \u0414\u0420\u0423\u0417\u0415\u0419 VK" : "\u041F\u041E\u041A\u0410\u0417\u0410\u0422\u042C \u0414\u0420\u0423\u0417\u0415\u0419 VK"}</button><small>VK \u043C\u043E\u0436\u0435\u0442 \u0437\u0430\u043F\u0440\u043E\u0441\u0438\u0442\u044C \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043D\u0438\u0435 \u043D\u0430 \u0441\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439. \u041F\u0440\u0438\u0433\u043B\u0430\u0448\u0435\u043D\u0438\u044F \u043D\u0435 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u044E\u0442\u0441\u044F.</small>` : "<p>\u0414\u043B\u044F \u0434\u0440\u0443\u0437\u0435\u0439 VK \u043E\u0442\u043A\u0440\u043E\u0439 \u0438\u0433\u0440\u0443 \u0432\u043D\u0443\u0442\u0440\u0438 VK. \u0414\u0440\u0443\u0433\u0438\u0445 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 \u043C\u043E\u0436\u043D\u043E \u0434\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0438\u0437 \u0422\u041E\u041F\u0430.</p>"}</div>
+   <div class="section-title"><h3>\u0412\u0445\u043E\u0434\u044F\u0449\u0438\u0435 \u0437\u0430\u044F\u0432\u043A\u0438 \xB7 ${data.requests.length}</h3><button class="secondary" id="friends-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div>
+   <div class="social-list">${data.requests.map((p) => `<article class="friend-person"><span class="friend-person-info"><button class="player-name-link" data-player="${p.code}">${esc4(p.name)}</button><small>\u0423\u0440\u043E\u0432\u0435\u043D\u044C ${p.level}</small></span><button class="primary" data-accept="${p.code}">\u041F\u0420\u0418\u041D\u042F\u0422\u042C</button><button class="secondary" data-decline="${p.code}">\u041E\u0422\u041A\u041B\u041E\u041D\u0418\u0422\u042C</button></article>`).join("") || '<p class="page-intro">\u041D\u043E\u0432\u044B\u0445 \u0437\u0430\u044F\u0432\u043E\u043A \u043D\u0435\u0442.</p>'}</div>
+   <div class="section-title"><h3>\u041C\u043E\u0438 \u0434\u0440\u0443\u0437\u044C\u044F \xB7 ${data.friends.length}</h3></div><div class="social-list">${data.friends.map((p) => `<article class="friend-person"><span class="friend-person-info"><button class="player-name-link" data-player="${p.code}">${esc4(p.name)}</button><small>${p.vk ? "VK \xB7 " : ""}${p.online ? "\u0412 \u0441\u0435\u0442\u0438" : "\u041D\u0435 \u0432 \u0441\u0435\u0442\u0438"} \xB7 \u0443\u0440. ${p.level}${p.raid ? " \xB7 \u0431\u043E\u0441\u0441: " + Math.floor(p.raid.hp).toLocaleString("ru-RU") + " HP" : ""}</small></span>${p.raid ? `<button class="primary" data-raid="${p.raid.id}">\u041A \u0411\u041E\u0421\u0421\u0423</button>` : ""}${!p.vk ? `<button class="secondary" data-remove="${p.code}">\u0423\u0414\u0410\u041B\u0418\u0422\u042C</button>` : ""}</article>`).join("") || '<div class="friends-empty">' + icon("friends") + "<h3>\u041E\u0442\u0440\u044F\u0434 \u043F\u043E\u043A\u0430 \u043F\u0443\u0441\u0442</h3><p>\u0421\u0438\u043D\u0445\u0440\u043E\u043D\u0438\u0437\u0438\u0440\u0443\u0439 \u0434\u0440\u0443\u0437\u0435\u0439 VK \u0438\u043B\u0438 \u0434\u043E\u0431\u0430\u0432\u044C \u0438\u0433\u0440\u043E\u043A\u043E\u0432 \u0438\u0437 \u0432\u043A\u043B\u0430\u0434\u043A\u0438 \xAB\u0422\u041E\u041F \u0438\u0433\u0440\u043E\u043A\u043E\u0432\xBB. \u0417\u0434\u0435\u0441\u044C \u043D\u0435\u0442 \u0431\u043E\u0442\u043E\u0432 \u0438 \u0441\u043B\u0443\u0447\u0430\u0439\u043D\u044B\u0445 \u043F\u0440\u043E\u0444\u0438\u043B\u0435\u0439.</p></div>"}</div>
+   <details class="settings-card"><summary>\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043E \u0438\u0433\u0440\u043E\u0432\u043E\u043C\u0443 \u043A\u043E\u0434\u0443</summary><p>\u0422\u0432\u043E\u0439 \u043A\u043E\u0434: <strong>${esc4(data.code)}</strong></p><form id="friend-form" class="friend-form"><input aria-label="\u041A\u043E\u0434 \u0438\u0433\u0440\u043E\u043A\u0430" maxlength="12" required pattern="[a-fA-F0-9]{12}" placeholder="12 \u0441\u0438\u043C\u0432\u043E\u043B\u043E\u0432"><button class="secondary">\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C</button></form></details>`;
+        const mutate = async (path, code, button) => {
+          button.disabled = true;
+          try {
+            await api2(path, { code });
+            await render();
+            toast2("\u0421\u043F\u0438\u0441\u043E\u043A \u0434\u0440\u0443\u0437\u0435\u0439 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D");
+          } catch (e) {
+            toast2(e.message);
+            button.disabled = false;
+          }
+        };
+        bindPlayerProfiles(root, api2, toast2);
+        root.querySelector("#friends-refresh").onclick = render;
+        (_a2 = root.querySelector("#vk-sync")) == null ? void 0 : _a2.addEventListener("click", async (e) => {
+          const b = e.currentTarget;
+          b.disabled = true;
+          try {
+            await syncVKFriends(api2);
+            await render();
+            toast2("\u0414\u0440\u0443\u0437\u044C\u044F VK \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u044B");
+          } catch (err) {
+            toast2(err.message);
+            b.disabled = false;
+          }
+        });
+        for (const name of ["accept", "decline", "remove"]) root.querySelectorAll("[data-" + name + "]").forEach((b) => b.onclick = () => mutate("friends/" + name, b.dataset[name], b));
+        root.querySelectorAll("[data-raid]").forEach((b) => b.onclick = () => openRaid(b.dataset.raid));
+        root.querySelector("#friend-form").onsubmit = (e) => {
+          e.preventDefault();
+          mutate("friends/request", e.target.querySelector("input").value.trim().toLowerCase(), e.target.querySelector("button"));
+        };
+      } catch (e) {
+        root.innerHTML = '<div class="settings-card"><p>' + esc4(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
+        root.querySelector("button").onclick = render;
+      } finally {
+        pending2.delete(root);
+      }
+    }
+    render();
+  }
+  var esc4, autoSyncAttempted, pending2;
+  var init_friends_ui = __esm({
+    "friends-ui.js"() {
+      init_player_profile_ui();
+      init_ui_icons();
+      init_platform_entry();
+      esc4 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      autoSyncAttempted = false;
+      pending2 = /* @__PURE__ */ new WeakSet();
     }
   });
 
@@ -2273,7 +2443,8 @@
       pending3.add(root);
       try {
         const d = await api2("leaderboard");
-        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u041E\u041F 100 \xB7 \u0412\u042B\u0416\u0418\u0412\u0428\u0418\u0415</span><h2>\u0413\u0435\u0440\u043E\u0438 \u0433\u043E\u0440\u043E\u0434\u0430</h2><p>\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E \u043E\u043F\u044B\u0442\u0443. \u041F\u0440\u0438 \u0440\u0430\u0432\u0435\u043D\u0441\u0442\u0432\u0435 \u2014 \u043F\u043E\u0431\u0435\u0434\u044B \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u0430\u043C\u0438 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0418\u0433\u0440\u0430\u0439 \u0438 \u0440\u0430\u0437\u0432\u0438\u0432\u0430\u0439\u0441\u044F: \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0435 \u043F\u043E\u0441\u043B\u0435 \u0432\u0445\u043E\u0434\u0430 \u0447\u0435\u0440\u0435\u0437 VK. \u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043A\u0430\u0436\u0434\u044B\u0435 4 \u0441\u0435\u043A\u0443\u043D\u0434\u044B.</p><div class="leader-summary"><strong>\u0422\u0432\u043E\u0451 \u043C\u0435\u0441\u0442\u043E: ${d.meRank ? "#" + d.meRank : "\u2014"}</strong><span>\u0418\u0433\u0440\u043E\u043A\u043E\u0432 VK: ${fmt4(d.total)} \xB7 \u0412 \u0441\u0435\u0442\u0438: ${fmt4(d.online)}</span><button class="secondary" id="top-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div></div><div class="social-list leaderboard-list">${d.players.map((p) => `<article class="friend-person rank-${p.rank <= 3 ? p.rank : "other"} ${p.me ? "is-me" : ""}"><strong class="rank-number">#${p.rank}</strong>${portrait(p)}<span class="friend-person-info"><b>${esc4(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</b><small>\u0423\u0440. ${p.level} \xB7 ${fmt4(p.xp)} XP \xB7 \u0411\u043E\u0441\u0441\u044B: ${fmt4(p.bossKills)}</small></span>${p.me ? '<span class="rank-status">\u0422\u0412\u041E\u0419 \u041F\u0420\u041E\u0424\u0418\u041B\u042C</span>' : p.friend ? '<span class="rank-status">\u0412 \u0414\u0420\u0423\u0417\u042C\u042F\u0425</span>' : `<button class="secondary" data-add="${p.code}" ${p.requested ? "disabled" : ""}>${p.requested ? "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410" : "\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F"}</button>`}</article>`).join("") || '<p class="page-intro">\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D\u043D\u044B\u0445 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 VK \u043F\u043E\u043A\u0430 \u043D\u0435\u0442. \u0412\u043E\u0439\u0434\u0438 \u0447\u0435\u0440\u0435\u0437 VK, \u0447\u0442\u043E\u0431\u044B \u0443\u0447\u0430\u0441\u0442\u0432\u043E\u0432\u0430\u0442\u044C \u0432 \u0440\u0435\u0439\u0442\u0438\u043D\u0433\u0435.</p>'}</div>`;
+        root.innerHTML = `<div class="settings-card social-heading"><span class="eyebrow orange">\u0422\u041E\u041F 100 \xB7 \u0412\u042B\u0416\u0418\u0412\u0428\u0418\u0415</span><h2>\u0413\u0435\u0440\u043E\u0438 \u0433\u043E\u0440\u043E\u0434\u0430</h2><p>\u0420\u0435\u0439\u0442\u0438\u043D\u0433 \u043F\u043E \u043E\u043F\u044B\u0442\u0443. \u041F\u0440\u0438 \u0440\u0430\u0432\u0435\u043D\u0441\u0442\u0432\u0435 \u2014 \u043F\u043E\u0431\u0435\u0434\u044B \u043D\u0430\u0434 \u0431\u043E\u0441\u0441\u0430\u043C\u0438 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0451\u043D\u043D\u044B\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0418\u0433\u0440\u0430\u0439 \u0438 \u0440\u0430\u0437\u0432\u0438\u0432\u0430\u0439\u0441\u044F: \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0435 \u043F\u043E\u0441\u043B\u0435 \u0432\u0445\u043E\u0434\u0430 \u0447\u0435\u0440\u0435\u0437 VK. \u041E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u043A\u0430\u0436\u0434\u044B\u0435 4 \u0441\u0435\u043A\u0443\u043D\u0434\u044B.</p><div class="leader-summary"><strong>\u0422\u0432\u043E\u0451 \u043C\u0435\u0441\u0442\u043E: ${d.meRank ? "#" + d.meRank : "\u2014"}</strong><span>\u0418\u0433\u0440\u043E\u043A\u043E\u0432 VK: ${fmt6(d.total)} \xB7 \u0412 \u0441\u0435\u0442\u0438: ${fmt6(d.online)}</span><button class="secondary" id="top-refresh">\u041E\u0411\u041D\u041E\u0412\u0418\u0422\u042C</button></div></div><div class="social-list leaderboard-list">${d.players.map((p) => `<article class="friend-person rank-${p.rank <= 3 ? p.rank : "other"} ${p.me ? "is-me" : ""}"><strong class="rank-number">#${p.rank}</strong><span class="friend-person-info"><button class="player-name-link" data-player="${p.code}">${esc5(p.name)}${p.me ? " \xB7 \u0422\u042B" : ""}</button><small>\u0423\u0440. ${p.level} \xB7 ${fmt6(p.xp)} XP \xB7 \u0411\u043E\u0441\u0441\u044B: ${fmt6(p.bossKills)}</small></span>${p.me ? '<span class="rank-status">\u0422\u0412\u041E\u0419 \u041F\u0420\u041E\u0424\u0418\u041B\u042C</span>' : p.friend ? '<span class="rank-status">\u0412 \u0414\u0420\u0423\u0417\u042C\u042F\u0425</span>' : `<button class="secondary" data-add="${p.code}" ${p.requested ? "disabled" : ""}>${p.requested ? "\u0417\u0410\u042F\u0412\u041A\u0410 \u041E\u0422\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0410" : "\u0414\u041E\u0411\u0410\u0412\u0418\u0422\u042C \u0412 \u0414\u0420\u0423\u0417\u042C\u042F"}</button>`}</article>`).join("") || '<p class="page-intro">\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0451\u043D\u043D\u044B\u0445 \u0438\u0433\u0440\u043E\u043A\u043E\u0432 VK \u043F\u043E\u043A\u0430 \u043D\u0435\u0442. \u0412\u043E\u0439\u0434\u0438 \u0447\u0435\u0440\u0435\u0437 VK, \u0447\u0442\u043E\u0431\u044B \u0443\u0447\u0430\u0441\u0442\u0432\u043E\u0432\u0430\u0442\u044C \u0432 \u0440\u0435\u0439\u0442\u0438\u043D\u0433\u0435.</p>'}</div>`;
+        bindPlayerProfiles(root, api2, toast2);
         root.querySelector("#top-refresh").onclick = render;
         root.querySelectorAll("[data-add]").forEach((b) => b.onclick = async () => {
           b.disabled = true;
@@ -2287,7 +2458,7 @@
           }
         });
       } catch (e) {
-        root.innerHTML = '<div class="settings-card"><p>' + esc4(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
+        root.innerHTML = '<div class="settings-card"><p>' + esc5(e.message) + '</p><button class="secondary">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C</button></div>';
         root.querySelector("button").onclick = render;
       } finally {
         pending3.delete(root);
@@ -2295,12 +2466,12 @@
     }
     render();
   }
-  var esc4, fmt4, pending3;
+  var esc5, fmt6, pending3;
   var init_leaderboard_ui = __esm({
     "leaderboard-ui.js"() {
-      init_friends_ui();
-      esc4 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-      fmt4 = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
+      init_player_profile_ui();
+      esc5 = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+      fmt6 = (n) => Math.floor(n || 0).toLocaleString("ru-RU");
       pending3 = /* @__PURE__ */ new WeakSet();
     }
   });
@@ -2407,11 +2578,6 @@
     playerProfile = { ...playerProfile, ...data };
     const name = document.getElementById("profile-name");
     if (name) name.textContent = playerProfile.name;
-    const avatar = document.querySelector(".profile .avatar");
-    if (avatar) {
-      avatar.innerHTML = portrait(playerProfile);
-      avatar.className = "avatar avatar-" + (playerProfile.avatar || 0);
-    }
   }
   function applyControlPrefs() {
     audio.set(prefs);
@@ -2420,9 +2586,10 @@
     document.body.classList.toggle("large-controls", prefs.largeControls);
   }
   async function api(path, body) {
+    var _a2, _b2, _c, _d, _e;
     const data = await requestAPI(path, body);
     if (Object.prototype.hasOwnProperty.call(data, "activeRaidId")) activeRaidId = data.activeRaidId;
-    if (path === "profile" || path === "profile/vk") showProfile({ name: data.name, avatar: data.avatar || 0, photo: data.photo || "" });
+    if (["profile", "profile/vk", "profile/medals"].includes(path)) showProfile({ name: data.name || playerProfile.name, avatar: (_b2 = (_a2 = data.avatar) != null ? _a2 : playerProfile.avatar) != null ? _b2 : 0, photo: (_d = (_c = data.photo) != null ? _c : playerProfile.photo) != null ? _d : "", medals: data.medals || playerProfile.medals, displayMedals: (_e = data.displayMedals) != null ? _e : playerProfile.displayMedals, dossier: data.dossier || playerProfile.dossier });
     if (data.save) {
       save = data.save;
       persist();
@@ -2747,6 +2914,9 @@
     renderPage();
     $("main").scrollTop = 0;
     if (p === "daily") bindAd($("#daily-page"), api, toast, refresh);
+    if (p === "settings") api("profile").then(() => {
+      if (page === "settings") renderSettings();
+    }).catch((e) => toast(e.message));
   }
   async function startArena(practice = false, map = ((_a2) => (_a2 = raid == null ? void 0 : raid.map) != null ? _a2 : selected)()) {
     if (!practice && (raid == null ? void 0 : raid.arenaVersion) !== 1) throw new Error("\u0421\u0435\u0440\u0432\u0435\u0440 \u0430\u0440\u0435\u043D\u044B \u043E\u0431\u043D\u043E\u0432\u043B\u044F\u0435\u0442\u0441\u044F. \u041F\u043E\u0432\u0442\u043E\u0440\u0438 \u043F\u043E\u0437\u0436\u0435.");
@@ -3324,13 +3494,13 @@
     if (run && !$("#game").hidden) {
       draw();
       let ratio = canvas.clientWidth / Math.max(1, canvas.clientHeight), vw = Math.min(960, Math.max(240, Math.round(600 * ratio)));
-      let portrait2 = vw < 960;
+      let portrait = vw < 960;
       let vh = Math.min(600, Math.round(vw / ratio));
       if (canvas.width !== vw || canvas.height !== vh) {
         canvas.width = vw;
         canvas.height = vh;
       }
-      let left = portrait2 ? Math.max(0, Math.min(960 - vw, run.x - vw / 2)) : 0;
+      let left = portrait ? Math.max(0, Math.min(960 - vw, run.x - vw / 2)) : 0;
       display.imageSmoothingEnabled = false;
       let top = Math.max(0, Math.min(600 - vh, run.y - vh / 2));
       if (canvas.height !== vh) canvas.height = vh;
@@ -3366,6 +3536,7 @@
       selected,
       rareMode,
       offset: serverOffset,
+      onProfile: (code) => openPlayerProfile(code, api, toast),
       onMode: (value) => {
         if (activeRaidId) {
           toast("\u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u043E\u0431\u0435\u0434\u0438 \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0433\u043E \u0431\u043E\u0441\u0441\u0430");
@@ -3447,7 +3618,7 @@
   }
   function renderSettings() {
     const el = $("#settings-page");
-    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["sound", "\u0417\u0432\u0443\u043A \u0438\u0433\u0440\u044B", "\u0412\u044B\u0441\u0442\u0440\u0435\u043B\u044B, \u0443\u0434\u0430\u0440\u044B, \u0448\u0430\u0433\u0438 \u0438 \u0441\u0438\u0433\u043D\u0430\u043B\u044B \u0438\u043D\u0442\u0435\u0440\u0444\u0435\u0439\u0441\u0430."], ["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["leftHanded", "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439", "\u0414\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043F\u0440\u0430\u0432\u0430, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440 \u0441\u043B\u0435\u0432\u0430."], ["largeControls", "\u041A\u0440\u0443\u043F\u043D\u044B\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438", "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u043A\u043D\u043E\u043F\u043A\u0438 \u0431\u043E\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>Q</kbd> \u2014 \u043E\u0442\u043F\u043E\u0440: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u0434\u0432\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F. \u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440; \u0443\u0440\u043E\u043D\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.15</span></div></div>';
+    el.innerHTML = '<div class="settings-layout"><div class="settings-card"><span class="eyebrow orange">\u0423\u041F\u0420\u0410\u0412\u041B\u0415\u041D\u0418\u0415 \u0418 \u042D\u041A\u0420\u0410\u041D</span><h2>\u041F\u043E\u0434 \u0442\u0435\u0431\u044F.</h2><p>\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u044E\u0442\u0441\u044F \u043D\u0430 \u044D\u0442\u043E\u043C \u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u0435.</p>' + [["sound", "\u0417\u0432\u0443\u043A \u0438\u0433\u0440\u044B", "\u0412\u044B\u0441\u0442\u0440\u0435\u043B\u044B, \u0443\u0434\u0430\u0440\u044B, \u0448\u0430\u0433\u0438 \u0438 \u0441\u0438\u0433\u043D\u0430\u043B\u044B \u0438\u043D\u0442\u0435\u0440\u0444\u0435\u0439\u0441\u0430."], ["runToggle", "\u0411\u0435\u0433 \u043F\u043E \u043D\u0430\u0436\u0430\u0442\u0438\u044E", "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0431\u0435\u0433 \u043E\u0434\u043D\u0438\u043C \u043D\u0430\u0436\u0430\u0442\u0438\u0435\u043C \u0432\u043C\u0435\u0441\u0442\u043E \u0443\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u044F."], ["leftHanded", "\u0423\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043B\u044F \u043B\u0435\u0432\u0448\u0435\u0439", "\u0414\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0441\u043F\u0440\u0430\u0432\u0430, \u0431\u0435\u0433 \u0438 \u043E\u0442\u043F\u043E\u0440 \u0441\u043B\u0435\u0432\u0430."], ["largeControls", "\u041A\u0440\u0443\u043F\u043D\u044B\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438", "\u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0442\u044C \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u043A\u043D\u043E\u043F\u043A\u0438 \u0431\u043E\u044F."], ["particles", "\u042D\u0444\u0444\u0435\u043A\u0442\u044B \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439", "\u0427\u0430\u0441\u0442\u0438\u0446\u044B \u043E\u0442 \u043F\u043E\u043F\u0430\u0434\u0430\u043D\u0438\u0439 \u0438 \u0443\u0441\u0442\u0440\u0430\u043D\u0435\u043D\u0438\u044F \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445."], ["contrast", "\u041F\u043E\u0432\u044B\u0448\u0435\u043D\u043D\u044B\u0439 \u043A\u043E\u043D\u0442\u0440\u0430\u0441\u0442", "\u0411\u043E\u043B\u0435\u0435 \u0447\u0451\u0442\u043A\u0438\u0435 \u0433\u0440\u0430\u043D\u0438\u0446\u044B \u043F\u0430\u043D\u0435\u043B\u0435\u0439 \u0438 \u044F\u0440\u043A\u0438\u0435 \u043F\u043E\u0434\u043F\u0438\u0441\u0438."]].map(([k, title, desc]) => '<label class="setting-row"><span><b>' + title + "</b><small>" + desc + '</small></span><input type="checkbox" data-setting="' + k + '" ' + (prefs[k] ? "checked" : "") + "><i></i></label>").join("") + '</div><div class="settings-card controls-guide"><span class="eyebrow">\u041F\u041E\u041B\u0415\u0412\u0410\u042F \u041F\u0410\u041C\u042F\u0422\u041A\u0410</span><h3>\u0414\u0435\u0440\u0436\u0438 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u044E.</h3><p><kbd>W A S D</kbd> \u0438\u043B\u0438 \u0441\u0442\u0440\u0435\u043B\u043A\u0438 \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435</p><p><kbd>SHIFT</kbd> / <kbd>\u041F\u0420\u041E\u0411\u0415\u041B</kbd> \u2014 \u0431\u0435\u0433</p><p><kbd>Q</kbd> \u2014 \u043E\u0442\u043F\u043E\u0440: 35 \u0432\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u0438, \u043F\u0435\u0440\u0435\u0440\u044B\u0432 9 \u0441\u0435\u043A\u0443\u043D\u0434</p><p><kbd>ESC</kbd> \u2014 \u043F\u0430\u0443\u0437\u0430</p><p>\u041D\u0430 \u0442\u0435\u043B\u0435\u0444\u043E\u043D\u0435: \u0434\u0436\u043E\u0439\u0441\u0442\u0438\u043A \u0438 \u0434\u0432\u0435 \u0431\u043E\u0435\u0432\u044B\u0435 \u043A\u043D\u043E\u043F\u043A\u0438. \u0421\u0442\u0440\u0435\u043B\u044C\u0431\u0430 \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F. \u041E\u0442\u043F\u043E\u0440 \u043E\u0442\u0442\u0430\u043B\u043A\u0438\u0432\u0430\u0435\u0442 \u0432\u0440\u0430\u0433\u043E\u0432 \u0438 \u043F\u0440\u0435\u0440\u044B\u0432\u0430\u0435\u0442 \u0438\u0445 \u0443\u0434\u0430\u0440; \u0443\u0440\u043E\u043D\u0430 \u043D\u0435 \u043D\u0430\u043D\u043E\u0441\u0438\u0442.</p><span class="settings-version">\u041E\u0411\u0418\u0422\u0415\u041B\u042C \xB7 \u0412\u0415\u0420\u0421\u0418\u042F 0.16</span></div></div>';
     el.insertAdjacentHTML("beforeend", '<button class="secondary" id="repeat-tutorial">\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C \u041E\u0411\u0423\u0427\u0415\u041D\u0418\u0415</button>');
     el.querySelector("#repeat-tutorial").onclick = () => onboarding(navigate, true);
     const account = document.createElement("p");
@@ -3528,6 +3699,7 @@
   var playerProfile, $, key, save, gearTab, journalTab, sortieMode, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, payments, audio, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
+      init_player_profile_ui();
       init_boss_arena();
       init_game_audio();
       init_raid_attacks();

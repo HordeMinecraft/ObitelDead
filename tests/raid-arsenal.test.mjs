@@ -39,6 +39,7 @@ test('payment signatures reject forgery, duplicate parameters and another app',(
 });
 test('get_item returns fixed catalogue price without granting charges',async t=>{
  const f=fixture();t.after(()=>f.sql.close());const result=await callback(f,input(1,{notification_type:'get_item'}));assert.equal(result.response.price,3);assert.equal(result.response.item_id,'raid_bat_10');assert.deepEqual(f.read().players[a].save.raidCharges,{});
+ const withoutOrder={app_id:'54626490',user_id:'1001',receiver_id:'1001',notification_type:'get_item',item:'raid_bat_10'};assert.deepEqual(await callback(f,withoutOrder),result);
  assert.ok((await callback(f,input(2,{item:'unknown'}))).error);assert.ok((await callback(f,input(2,{receiver_id:'1002'}))).error);
 });
 test('concurrent duplicate confirmed payments grant exactly one pack and stable replies',async t=>{

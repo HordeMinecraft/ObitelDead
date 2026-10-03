@@ -1,6 +1,7 @@
 import {VEHICLES,vehicleFor} from './vehicles.js';
+import {paintVehicleArt} from './vehicle-art.js';
 let filter='all';
-const art=v=>`<div class="vehicle-art" role="img" aria-label="${v.type} ${v.name}" style="--vx:${v.art%4*100/3}%;--vy:${Math.floor(v.art/4)*25}%"></div>`;
+const art=v=>`<canvas class="vehicle-art" data-vehicle-art="${v.art}" width="720" height="432" role="img" aria-label="${v.type} ${v.name}"></canvas>`;
 const bonus=v=>`<span>+${v.damage}% урон</span><span>+${v.hp}% здоровье</span><span>+${v.loot}% детали</span>`;
 export function garageUI(root,save,level,upgrades,buy,rerender){
  const workshopOpen=root.querySelector('.garage-workshop')?.open;
@@ -15,4 +16,5 @@ export function garageUI(root,save,level,upgrades,buy,rerender){
  }).join('')}</div>`;
  root.querySelectorAll('[data-vehicle-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.vehicleFilter;rerender();root.querySelector('[data-vehicle-filter="'+filter+'"]').focus()});
  root.querySelectorAll('[data-vehicle]').forEach(b=>b.onclick=()=>buy(b.dataset.vehicle));
+ paintVehicleArt(root);
 }
