@@ -2722,7 +2722,11 @@
       root.setAttribute("aria-label", "\u0420\u0435\u0436\u0438\u043C \u0432\u044B\u0445\u043E\u0434\u0430");
       $("#deploy").before(root);
     }
-    root.innerHTML = SORTIE_MODES.map((m) => '<button class="' + (m.id === sortieMode ? "selected" : "") + '" data-sortie="' + m.id + '" ' + (m.encounter ? 'data-special="true" title="' + m.description + '"' : "") + ' aria-pressed="' + (m.id === sortieMode) + '" ' + (playerLevel(save) < m.level ? "disabled" : "") + ">" + m.name + "<small>" + (playerLevel(save) < m.level ? "\u0423\u0440. " + m.level : m.cost + " \u044D\u043D\u0435\u0440\u0433\u0438\u0438" + (m.encounter ? " \xB7 \u044D\u043B\u0438\u0442\u0430" : "")) + "</small></button>").join("");
+    const notes = { scout: "\u0412\u0440\u0430\u0433\u0438 \u0441\u043B\u0430\u0431\u0435\u0435 \xB7 \xD70,65", standard: "\u041E\u0431\u044B\u0447\u043D\u044B\u0439 \u0440\u0435\u0436\u0438\u043C \xB7 \xD71", siege: "\u0421\u0438\u043B\u044C\u043D\u0435\u0435 \u0432\u0440\u0430\u0433\u0438 \xB7 \xD71,65", signal: "\u042D\u043B\u0438\u0442\u0430 \xB7 \xD71,65" };
+    root.innerHTML = SORTIE_MODES.map((m) => {
+      const note = notes[m.id] || m.description, locked = playerLevel(save) < m.level;
+      return '<button class="' + (m.id === sortieMode ? "selected" : "") + '" data-sortie="' + m.id + '" ' + (m.encounter ? 'data-special="true"' : "") + ' title="' + m.description + '" aria-label="' + m.name + ". " + note + ". " + (locked ? "\u041E\u0442\u043A\u0440\u043E\u0435\u0442\u0441\u044F \u0441 \u0443\u0440\u043E\u0432\u043D\u044F " + m.level : "\u0421\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C " + m.cost + " \u044D\u043D\u0435\u0440\u0433\u0438\u0438") + '" aria-pressed="' + (m.id === sortieMode) + '" ' + (locked ? "disabled" : "") + ">" + m.name + "<small>" + (locked ? "\u0423\u0440. " + m.level : m.cost + " \u044D\u043D\u0435\u0440\u0433\u0438\u0438") + "</small><em>" + note + "</em></button>";
+    }).join("");
     root.querySelectorAll("[data-sortie]").forEach((b) => b.onclick = () => {
       sortieMode = b.dataset.sortie;
       selectMap(selected);
@@ -3764,7 +3768,7 @@
     if (launchValue("friend")) navigate("friends");
     else if (!invited) onboarding(navigate);
   }
-  var playerProfile, $, key, save, gearTab, journalTab, sortieMode, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, payments, audio, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
+  var NAV_GLYPHS, playerProfile, $, key, save, gearTab, journalTab, sortieMode, selected, page, run, last, toastTimer, keys, stick, activeRaidId, raid, serverOffset, networkReady, busy, sprintHeld, payments, audio, prefsKey, prefs, item, upgrade, itemArt, canvas, display, world, g, bg, pointer, joy, raidPolling, rareMode, raidNumber;
   var init_game = __esm({
     "game.js"() {
       init_player_profile_ui();
@@ -3794,6 +3798,22 @@
       init_client_api();
       init_balance();
       init_art();
+      NAV_GLYPHS = { map: "map", gear: "gear", garage: "garage", daily: "daily", raids: "raids", guide: "guide", leaderboard: "leaderboard", friends: "friends", clans: "clans", conflict: "conflict", settings: "settings" };
+      for (const button of document.querySelectorAll("nav button[data-page]")) {
+        const glyph = button.querySelector(":scope > span:first-child");
+        const name = NAV_GLYPHS[button.dataset.page];
+        if (glyph && name) {
+          glyph.innerHTML = shelterIcon(name);
+          glyph.setAttribute("aria-hidden", "true");
+        }
+      }
+      for (const [selector, name] of [[".contract-icon", "daily"], [".garage-banner>span", "garage"]]) {
+        const glyph = document.querySelector(selector);
+        if (glyph) {
+          glyph.innerHTML = shelterIcon(name);
+          glyph.setAttribute("aria-hidden", "true");
+        }
+      }
       playerProfile = { name: "\u0421\u0442\u0440\u0430\u043D\u043D\u0438\u043A", avatar: 0 };
       $ = (s) => document.querySelector(s);
       key = "obitel-save-v1";

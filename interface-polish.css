@@ -515,3 +515,302 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 @media (prefers-reduced-motion: reduce) {
   aside nav { scroll-behavior: auto; }
 }
+
+/* Follow-up interface pass: make navigation, sortie choices and progression read as one console. */
+:root {
+  --console-line-strong: #61766d;
+  --console-surface-soft: #1b2c2b;
+  --console-surface-raised: #243a35;
+  --console-brass-soft: #d7b77d;
+}
+
+nav .nav-heading {
+  position: relative;
+  margin: 8px 0 3px;
+  padding: 11px 12px 8px;
+  color: #9bb6ac;
+  font-size: 9px;
+  letter-spacing: 1.6px;
+}
+
+nav .nav-heading:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: linear-gradient(90deg, #82958966, transparent);
+}
+
+nav button {
+  border: 1px solid transparent;
+  transition: color .16s ease, background .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+nav button > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #5c756c88;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #2b4039, #17282a);
+  box-shadow: inset 0 1px #e5ecd41a, 0 2px 5px #0003;
+}
+
+nav button > span:first-child .ui-icon {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+nav button:not(.active):hover {
+  color: #e5e5d5;
+  border-color: #62756d88;
+  background: #1e302f;
+}
+
+nav button.active > span:first-child {
+  border-color: #c29c67;
+  background: linear-gradient(145deg, #5b5037, #26382f);
+  box-shadow: inset 0 1px #ffe2a533, 0 0 0 2px #d5b27616;
+}
+
+header .resources > span {
+  border-color: #566d64;
+  background: linear-gradient(145deg, #263a36, #172629);
+}
+
+.hero {
+  border-color: #758a7a;
+  box-shadow: inset 0 1px #f2e5c21c, 0 16px 36px #0006;
+}
+
+.hero-shade {
+  background:
+    linear-gradient(90deg, #081416d9 0%, #0b1718a6 30%, transparent 68%),
+    linear-gradient(0deg, #081416f0 0%, #091516a8 24%, transparent 72%);
+}
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #8094868c;
+  background: #0d1b1de8;
+  box-shadow: 0 4px 14px #0004;
+}
+
+.hero-tag span {
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid #76877d77;
+}
+
+.hero-meta span {
+  padding: 5px 8px;
+  border: 1px solid #a8b49a44;
+  border-radius: 4px;
+  background: #0c191a99;
+}
+
+.mission-panel {
+  border-color: #87978a;
+  border-left: 3px solid #d6b477;
+  background: linear-gradient(145deg, #213535f7, #111f22f7);
+  box-shadow: inset 0 1px #f4e6c11d, 0 12px 26px #0007;
+}
+
+.mission-panel > .eyebrow { color: #abc0b3; }
+.mission-panel > small { color: #c5cdb8; line-height: 1.35; }
+
+.mission-modes button {
+  min-width: 0;
+  min-height: 62px;
+  overflow: hidden;
+  align-items: flex-start;
+  text-align: left;
+  border-color: #5e756b;
+  background: linear-gradient(145deg, #263d37, #172a2c);
+}
+
+.mission-modes button small {
+  color: #c2ceb9;
+  font-size: 9px;
+}
+
+.mission-modes button em {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #9fb4a9;
+  font: 9px/1.2 system-ui, sans-serif;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mission-modes button.selected {
+  border-color: #e1bd7b;
+  background: linear-gradient(145deg, #594c35, #263a32);
+  box-shadow: inset 0 0 0 1px #e5c8873b, 0 3px 9px #0004;
+}
+
+.mission-modes button.selected::before {
+  content: "";
+  position: absolute;
+  inset: 6px auto 6px 0;
+  width: 2px;
+  border-radius: 2px;
+  background: #f0ce8d;
+}
+
+.operation-briefing {
+  border-color: #60766d;
+  border-radius: 11px;
+  background:
+    radial-gradient(ellipse at 0 0, #75825327, transparent 68%),
+    linear-gradient(115deg, #203431, #132528 78%);
+  box-shadow: inset 0 1px #e6ead21b, 0 8px 18px #0004;
+}
+
+.op-heading .eyebrow { color: #a9bcae; }
+.op-heading strong { color: #f0ddad; }
+
+.op-forecast {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.op-forecast > span {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #667a6b77;
+  border-radius: 7px;
+  background: linear-gradient(145deg, #263a34, #182a2b);
+  color: #c1cbb9;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.op-forecast b {
+  display: block;
+  margin-bottom: 3px;
+  color: #f0d9a5;
+  font-size: 20px;
+}
+
+.op-note {
+  padding: 9px 11px;
+  border-left: 2px solid #8b9b78;
+  border-radius: 0 5px 5px 0;
+  background: #0d202033;
+}
+
+.campaign-summary {
+  border-color: #61776b;
+  background:
+    radial-gradient(ellipse at 0 50%, #7082512c, transparent 55%),
+    linear-gradient(105deg, #203630, #14272a 78%);
+  box-shadow: inset 0 1px #eef0d318, 0 7px 18px #0004;
+}
+
+.campaign-objective .eyebrow { color: #a9bcae; }
+.campaign-objective p { color: #c0cdbf; }
+.campaign-meter > div { height: 6px; border: 1px solid #65796a66; }
+.campaign-meter i { background: linear-gradient(90deg, #88a477, #e0c17f); }
+
+.boss-route {
+  border-color: #80694d;
+  background: linear-gradient(100deg, #493a2b99, #1b2b2b 70%);
+}
+
+.boss-route small { color: #d5c7a6; }
+.boss-route button { max-width: 100%; }
+
+.map-card {
+  border-color: #536a60;
+  background: linear-gradient(160deg, #223733, #142326 84%);
+  box-shadow: inset 0 1px #e6e7cc16, 0 6px 14px #0004;
+}
+
+.map-card:not(.locked) { cursor: pointer; }
+.map-card.selected {
+  border-color: #ddba78;
+  box-shadow: inset 0 -3px #d5b272, 0 0 0 1px #d5b27233, 0 8px 18px #0005;
+}
+
+.map-card .map-role { color: #b2c4b3; }
+.map-card .map-level { color: #e0c795; }
+.map-card .map-level em { color: #b7c8bc; }
+.map-card .district-stages i { height: 6px; }
+.map-card .map-status { color: #c8d1c2; }
+
+.contract-banner, .garage-banner {
+  border-color: #536a60;
+  background: linear-gradient(115deg, #243a34, #17282a 76%);
+}
+
+.contract-icon, .garage-banner > span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  box-sizing: border-box;
+  flex: 0 0 42px;
+  padding: 0;
+  border: 1px solid #9a875e77;
+  border-radius: 9px;
+  background: linear-gradient(145deg, #3b4435, #1a2b2b);
+  color: #e2c48d;
+}
+
+.contract-icon .ui-icon, .garage-banner > span .ui-icon {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+button:not(:disabled) { transition: filter .14s ease, transform .14s ease, border-color .14s ease, box-shadow .14s ease; }
+button:not(:disabled):active { filter: brightness(.94); }
+button:disabled { cursor: not-allowed; }
+
+@media (min-width: 761px) {
+  .map-card:not(.locked):hover { transform: translateY(-2px); }
+  .contract-banner:hover, .garage-banner:hover { transform: translateY(-1px); border-color: #9e9974; }
+}
+
+@media (orientation: landscape) and (max-height: 550px) {
+  nav button > span:first-child { width: 25px; height: 25px; }
+  nav button > span:first-child .ui-icon { width: 15px; height: 15px; }
+  .mission-modes button { min-height: 50px; padding: 5px 7px; }
+  .mission-modes button em { font-size: 8px; }
+  .op-forecast { gap: 6px; }
+  .op-forecast > span { padding: 6px 7px; font-size: 9px; }
+  .op-forecast b { font-size: 17px; }
+}
+
+@media (max-width: 760px) {
+  nav button > span:first-child { width: 26px; height: 26px; }
+  nav button > span:first-child .ui-icon { width: 16px; height: 16px; }
+  .mission-modes button { min-height: 48px; }
+  .mission-modes button em { display: none; }
+  .mission-modes button small { font-size: 8px; }
+  .op-forecast > span { padding: 7px; }
+  .op-note { font-size: 11px; }
+  .contract-icon, .garage-banner > span { width: 36px; height: 36px; flex-basis: 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  nav button, button:not(:disabled), .map-card, .contract-banner, .garage-banner { transition: none; }
+}
