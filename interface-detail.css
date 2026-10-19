@@ -642,7 +642,8 @@ nav button.active > span:first-child {
   pointer-events: none;
 }
 
-.map-card canvas, .map-card .number, .map-card .map-info { position: relative; z-index: 1; }
+.map-card canvas, .map-card .map-info { position: relative; z-index: 1; }
+.map-card .number { z-index: 2; }
 .map-card canvas { filter: saturate(.92) contrast(1.04); }
 .map-card .number { border: 1px solid #b5b58b66; border-radius: 4px; box-shadow: 0 3px 8px #0006; }
 .map-card .map-role { color: #c5cdb1; }
@@ -782,4 +783,106 @@ button.primary:not(:disabled):active, button.secondary:not(:disabled):active { t
 @media (max-width: 760px) {
   #mission-modes [data-sortie] { min-height: 47px; }
   #maps .map-card.is-complete { border-top-color: #a3b17b; }
+}
+
+/* Turn identical district tiles into an active route board. */
+#maps {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+#maps .map-card {
+  min-width: 0;
+  min-height: 220px;
+  border-radius: 9px;
+}
+
+#maps .map-card canvas { height: 142px !important; }
+#maps .map-card .map-info { padding: 12px; }
+#maps .map-card .map-info b { font-size: 17px; }
+
+#maps .map-card.selected {
+  display: grid;
+  grid-column: span 2;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 220px;
+  overflow: hidden;
+  background: linear-gradient(120deg, #2c4135, #172a2c);
+}
+
+#maps .map-card.selected canvas {
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  height: 100% !important;
+  min-height: 220px;
+  border: 0;
+  border-right: 1px solid #dcc58b55;
+  object-fit: cover;
+  filter: saturate(1.12) contrast(1.05);
+}
+
+#maps .map-card.selected .number { top: 10px; left: 10px; }
+#maps .map-card.selected .map-info {
+  display: flex;
+  grid-column: 2;
+  grid-row: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px;
+  background:
+    radial-gradient(ellipse at 100% 0, #9b89532a, transparent 58%),
+    linear-gradient(145deg, #203731, #122426);
+}
+
+#maps .map-card.selected .map-role { color: #d8c995; letter-spacing: 1px; }
+#maps .map-card.selected .map-info b { margin: 3px 0 10px; color: #f7edcf; font-size: clamp(19px, 2vw, 27px); }
+#maps .map-card.selected .map-level { font-size: 10px; }
+#maps .map-card.selected .district-stages { margin-top: 13px; }
+#maps .map-card.selected .map-status { margin-top: 5px; color: #dfd5b5; }
+
+#maps .map-card.is-complete:not(.selected) canvas { filter: saturate(1.02) brightness(.96); }
+#maps .map-card.is-locked:not(.selected) { border-style: dashed; border-color: #52645d; }
+
+@media (min-width: 761px) and (max-width: 1100px) and (min-height: 551px) {
+  #maps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  #maps .map-card.selected { min-height: 205px; }
+  #maps .map-card.selected canvas { min-height: 205px; }
+  #maps .map-card.selected .map-info { padding: 12px; }
+}
+
+@media (max-width: 760px) {
+  #maps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  #maps .map-card { min-height: 0; }
+  #maps .map-card canvas { height: 112px !important; }
+  #maps .map-card:last-child { grid-column: span 2; }
+  #maps .map-card.selected { min-height: 190px; }
+  #maps .map-card.selected canvas { min-height: 190px; }
+  #maps .map-card.selected .map-info { padding: 10px; }
+  #maps .map-card.selected .map-info b { font-size: 18px; }
+  #maps .map-card .map-info { padding: 9px; }
+  #maps .map-card .map-info b { font-size: 14px; }
+}
+
+@media (orientation: landscape) and (max-height: 550px) {
+  #maps .map-card, #maps .map-card.selected {
+    display: block;
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 0;
+  }
+  #maps .map-card canvas, #maps .map-card.selected canvas {
+    height: 125px !important;
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 1px solid #6675688c;
+  }
+  #maps .map-card .map-info, #maps .map-card.selected .map-info {
+    display: block;
+    padding: 12px;
+    background: none;
+  }
+  #maps .map-card .map-info b, #maps .map-card.selected .map-info b { font-size: 19px; }
 }
