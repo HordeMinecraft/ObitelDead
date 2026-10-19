@@ -203,6 +203,81 @@ main select:focus-visible {
 #garage-page .vehicle-price { font-weight: 700; }
 #garage-page .vehicle-requirement { color: #c0cabb; }
 
+#garage-page .vehicle-bonuses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 12px 0;
+}
+
+#garage-page .vehicle-bonuses > .vehicle-stat {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 1px 6px;
+  min-width: 0;
+  min-height: 51px;
+  padding: 6px 7px;
+  overflow: hidden;
+  border: 1px solid #60766c;
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, #ffffff08 1px, transparent 1px) 0 0 / 12px 100%,
+    linear-gradient(145deg, #243b34, #142728);
+}
+
+#garage-page .vehicle-stat::after {
+  content: "";
+  position: absolute;
+  right: 7px;
+  bottom: 4px;
+  left: 7px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--stat-accent), transparent);
+  opacity: .65;
+}
+
+#garage-page .vehicle-stat-damage { --stat-accent: #dfbd7c; }
+#garage-page .vehicle-stat-health { --stat-accent: #a9bf9c; }
+#garage-page .vehicle-stat-salvage { --stat-accent: #c4b68d; }
+
+#garage-page .vehicle-stat > i {
+  display: grid;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  place-items: center;
+  color: var(--stat-accent);
+}
+
+#garage-page .vehicle-stat .obitel-glyph {
+  width: 18px;
+  height: 18px;
+  --icon-line: var(--stat-accent);
+  --icon-accent: #e8d39d;
+  --icon-body: #35463a;
+}
+
+#garage-page .vehicle-stat b {
+  grid-column: 2;
+  grid-row: 1;
+  color: #f0dfb9;
+  font: 600 13px/1.1 Oswald, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+#garage-page .vehicle-stat small {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  margin: 0;
+  color: #aebeb0;
+  font: 8px/1.2 system-ui, sans-serif;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+
 /* Raids: distinguish the boss state, action costs and shared contribution. */
 #raids-page .raid-toolbar {
   padding: 5px;
@@ -885,4 +960,32 @@ button.primary:not(:disabled):active, button.secondary:not(:disabled):active { t
     background: none;
   }
   #maps .map-card .map-info b, #maps .map-card.selected .map-info b { font-size: 19px; }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  #garage-page .vehicle-bonuses > .vehicle-stat {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 18px 15px 10px;
+    justify-items: center;
+    gap: 1px;
+    min-height: 59px;
+    padding: 5px 2px 7px;
+    text-align: center;
+  }
+
+  #garage-page .vehicle-stat > i { grid-column: 1; grid-row: 1; }
+  #garage-page .vehicle-stat .obitel-glyph { width: 16px; height: 16px; }
+  #garage-page .vehicle-stat b { grid-column: 1; grid-row: 2; font-size: 12px; }
+  #garage-page .vehicle-stat small {
+    grid-column: 1;
+    grid-row: 3;
+    font-size: 7px;
+    letter-spacing: 0;
+    line-height: 1.1;
+  }
+}
+
+@media (hover: hover) and (min-width: 761px) {
+  #garage-page .vehicle-stat { transition: border-color .16s ease, transform .16s ease; }
+  #garage-page .vehicle-card:hover .vehicle-stat { border-color: #8c9574; }
 }

@@ -1517,6 +1517,7 @@
         medical: line("M3 7h18v14H3zM8 7V3h8v4M10 10h4v3h3v3h-3v3h-4v-3H7v-3h3z") + accent("M19 18h2v2h-2z"),
         energy: line("M13 2L4 14h7l-1 8 10-12h-7z") + accent("M12 10h2v2h-2z"),
         diamond: line("M7 3h10l5 7-10 12L2 10zM2 10h20M7 3l-1 7 6 12 6-12-1-7") + accent("M11 6h2v2h-2z"),
+        salvage: line("M3 5h7v7H3zM14 3h7v7h-7zM8 15h8v6H8zM10 8l4-2m-4 5 1 4m5-4v4") + accent("M5 7h3v3H5zm11-2h3v3h-3zM11 17h2v2h-2z"),
         skull: line("M6 4l6-2 6 2 3 6-2 7-4 2v3H9v-3l-4-2-2-7zM7 8h3v4H7zm7 0h3v4h-3zM10 20v2m4-2v2") + accent("M12 13l2 3h-4z"),
         star: line("M12 2l3 6 7 1-5 5 1 8-6-4-6 4 1-8-5-5 7-1z") + accent("M11 10h2v3h-2z"),
         menu: line("M4 6h16M4 12h11M4 18h16") + accent("M18 11h2v2h-2z"),
@@ -1964,9 +1965,14 @@
     "garage-ui.js"() {
       init_vehicles();
       init_vehicle_art();
+      init_ui_icons();
       filter = "all";
       art = (v) => `<canvas class="vehicle-art" data-vehicle-art="${v.art}" width="720" height="432" role="img" aria-label="${v.type} ${v.name}"></canvas>`;
-      bonus = (v) => `<span>+${v.damage}% \u0443\u0440\u043E\u043D</span><span>+${v.hp}% \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435</span><span>+${v.loot}% \u0434\u0435\u0442\u0430\u043B\u0438</span>`;
+      bonus = (v) => [
+        ["damage", "conflict", "\u0423\u0420\u041E\u041D", v.damage],
+        ["health", "repulse", "\u0417\u0414\u041E\u0420\u041E\u0412\u042C\u0415", v.hp],
+        ["salvage", "salvage", "\u0414\u0415\u0422\u0410\u041B\u0418", v.loot]
+      ].map(([name, glyph, label2, value]) => `<span class="vehicle-stat vehicle-stat-${name}"><i>${icon(glyph)}</i><b>+${value}%</b><small>${label2}</small></span>`).join("");
     }
   });
 

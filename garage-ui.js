@@ -1,8 +1,13 @@
 import {VEHICLES,vehicleFor} from './vehicles.js';
 import {paintVehicleArt} from './vehicle-art.js';
+import {icon} from './ui-icons.js';
 let filter='all';
 const art=v=>`<canvas class="vehicle-art" data-vehicle-art="${v.art}" width="720" height="432" role="img" aria-label="${v.type} ${v.name}"></canvas>`;
-const bonus=v=>`<span>+${v.damage}% урон</span><span>+${v.hp}% здоровье</span><span>+${v.loot}% детали</span>`;
+const bonus=v=>[
+ ['damage','conflict','УРОН',v.damage],
+ ['health','repulse','ЗДОРОВЬЕ',v.hp],
+ ['salvage','salvage','ДЕТАЛИ',v.loot]
+].map(([name,glyph,label,value])=>`<span class="vehicle-stat vehicle-stat-${name}"><i>${icon(glyph)}</i><b>+${value}%</b><small>${label}</small></span>`).join('');
 export function garageUI(root,save,level,upgrades,buy,rerender){
  const workshopOpen=root.querySelector('.garage-workshop')?.open;
  const current=vehicleFor(save),owned=save.ownedVehicles||['nomad'];
