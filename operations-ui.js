@@ -1,10 +1,10 @@
-import {sortiePlan} from './operations.js';
-import {playerLevel,stats,expeditionReward,runXP} from './balance.js';
+import {sortiePlan,sortieDamageMultiplier} from './operations.js';
+import {playerLevel,stats,expeditionReward,runXP,expeditionRank} from './balance.js';
 import {shelterIcon} from './ui-icons.js';
 const fmt=n=>Math.round(n).toLocaleString('ru-RU');
 export function renderBriefing(root,save,map,mode){
- const plan=sortiePlan(save,map,mode),kills=27+map*3,expected=expeditionReward(map,kills,kills*2,true,stats(save).loot*plan.reward);
- root.innerHTML=`<div class="op-heading"><span class="eyebrow">УСЛОВИЯ ВЫЛАЗКИ</span><strong>${plan.condition.name}</strong><p>${plan.condition.description} ${map===0?'Первый квартал всегда спокойный.':'Условия меняются в полночь МСК.'}</p></div><div class="op-forecast" aria-label="Ожидаемая награда"><span><b>~${fmt(expected)}</b> деталей</span><span><b>${Math.round(runXP(kills,true,map,playerLevel(save))*plan.xp)}</b> XP</span><span><b>3</b> волны</span></div><p class="op-note">${plan.name}: ${plan.description} Детали указаны приблизительно; добыча случайна.</p>`;
+ const plan=sortiePlan(save,map,mode),kills=27+map*3,expected=expeditionReward(map,kills,kills*2,true,stats(save).loot*plan.reward),damage=sortieDamageMultiplier(map,expeditionRank(save)).toFixed(2).replace('.',','),districtRisk=Array.from({length:8},(_,i)=>'<i'+(i<=map?' class="active"':'')+'></i>').join('');
+ root.innerHTML=`<div class="op-heading"><span class="eyebrow">УСЛОВИЯ ВЫЛАЗКИ</span><strong>${plan.condition.name}</strong><p>${plan.condition.description} ${map===0?'Первый квартал всегда спокойный.':'Условия меняются в полночь МСК.'}</p></div><div class="op-forecast" aria-label="Награда и опасность маршрута"><span><b>~${fmt(expected)}</b> деталей</span><span><b>${Math.round(runXP(kills,true,map,playerLevel(save))*plan.xp)}</b> XP</span><span><b>3</b> волны</span><span class="op-threat" aria-label="Урон мобов на маршруте: множитель ×${damage}"><span class="op-threat-meter" aria-hidden="true">${districtRisk}</span><span><b>×${damage}</b><small>УРОН МОБОВ</small></span></span></div><p class="op-note">${plan.name}: ${plan.description} Урон заражённых растёт с районом и рангом; добыча указана приблизительно.</p>`;
  return plan;
 }
 const rewardText=r=>Object.entries(r).map(([key,n])=>'+'+n+' '+({scrap:'дет.',xp:'XP',cloth:'ткани',cores:'ядро'}[key])).join(' · ');

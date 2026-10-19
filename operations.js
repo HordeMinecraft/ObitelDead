@@ -6,6 +6,8 @@ export const SORTIE_MODES=[
  {id:'siege',name:'Прорыв',level:5,cost:12,hp:1.4,speed:1.12,reward:1.65,xp:1.4,description:'Живучие заражённые. Больше награда за успешную зачистку.'},
  {id:'signal',name:'Охота',level:5,cost:12,hp:1.4,speed:1.12,reward:1.65,xp:1.4,encounter:'signal-carrier',description:'В третьей волне выйдет Носитель сигнала. Уклоняйся от импульса; награда за победу выше.'}
 ];
+export const SORTIE_DAMAGE_MULTIPLIER=1.4;
+export const sortieDamageMultiplier=(map,rank=0)=>SORTIE_DAMAGE_MULTIPLIER*(1+Math.max(0,map)*.16)*(1+Math.max(0,rank)*.06);
 const CONDITIONS=[
  {id:'quiet',name:'Тихие улицы',description:'Обычная активность заражённых.'},
  {id:'rush',name:'Бегущая стая',description:'Бегуны двигаются на 20% быстрее.'},
@@ -18,7 +20,7 @@ export function sortiePlan(save,map,mode='standard',time=Date.now()){
  const day=moscowDay(time),condition=CONDITIONS[map===0?0:(day+map)%CONDITIONS.length];
  return {...option,condition:{...condition},day};
 }
-export function sortieEnemy(base,type,plan){return {...base,hp:base.hp*plan.hp*(type==='tank'&&plan.condition.id==='iron'?1.25:1),speed:base.speed*plan.speed*(type==='runner'&&plan.condition.id==='rush'?1.2:1)}}
+export function sortieEnemy(base,type,plan){return {...base,hp:base.hp*plan.hp*(type==='tank'&&plan.condition.id==='iron'?1.25:1),speed:base.speed*plan.speed*(type==='runner'&&plan.condition.id==='rush'?1.2:1),damage:base.damage*SORTIE_DAMAGE_MULTIPLIER}}
 export function sortieEnemyType(index,condition){return index%5===4?'tank':index%(condition.id==='hunt'?2:3)===(condition.id==='hunt'?1:2)?'runner':'walker'}
 export function sortiePayout(plan,win){return {reward:win?plan.reward:Math.min(1,plan.reward),xp:win?plan.xp:Math.min(1,plan.xp)}}
 export const CONTRACTS=[

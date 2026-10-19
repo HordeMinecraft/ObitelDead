@@ -1,14 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {sortiePlan,sortieEnemy,sortiePayout,operationState,operationView,claimOperation,moscowDay} from '../operations.js';
-import {freshSave,xpForLevel,expeditionReward} from '../balance.js';
+import {sortiePlan,sortieEnemy,sortieDamageMultiplier,sortiePayout,operationState,operationView,claimOperation,moscowDay} from '../operations.js';
+import {freshSave,xpForLevel,expeditionReward,enemyStats,MAPS} from '../balance.js';
 import {createHandler} from '../domain.js';
 const veteran=()=>({...freshSave(),xp:xpForLevel(5),cleared:[0,1]});
 test('sorties enforce level gates and stable day/map conditions',()=>{
  assert.throws(()=>sortiePlan(freshSave(),0,'siege'),{status:400});assert.throws(()=>sortiePlan(veteran(),0,'invented'),{status:400});
  for(let day=0;day<4;day++)assert.equal(sortiePlan(veteran(),0,'standard',day*86400000).condition.id,'quiet');
  const p=sortiePlan(veteran(),1,'siege',0),next=sortiePlan(veteran(),1,'siege',86400000);assert.notEqual(p.condition.id,next.condition.id);
- assert.equal(sortieEnemy({hp:100,speed:100},'walker',p).hp,140);assert.ok(sortiePayout(p,false).reward<=1);assert.equal(sortiePayout(p,true).reward,1.65);
+ assert.equal(sortieEnemy({hp:100,speed:100,damage:10},'walker',p).hp,140);assert.ok(sortiePayout(p,false).reward<=1);assert.equal(sortiePayout(p,true).reward,1.65);
+});
+test('route damage is multiplied by 1.4 and scales with district and expedition rank',()=>{
+ assert.equal(sortieDamageMultiplier(0,0),1.4);
+ for(let i=1;i<MAPS.length;i++)assert.ok(sortieDamageMultiplier(i,0)>sortieDamageMultiplier(i-1,0));
+ assert.ok(sortieDamageMultiplier(0,1)>sortieDamageMultiplier(0,0));
+ for(let map=0;map<MAPS.length;map++)for(const rank of [0,7,19]){
+  const base=enemyStats(map,2,'walker',rank),routed=sortieEnemy(base,'walker',sortiePlan(veteran(),map,'standard'));
+  const expected=enemyStats(map,1,'walker',rank).damage/enemyStats(0,1,'walker',0).damage*1.4;
+  assert.equal(routed.damage,base.damage*1.4);assert.ok(Math.abs(sortieDamageMultiplier(map,rank)-expected)<1e-12);
+ }
 });
 test('daily contract claims are gated, single-use and reset at Moscow midnight',()=>{
  const p={save:veteran()},time=Date.UTC(2026,9,2,20,59,59);const s=operationState(p,time);s.wins=2;s.maps=[0,1];s.attacks=1;
