@@ -88,3 +88,8 @@
  #game #boss-hud{top:max(155px,calc(env(safe-area-inset-top) + 147px));width:80%}
 }
 @media(prefers-reduced-transparency:reduce){#game .battle-top>div,#game #boss-hud,#game .combat-cue{background:#152b29}#game .combat-cue[data-tone="danger"]{background:#462f21}}
+#game #boss-hud.signal-threat{border-color:#dfbd74;background:linear-gradient(110deg,#25372feF,#182b2df2);box-shadow:0 0 18px #e0b96724,inset 0 1px #f0d59a33}
+#game #boss-hud.signal-threat #boss-name{color:#f1d69b;letter-spacing:.6px}
+#game #boss-hud.signal-threat #boss-bar{background:linear-gradient(90deg,#ae7750,#edcf86)}
+@media(prefers-reduced-motion:no-preference){#game #boss-hud.signal-threat{animation:signal-threat 2.8s ease-in-out infinite alternate}}
+@keyframes signal-threat{from{box-shadow:0 0 10px #e0b96717,inset 0 1px #f0d59a22}to{box-shadow:0 0 19px #e0b96738,inset 0 1px #f0d59a44}}

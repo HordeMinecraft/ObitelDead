@@ -40,7 +40,7 @@ export function sprintStep(stamina,exhausted,wantsRun,moving,dt){if(exhausted&&s
 export const stats=s=>({hp:Math.round((110+s.armor*8+(ARMOR[s.armorTier||0]?.hp||0))*(1+s.body*.04)*(1+vehicleFor(s).hp/100)),damage:WEAPONS[s.weapon].damage*(1+s.weaponLevel*.08)*(1+s.engine*.04)*(1+vehicleFor(s).damage/100),loot:(1+s.trunk*.05)*(1+vehicleFor(s).loot/100),speed:148});
 export const upgradeCost=(level)=>Math.round(80*Math.pow(1.42,level));
 export const unlocked=(s,i)=>i===0||s.cleared.includes(i-1);
-export const enemyStats=(map,wave,type,rank=0)=>({hp:(type==='boss'?230:type==='tank'?86:type==='runner'?28:40)*(1+map*.32)*(1+(wave-1)*.15)*(1+rank*.1),speed:type==='boss'?34:type==='runner'?95:type==='tank'?28:47,damage:(type==='boss'?23:type==='tank'?17:10)*(1+map*.16)*(1+rank*.06)});
+export const enemyStats=(map,wave,type,rank=0)=>({hp:(type==='boss'?230:type==='signal'?165:type==='tank'?86:type==='runner'?28:40)*(1+map*.32)*(1+(wave-1)*.15)*(1+rank*.1),speed:type==='boss'?34:type==='signal'?34:type==='runner'?95:type==='tank'?28:47,damage:(type==='boss'?23:type==='signal'?16:type==='tank'?17:10)*(1+map*.16)*(1+rank*.06)});
 
 export const ARMOR=[
  {name:'Одежда выжившего',hp:0,level:1,bosses:0,cost:0,cloth:0,cores:0,icon:3,description:'Твоя привычная футболка и брюки. Свобода движения.'},

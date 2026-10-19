@@ -521,7 +521,7 @@
       };
       upgradeCost = (level) => Math.round(80 * Math.pow(1.42, level));
       unlocked = (s, i) => i === 0 || s.cleared.includes(i - 1);
-      enemyStats = (map, wave, type, rank = 0) => ({ hp: (type === "boss" ? 230 : type === "tank" ? 86 : type === "runner" ? 28 : 40) * (1 + map * 0.32) * (1 + (wave - 1) * 0.15) * (1 + rank * 0.1), speed: type === "boss" ? 34 : type === "runner" ? 95 : type === "tank" ? 28 : 47, damage: (type === "boss" ? 23 : type === "tank" ? 17 : 10) * (1 + map * 0.16) * (1 + rank * 0.06) });
+      enemyStats = (map, wave, type, rank = 0) => ({ hp: (type === "boss" ? 230 : type === "signal" ? 165 : type === "tank" ? 86 : type === "runner" ? 28 : 40) * (1 + map * 0.32) * (1 + (wave - 1) * 0.15) * (1 + rank * 0.1), speed: type === "boss" ? 34 : type === "signal" ? 34 : type === "runner" ? 95 : type === "tank" ? 28 : 47, damage: (type === "boss" ? 23 : type === "signal" ? 16 : type === "tank" ? 17 : 10) * (1 + map * 0.16) * (1 + rank * 0.06) });
       ARMOR = [
         { name: "\u041E\u0434\u0435\u0436\u0434\u0430 \u0432\u044B\u0436\u0438\u0432\u0448\u0435\u0433\u043E", hp: 0, level: 1, bosses: 0, cost: 0, cloth: 0, cores: 0, icon: 3, description: "\u0422\u0432\u043E\u044F \u043F\u0440\u0438\u0432\u044B\u0447\u043D\u0430\u044F \u0444\u0443\u0442\u0431\u043E\u043B\u043A\u0430 \u0438 \u0431\u0440\u044E\u043A\u0438. \u0421\u0432\u043E\u0431\u043E\u0434\u0430 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u044F." },
         { name: "\u0416\u0438\u043B\u0435\u0442 \xAB\u0411\u0430\u0440\u044C\u0435\u0440\xBB", hp: 28, level: 2, bosses: 1, cost: 320, cloth: 8, cores: 0, icon: 4, description: "\u041F\u043B\u0438\u0442\u044B, \u0440\u0435\u043C\u043D\u0438 \u0438 \u043F\u043E\u0434\u0441\u0443\u043C\u043A\u0438. \u041F\u0435\u0440\u0432\u0430\u044F \u0441\u0435\u0440\u044C\u0451\u0437\u043D\u0430\u044F \u0437\u0430\u0449\u0438\u0442\u0430." },
@@ -1699,7 +1699,8 @@
       SORTIE_MODES = [
         { id: "scout", name: "\u0420\u0430\u0437\u0432\u0435\u0434\u043A\u0430", level: 1, cost: 6, hp: 0.8, speed: 0.9, reward: 0.65, xp: 0.75, description: "\u0421\u043F\u043E\u043A\u043E\u0439\u043D\u044B\u0439 \u0442\u0435\u043C\u043F. \u041C\u0435\u043D\u044C\u0448\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u0430, \u0434\u0435\u0448\u0435\u0432\u043B\u0435 \u0432\u044B\u0445\u043E\u0434." },
         { id: "standard", name: "\u0417\u0430\u0447\u0438\u0441\u0442\u043A\u0430", level: 1, cost: 8, hp: 1, speed: 1, reward: 1, xp: 1, description: "\u041E\u0431\u044B\u0447\u043D\u0430\u044F \u0443\u0433\u0440\u043E\u0437\u0430 \u0438 \u043D\u0430\u0433\u0440\u0430\u0434\u0430. \u041E\u0441\u043D\u043E\u0432\u043D\u043E\u0439 \u043F\u0443\u0442\u044C \u043F\u043E \u0440\u0430\u0439\u043E\u043D\u0430\u043C." },
-        { id: "siege", name: "\u041F\u0440\u043E\u0440\u044B\u0432", level: 5, cost: 12, hp: 1.4, speed: 1.12, reward: 1.65, xp: 1.4, description: "\u0416\u0438\u0432\u0443\u0447\u0438\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0411\u043E\u043B\u044C\u0448\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0437\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u0443\u044E \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443." }
+        { id: "siege", name: "\u041F\u0440\u043E\u0440\u044B\u0432", level: 5, cost: 12, hp: 1.4, speed: 1.12, reward: 1.65, xp: 1.4, description: "\u0416\u0438\u0432\u0443\u0447\u0438\u0435 \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0435. \u0411\u043E\u043B\u044C\u0448\u0435 \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0437\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u0443\u044E \u0437\u0430\u0447\u0438\u0441\u0442\u043A\u0443." },
+        { id: "signal", name: "\u041E\u0445\u043E\u0442\u0430", level: 5, cost: 12, hp: 1.4, speed: 1.12, reward: 1.65, xp: 1.4, encounter: "signal-carrier", description: "\u0412 \u0442\u0440\u0435\u0442\u044C\u0435\u0439 \u0432\u043E\u043B\u043D\u0435 \u0432\u044B\u0439\u0434\u0435\u0442 \u041D\u043E\u0441\u0438\u0442\u0435\u043B\u044C \u0441\u0438\u0433\u043D\u0430\u043B\u0430. \u0423\u043A\u043B\u043E\u043D\u044F\u0439\u0441\u044F \u043E\u0442 \u0438\u043C\u043F\u0443\u043B\u044C\u0441\u0430; \u043D\u0430\u0433\u0440\u0430\u0434\u0430 \u0437\u0430 \u043F\u043E\u0431\u0435\u0434\u0443 \u0432\u044B\u0448\u0435." }
       ];
       CONDITIONS = [
         { id: "quiet", name: "\u0422\u0438\u0445\u0438\u0435 \u0443\u043B\u0438\u0446\u044B", description: "\u041E\u0431\u044B\u0447\u043D\u0430\u044F \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u044C \u0437\u0430\u0440\u0430\u0436\u0451\u043D\u043D\u044B\u0445." },
@@ -2721,7 +2722,7 @@
       root.setAttribute("aria-label", "\u0420\u0435\u0436\u0438\u043C \u0432\u044B\u0445\u043E\u0434\u0430");
       $("#deploy").before(root);
     }
-    root.innerHTML = SORTIE_MODES.map((m) => '<button class="' + (m.id === sortieMode ? "selected" : "") + '" data-sortie="' + m.id + '" aria-pressed="' + (m.id === sortieMode) + '" ' + (playerLevel(save) < m.level ? "disabled" : "") + ">" + m.name + "<small>" + (playerLevel(save) < m.level ? "\u0423\u0440. " + m.level : m.cost + " \u044D\u043D\u0435\u0440\u0433\u0438\u0438") + "</small></button>").join("");
+    root.innerHTML = SORTIE_MODES.map((m) => '<button class="' + (m.id === sortieMode ? "selected" : "") + '" data-sortie="' + m.id + '" ' + (m.encounter ? 'data-special="true" title="' + m.description + '"' : "") + ' aria-pressed="' + (m.id === sortieMode) + '" ' + (playerLevel(save) < m.level ? "disabled" : "") + ">" + m.name + "<small>" + (playerLevel(save) < m.level ? "\u0423\u0440. " + m.level : m.cost + " \u044D\u043D\u0435\u0440\u0433\u0438\u0438" + (m.encounter ? " \xB7 \u044D\u043B\u0438\u0442\u0430" : "")) + "</small></button>").join("");
     root.querySelectorAll("[data-sortie]").forEach((b) => b.onclick = () => {
       sortieMode = b.dataset.sortie;
       selectMap(selected);
@@ -2965,10 +2966,16 @@
     }
   }
   async function start() {
+    var _a2, _b2, _c, _d, _e, _f;
     if (!unlocked(save, selected)) return;
-    let data = await api("run/start", { map: selected, mode: sortieMode });
-    let st = stats(save);
-    run = { ticket: data.ticket, plan: data.plan || sortiePlan(save, selected, sortieMode), rank: expeditionRank(save), map: selected, hp: st.hp, maxHp: st.hp, x: 430, y: 410, face: 1, time: 0, wave: 0, enemies: [], shots: [], drops: [], particles: [], kills: 0, loot: 0, hits: 0, repulses: 0, repulseAt: 0, repulseVisual: 0, healthDropped: 0, shotCd: 0.2, stamina: 100, exhausted: false, running: false, anim: 0, moving: false, travel: 0, transition: null, invulnerable: 0, paused: false, ended: false, next: 1, boss: false, damage: st.damage, speed: st.speed, lootMult: st.loot };
+    const selectedMode = sortieMode, serverMode = selectedMode === "signal" ? "siege" : selectedMode;
+    let data = await api("run/start", { map: selected, mode: serverMode });
+    let st = stats(save), plan = data.plan || sortiePlan(save, selected, selectedMode);
+    if (selectedMode === "signal") {
+      const localPlan = sortiePlan(save, selected, "signal");
+      plan = { ...plan, ...localPlan, cost: (_b2 = (_a2 = data.plan) == null ? void 0 : _a2.cost) != null ? _b2 : localPlan.cost, reward: (_d = (_c = data.plan) == null ? void 0 : _c.reward) != null ? _d : localPlan.reward, xp: (_f = (_e = data.plan) == null ? void 0 : _e.xp) != null ? _f : localPlan.xp };
+    }
+    run = { ticket: data.ticket, plan, rank: expeditionRank(save), map: selected, hp: st.hp, maxHp: st.hp, x: 430, y: 410, face: 1, time: 0, wave: 0, enemies: [], shots: [], drops: [], particles: [], kills: 0, loot: 0, hits: 0, repulses: 0, repulseAt: 0, repulseVisual: 0, healthDropped: 0, shotCd: 0.2, stamina: 100, exhausted: false, running: false, anim: 0, moving: false, travel: 0, transition: null, invulnerable: 0, paused: false, ended: false, next: 1, boss: false, damage: st.damage, speed: st.speed, lootMult: st.loot };
     $("#game").classList.remove("arena-run");
     background(bg.getContext("2d"), selected);
     sprintHeld = false;
@@ -2989,12 +2996,16 @@
     let r = run;
     r.wave++;
     if (r.wave <= 3) {
-      let n = 5 + r.wave * 2 + r.map;
+      const elite = r.plan.encounter === "signal-carrier" && r.wave === 3;
+      let n = 5 + r.wave * 2 + r.map - (elite ? 2 : 0);
       for (let i = 0; i < n; i++) {
         let type = sortieEnemyType(i, r.plan.condition);
         spawn(type, i);
       }
-      $("#wave-label").textContent = `\u0412\u041E\u041B\u041D\u0410 ${r.wave} / 3`;
+      if (elite) {
+        spawn("signal", n);
+        $("#wave-label").textContent = "\u0412\u041E\u041B\u041D\u0410 3 / 3 \xB7 \u041D\u041E\u0421\u0418\u0422\u0415\u041B\u042C \u0421\u0418\u0413\u041D\u0410\u041B\u0410";
+      } else $("#wave-label").textContent = `\u0412\u041E\u041B\u041D\u0410 ${r.wave} / 3`;
     } else {
       finish(true);
     }
@@ -3150,20 +3161,21 @@
       e.cd -= dt;
       e.flash = Math.max(0, e.flash - dt);
       let dist = Math.hypot(e.x - r.x, e.y - r.y) || 1;
-      if (e.type === "boss" && e.cd <= 0 && !e.attack) {
-        e.attack = { x: r.x, y: r.y, t: 1.1, radius: 55 + r.map * 5 };
-        e.cd = 4.8 - r.map * 0.3;
+      if ((e.type === "boss" || e.type === "signal") && e.cd <= 0 && !e.attack) {
+        e.attack = { x: r.x, y: r.y, t: e.type === "signal" ? 1.05 : 1.1, total: e.type === "signal" ? 1.05 : 1.1, radius: e.type === "signal" ? 78 : 55 + r.map * 5 };
+        e.cd = e.type === "signal" ? 4.7 : 4.8 - r.map * 0.3;
+        if (e.type === "signal") audio.play("metal", { gain: 0.35, rate: 0.7 });
       }
       if (e.attack) {
         e.attack.t -= dt;
         if (e.attack.t <= 0) {
           if (strikeContains(e.attack, r.x, r.y) && r.invulnerable <= 0) {
-            r.hp -= e.damage * (e.type === "boss" ? 1.6 : 1);
+            r.hp -= e.damage * (e.type === "boss" ? 1.6 : e.type === "signal" ? 1.25 : 1);
             r.hits++;
             audio.play("hit");
             r.invulnerable = 0.65;
           }
-          burst(e.attack.x, e.attack.y, "#d2a270", 18);
+          burst(e.attack.x, e.attack.y, e.type === "signal" ? "#d4bd78" : "#d2a270", e.type === "signal" ? 24 : 18);
           if (e.type === "boss" && r.map === 3) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.03);
           if (e.type === "boss" && r.map === 4 && r.enemies.length < 9) spawn("runner", Math.floor(r.time));
           e.attack = null;
@@ -3172,7 +3184,7 @@
         e.x += (r.x - e.x) / dist * e.speed * dt;
         e.y += (r.y - e.y) / dist * e.speed * 0.8 * dt;
       }
-      if (e.type !== "boss" && dist < 40 && e.cd <= 0 && !e.attack) {
+      if (e.type !== "boss" && e.type !== "signal" && dist < 40 && e.cd <= 0 && !e.attack) {
         e.attack = { x: r.x, y: r.y, t: e.type === "runner" ? 0.38 : 0.65, radius: e.type === "tank" ? 42 : 30 };
         e.cd = e.type === "runner" ? 1.4 : 2;
       }
@@ -3195,6 +3207,10 @@
       }
     }
     r.shots = r.shots.filter((s) => s.life > 0);
+    for (const e of r.enemies) if (e.type === "signal" && !e.summoned && e.hp <= e.maxHp * 0.55) {
+      e.summoned = true;
+      spawn("runner", Math.floor(r.time));
+    }
     let dead = r.enemies.filter((e) => e.hp <= 0);
     for (let e of dead) {
       r.kills++;
@@ -3263,9 +3279,14 @@
     $("#dash").disabled = r.paused || r.ended;
     $("#stamina-fill").style.width = r.stamina + "%";
     $("#section-count").textContent = "\u0423\u0427\u0410\u0421\u0422\u041E\u041A " + Math.max(1, r.wave) + " / 3";
-    let boss = r.enemies.find((e) => e.type === "boss");
+    if (r.enemies.some((e) => e.type === "signal")) $("#section-count").textContent = "\u042D\u041B\u0418\u0422\u041D\u0410\u042F \u0426\u0415\u041B\u042C";
+    let boss = r.enemies.find((e) => e.type === "boss" || e.type === "signal");
     $("#boss-hud").hidden = !boss;
-    if (boss) $("#boss-bar").style.width = `${Math.max(0, boss.hp / boss.maxHp * 100)}%`;
+    $("#boss-hud").classList.toggle("signal-threat", (boss == null ? void 0 : boss.type) === "signal");
+    if (boss) {
+      $("#boss-bar").style.width = `${Math.max(0, boss.hp / boss.maxHp * 100)}%`;
+      $("#boss-name").textContent = boss.type === "signal" ? "\u041D\u041E\u0421\u0418\u0422\u0415\u041B\u042C \u0421\u0418\u0413\u041D\u0410\u041B\u0410 \xB7 \u0423\u0425\u041E\u0414\u0418 \u041E\u0422 \u0418\u041C\u041F\u0423\u041B\u042C\u0421\u0410" : "\u0411\u041E\u0421\u0421 \xB7 " + MAPS[r.map].boss;
+    }
     if (r.kind === "arena") {
       const pressure = Math.min(100, r.rawDamage / r.contract.target * 100), seconds = Math.max(0, Math.ceil(ARENA.duration - r.time));
       $("#wave-label").textContent = ARENA_PHASES[arenaPhase(r.time)] + " \xB7 " + seconds + " \u0441\u0435\u043A";
@@ -3275,6 +3296,30 @@
       $("#boss-bar").style.width = (r.practice ? pressure : Math.max(0, r.sharedHp / r.sharedMaxHp * 100)) + "%";
       $("#boss-name").textContent = MAPS[r.map].boss + (r.practice ? " \xB7 \u041D\u0410\u041F\u041E\u0420" : " \xB7 " + raidNumber(r.sharedHp) + " HP");
     }
+  }
+  function drawSignalMark(ctx, e, time) {
+    const pulse = 0.5 + 0.5 * Math.sin(time * 4);
+    ctx.save();
+    ctx.globalAlpha = 0.36 + 0.24 * pulse;
+    ctx.strokeStyle = "#e0bd70";
+    ctx.fillStyle = "#e0bd7033";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(e.x, e.y - 5, 30 + pulse * 4, 10 + pulse * 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(e.x, e.y - 99);
+    ctx.lineTo(e.x, e.y - 116);
+    ctx.lineTo(e.x + 8, e.y - 124);
+    ctx.stroke();
+    ctx.fillStyle = pulse > 0.55 ? "#ffe4a2" : "#ca7754";
+    ctx.fillRect(e.x + 5, e.y - 128, 7, 7);
+    ctx.strokeStyle = "#d9a55f";
+    ctx.beginPath();
+    ctx.arc(e.x, e.y - 94, 14 + pulse * 3, Math.PI * 1.12, Math.PI * 1.88);
+    ctx.stroke();
+    ctx.restore();
   }
   function draw() {
     var _a2;
@@ -3305,16 +3350,38 @@
       if (e.attack && r.kind === "arena" && e.type === "boss") {
         drawArenaStrike(g, e.attack);
       } else if (e.attack) {
-        g.fillStyle = "#c8764240";
-        g.strokeStyle = "#ebaa68";
-        g.lineWidth = 2;
-        g.beginPath();
-        g.ellipse(e.attack.x, e.attack.y, e.attack.radius, e.attack.radius * 0.6, 0, 0, Math.PI * 2);
-        g.fill();
-        g.stroke();
-        g.fillStyle = "#e7ba8a";
-        g.font = "11px monospace";
-        g.fillText("\u0423\u0425\u041E\u0414\u0418!", e.attack.x - 20, e.attack.y + 4);
+        if (e.type === "signal") {
+          const progress = 1 - Math.max(0, e.attack.t) / (e.attack.total || 1);
+          g.fillStyle = "#c08b4b28";
+          g.strokeStyle = "#f2d394";
+          g.lineWidth = 2;
+          g.beginPath();
+          g.ellipse(e.attack.x, e.attack.y, e.attack.radius, e.attack.radius * 0.6, 0, 0, Math.PI * 2);
+          g.fill();
+          g.stroke();
+          g.globalAlpha = 0.72;
+          g.fillStyle = "#e1b567";
+          g.beginPath();
+          g.ellipse(e.attack.x, e.attack.y, e.attack.radius * progress, e.attack.radius * 0.6 * progress, 0, 0, Math.PI * 2);
+          g.fill();
+          g.globalAlpha = 1;
+          g.fillStyle = "#fff0c6";
+          g.font = "bold 12px monospace";
+          g.textAlign = "center";
+          g.fillText("\u0418\u041C\u041F\u0423\u041B\u042C\u0421 \xB7 \u0423\u0419\u0414\u0418", e.attack.x, e.attack.y + 4);
+          g.textAlign = "left";
+        } else {
+          g.fillStyle = "#c8764240";
+          g.strokeStyle = "#ebaa68";
+          g.lineWidth = 2;
+          g.beginPath();
+          g.ellipse(e.attack.x, e.attack.y, e.attack.radius, e.attack.radius * 0.6, 0, 0, Math.PI * 2);
+          g.fill();
+          g.stroke();
+          g.fillStyle = "#e7ba8a";
+          g.font = "11px monospace";
+          g.fillText("\u0423\u0425\u041E\u0414\u0418!", e.attack.x - 20, e.attack.y + 4);
+        }
       }
     }
     for (let d of r.drops) loot(g, d.x, d.y, d.kind, r.time, d.amount || 0);
@@ -3328,8 +3395,8 @@
       g.globalAlpha = 1;
     }
     if (((_a2 = r.target) == null ? void 0 : _a2.hp) > 0) {
-      const tx = r.target.x, ty = r.target.y, rad = r.target.type === "boss" ? 34 : 20;
-      g.strokeStyle = "#edcf92";
+      const tx = r.target.x, ty = r.target.y, rad = r.target.type === "boss" ? 34 : r.target.type === "signal" ? 28 : 20;
+      g.strokeStyle = r.target.type === "signal" ? "#e8c778" : "#edcf92";
       g.lineWidth = 1.5;
       g.beginPath();
       for (const side of [-1, 1]) {
@@ -3341,15 +3408,16 @@
     }
     let actors = [...r.enemies, { x: r.x, y: r.y, type: "hero" }].sort((a, b) => a.y - b.y);
     for (let e of actors) {
-      let hero = e.type === "hero", scale = e.type === "boss" ? 2 : 1.15;
+      let hero = e.type === "hero", scale = e.type === "boss" ? 2 : e.type === "signal" ? 1.35 : 1.15;
       if (hero && r.invulnerable > 0 && Math.floor(r.time * 20) % 2) continue;
+      if (e.type === "signal") drawSignalMark(g, e, r.time);
       if (r.kind === "arena" && e.type === "boss") drawArenaBoss(g, r.art.boss, e, r.time, e.x > r.x ? 1 : -1);
-      else person(g, e.x, e.y, e.type, scale, hero ? r.anim : r.time, hero ? r.face : e.x > r.x ? -1 : 1, e.flash, hero ? r.moving : true, hero ? r.running : e.type === "runner");
+      else person(g, e.x, e.y, e.type === "signal" ? "boss" : e.type, scale, hero ? r.anim : r.time, hero ? r.face : e.x > r.x ? -1 : 1, e.flash, hero ? r.moving : true, hero ? r.running : e.type === "runner");
       if (!hero && e.type !== "boss" && e.hp < e.maxHp) {
         g.fillStyle = "#334332";
-        g.fillRect(e.x - 16, e.y - 70 * scale, 32, 3);
-        g.fillStyle = "#bec592";
-        g.fillRect(e.x - 16, e.y - 70 * scale, 32 * e.hp / e.maxHp, 3);
+        g.fillRect(e.x - 20, e.y - 70 * scale, 40, 4);
+        g.fillStyle = e.type === "signal" ? "#dfbd72" : "#bec592";
+        g.fillRect(e.x - 20, e.y - 70 * scale, 40 * e.hp / e.maxHp, 4);
       }
     }
     for (let s of r.shots) {

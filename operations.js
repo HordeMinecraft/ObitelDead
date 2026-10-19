@@ -3,7 +3,8 @@ import {milestoneView,claimMilestone} from './campaign.js';
 export const SORTIE_MODES=[
  {id:'scout',name:'Разведка',level:1,cost:6,hp:.8,speed:.9,reward:.65,xp:.75,description:'Спокойный темп. Меньше награда, дешевле выход.'},
  {id:'standard',name:'Зачистка',level:1,cost:8,hp:1,speed:1,reward:1,xp:1,description:'Обычная угроза и награда. Основной путь по районам.'},
- {id:'siege',name:'Прорыв',level:5,cost:12,hp:1.4,speed:1.12,reward:1.65,xp:1.4,description:'Живучие заражённые. Больше награда за успешную зачистку.'}
+ {id:'siege',name:'Прорыв',level:5,cost:12,hp:1.4,speed:1.12,reward:1.65,xp:1.4,description:'Живучие заражённые. Больше награда за успешную зачистку.'},
+ {id:'signal',name:'Охота',level:5,cost:12,hp:1.4,speed:1.12,reward:1.65,xp:1.4,encounter:'signal-carrier',description:'В третьей волне выйдет Носитель сигнала. Уклоняйся от импульса; награда за победу выше.'}
 ];
 const CONDITIONS=[
  {id:'quiet',name:'Тихие улицы',description:'Обычная активность заражённых.'},
