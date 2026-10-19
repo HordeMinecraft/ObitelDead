@@ -1,0 +1,387 @@
+/* Cross-screen refinement: consistent hierarchy, compact controls and state feedback. */
+:root {
+  --detail-line: #61766d;
+  --detail-line-soft: #52675f88;
+  --detail-panel: #172728;
+  --detail-panel-raised: #203633;
+  --detail-ink: #efe9d8;
+  --detail-copy: #c3d0c4;
+  --detail-muted: #9fb3a8;
+  --detail-brass: #dfbd7c;
+}
+
+body:not(.in-battle) main { scroll-padding-block: 16px; }
+
+main .topline {
+  padding-bottom: 11px;
+  border-bottom: 1px solid #778b7a36;
+}
+
+main .topline h1 {
+  color: var(--detail-ink);
+  letter-spacing: .25px;
+}
+
+main .section-title {
+  align-items: baseline;
+  min-width: 0;
+  gap: 10px;
+}
+
+main .section-title h3 { color: #e9e3d1; }
+main .section-title > span,
+main .section-title > small {
+  color: #a8b9a9;
+  font-variant-numeric: tabular-nums;
+}
+
+main .page-intro {
+  max-width: 76ch;
+  margin: 12px 0 16px;
+  padding: 11px 13px;
+  border: 1px solid var(--detail-line-soft);
+  border-left: 2px solid #829578;
+  border-radius: 0 7px 7px 0;
+  background: linear-gradient(100deg, #203430a8, #15262788);
+  color: var(--detail-copy);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+main .page button,
+main .page a,
+main summary { -webkit-tap-highlight-color: transparent; }
+
+main .page button { overflow-wrap: anywhere; }
+main .page button:focus-visible,
+main summary:focus-visible,
+main input:focus-visible,
+main select:focus-visible {
+  outline: 2px solid #efcc8d;
+  outline-offset: 2px;
+}
+
+:is(.settings-card, .journal, .item, .supply, .weapon-card, .armor-card,
+    .vehicle-card, .friend-person, .clan-boss-card, .milestone-card,
+    .operation-contract, .raid-console, .arena-briefing) {
+  border-color: #5c7469;
+  box-shadow: inset 0 1px #e6e8d019, 0 7px 18px #0004;
+}
+
+:is(.settings-card, .journal, .item, .supply, .weapon-card, .armor-card,
+    .vehicle-card, .friend-person, .clan-boss-card, .milestone-card,
+    .operation-contract) h2,
+:is(.settings-card, .journal, .item, .supply, .weapon-card, .armor-card,
+    .vehicle-card, .friend-person, .clan-boss-card, .milestone-card,
+    .operation-contract) h3 { color: var(--detail-ink); }
+
+:is(.weapon-card, .armor-card, .vehicle-card, .item, .supply) p,
+:is(.settings-card, .journal, .friend-person, .clan-boss-card) p {
+  color: var(--detail-copy);
+}
+
+:is(.weapon-price, .vehicle-price, .armor-stat, .weapon-stats b,
+    .vehicle-bonuses, .campaign-meter, .rank-number) { font-variant-numeric: tabular-nums; }
+
+/* Equipment: keep the character summary present and make choice states obvious. */
+#gear-page .loadout-hero {
+  border-top: 2px solid #a5a57b88;
+  background:
+    radial-gradient(ellipse at 8% 100%, #74855830, transparent 58%),
+    linear-gradient(110deg, #203632, #142628 76%);
+}
+
+#gear-page .stat-pills span {
+  padding: 5px 9px;
+  border: 1px solid #61756999;
+  border-radius: 5px;
+  background: #152b29;
+  color: #d8dfc9;
+}
+
+#gear-page .gear-tabs {
+  position: static;
+  gap: 3px;
+  padding: 4px;
+  border-color: #526a61;
+  border-radius: 8px;
+  background: #102221;
+}
+
+#gear-page .gear-tabs button {
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #b9c9bd;
+  font-size: 11px;
+}
+
+#gear-page .gear-tabs button[aria-selected="true"] {
+  border-color: #a28e61;
+  background: linear-gradient(145deg, #39483a, #243832);
+  box-shadow: inset 0 -2px #dfbd7c;
+  color: #f1d8a7;
+}
+
+#gear-page .catalogue-row {
+  border-radius: 7px;
+  border-color: #536a61;
+  background: linear-gradient(110deg, #1e3531, #152729);
+}
+
+#gear-page .catalogue-row[aria-pressed="true"] {
+  border-color: #d1b376;
+  background: linear-gradient(110deg, #354637, #1b302e);
+  box-shadow: inset 3px 0 #dfbd7c;
+}
+
+#gear-page .catalogue-detail {
+  border-radius: 8px;
+  border-color: #667c70;
+  background: linear-gradient(145deg, #213936, #14292a);
+}
+
+/* Garage: separate the active vehicle from the collection and filters. */
+#garage-page .garage-showroom {
+  border-color: #63796c;
+  border-radius: 12px;
+  background: linear-gradient(120deg, #203732, #142628);
+  box-shadow: inset 0 1px #e4e5c51b, 0 9px 22px #0005;
+}
+
+#garage-page .garage-platform {
+  background:
+    radial-gradient(ellipse at 50% 73%, #a58b4d27, transparent 42%),
+    repeating-linear-gradient(0deg, transparent 0 31px, #a9b48a0c 32px 33px),
+    linear-gradient(150deg, #1d302c, #0f2022);
+}
+
+#garage-page .garage-summary { min-width: 0; }
+#garage-page .garage-summary h2 { color: #f0dfb9; }
+#garage-page .garage-summary small { color: #b1c0b2; }
+
+#garage-page .garage-workshop,
+#gear-page .gear-workshop {
+  border-color: #5c7469;
+  border-radius: 8px;
+  background: linear-gradient(115deg, #1c3430, #142729);
+}
+
+#garage-page .garage-workshop > summary,
+#gear-page .gear-workshop > summary {
+  color: #e2c995;
+  line-height: 1.4;
+}
+
+#garage-page .vehicle-filters {
+  padding: 5px;
+  border: 1px solid #4f665e;
+  border-radius: 8px;
+  background: #102322;
+}
+
+#garage-page .vehicle-filters button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 5px;
+}
+
+#garage-page .vehicle-card {
+  border-radius: 10px;
+  border-color: #536c61;
+  background: linear-gradient(155deg, #233a34, #142729 78%);
+}
+
+#garage-page .vehicle-card.equipped {
+  border-color: #e0bd7c;
+  box-shadow: inset 3px 0 #dfbd7c, 0 7px 18px #0005;
+}
+
+#garage-page .vehicle-card.collectible { border-color: #a88863; }
+#garage-page .vehicle-card.equipped.collectible { border-color: #e0bd7c; }
+#garage-page .vehicle-tag { border: 1px solid #c4a77199; }
+#garage-page .vehicle-price { font-weight: 700; }
+#garage-page .vehicle-requirement { color: #c0cabb; }
+
+/* Raids: distinguish the boss state, action costs and shared contribution. */
+#raids-page .raid-toolbar {
+  padding: 5px;
+  border: 1px solid #526a61;
+  border-radius: 8px;
+  background: #112423;
+}
+
+#raids-page .raid-active-state {
+  border-left-color: #d9b779;
+  border-radius: 0 5px 5px 0;
+  background: linear-gradient(90deg, #394735, #20312c);
+  color: #ead8ad;
+}
+
+#raids-page .raid-console {
+  border-color: #748570;
+  border-radius: 9px;
+  box-shadow: inset 0 1px #e9e5c51c, 0 10px 26px #0005;
+}
+
+#raids-page .raid-command {
+  border-color: #657b6d;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #283e35, #172a2b);
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+
+#raids-page .raid-command button { min-height: 42px; }
+#raids-page .raid-command button:disabled { color: #9eaea2; }
+#raids-page .raid-command-extra { border-color: #bc9b60; }
+#raids-page .raid-loot { border-radius: 8px; }
+#raids-page .raid-after-action > section { border-radius: 8px; }
+
+/* Social screens: make the player row and their available action scan in one line. */
+.social-heading {
+  border-radius: 10px;
+  border-top: 2px solid #9b9b73;
+  background:
+    radial-gradient(ellipse at 100% 0, #82935b22, transparent 50%),
+    linear-gradient(125deg, #213832, #142729 76%);
+}
+
+.social-heading h2 { color: #f0e4c8; }
+.social-heading > p { max-width: 76ch; line-height: 1.65; }
+.leader-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #72847844;
+}
+
+.leader-summary strong { color: #efd49c; font-variant-numeric: tabular-nums; }
+.leader-summary > span { color: #b6c7ba; font-size: 11px; }
+.leader-summary button { margin-left: auto; }
+.social-list { gap: 7px; }
+.social-list .friend-person {
+  min-width: 0;
+  border-radius: 8px;
+  padding: 10px 13px;
+  background: linear-gradient(105deg, #1d3430, #152729);
+}
+
+.social-list .friend-person-info { min-width: 0; }
+.social-list .player-name-link { font-size: 14px; line-height: 1.25; }
+.social-list .friend-person-info small { color: #b4c5b8; line-height: 1.45; }
+.social-list .friend-person > button:not(.player-name-link) { min-width: 0; max-width: 220px; }
+.social-list .rank-number { min-width: 38px; color: #d4c39d; font: 600 16px/1 Oswald, sans-serif; }
+.social-list .rank-1 { border-color: #c8aa6b; background: linear-gradient(100deg, #4d4934, #1b302c); }
+.social-list .rank-2 { border-color: #83958a; }
+.social-list .rank-3 { border-color: #95765b; }
+.social-list .is-me { box-shadow: inset 3px 0 #d9b779, 0 5px 12px #0003; }
+.social-list .rank-status { color: #dbc99f; font-size: 9px; letter-spacing: .6px; }
+
+#friends-page details.settings-card { margin-top: 14px; }
+#friends-page details.settings-card > summary {
+  min-height: 44px;
+  align-content: center;
+  color: #e2c995;
+  cursor: pointer;
+}
+
+/* Clan and profile panels share the same compact rows and clear section breaks. */
+.clan-banner {
+  border-color: #71816b;
+  border-top: 2px solid #c0a66f;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse at 90% 0, #9a805044, transparent 54%),
+    repeating-linear-gradient(135deg, #ffffff04 0 1px, transparent 1px 14px),
+    linear-gradient(125deg, #263c32, #152a2b);
+}
+
+.clan-columns { align-items: start; }
+.clan-columns .settings-card { border-radius: 9px; }
+.clan-row {
+  border-top-color: #7482763c;
+  padding-block: 12px;
+}
+
+.clan-row > div > strong,
+.clan-row > div > .player-name-link { color: #ede4cf; }
+.clan-row small { color: #b1c2b4; line-height: 1.45; }
+.clan-bank { border-radius: 9px; border-color: #a18f60; }
+
+/* Settings: larger label hit areas without enlarging the controls themselves. */
+#settings-page .settings-card {
+  border-radius: 9px;
+  background: linear-gradient(140deg, #203732, #142729);
+}
+
+#settings-page .setting-row {
+  min-height: 60px;
+  border-top-color: #70807342;
+  padding: 12px 2px;
+}
+
+#settings-page .setting-row b { color: #e9e5d5; }
+#settings-page .setting-row small { color: #b3c3b7; line-height: 1.45; }
+#settings-page .setting-row:focus-within { border-radius: 5px; background: #ffffff08; }
+#settings-page .controls-guide kbd { border-color: #64786f; border-bottom-color: #9a8b62; }
+
+@media (hover: hover) and (min-width: 761px) {
+  #garage-page .vehicle-card:hover,
+  #raids-page .raid-command:hover,
+  .social-list .friend-person:hover {
+    border-color: #a3a27a;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 550px) {
+  main .section-title { margin-block: 12px 8px; padding-bottom: 6px; }
+  main .page-intro { margin: 8px 0 10px; padding: 7px 10px; font-size: 10px; }
+  #gear-page .gear-tabs button { min-height: 44px; }
+  #garage-page .garage-showroom { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); margin-bottom: 10px; }
+  #garage-page .garage-platform { min-height: 165px; padding: 12px; }
+  #garage-page .garage-summary { padding: 12px; }
+  #garage-page .garage-summary h2 { font-size: 25px; margin: 6px 0; }
+  #garage-page .garage-summary small { margin-top: 8px; font-size: 9px; }
+  #garage-page .vehicle-grid { gap: 8px; }
+  #garage-page .vehicle-info { padding: 10px; }
+  #garage-page .vehicle-info h3 { font-size: 19px; }
+  #garage-page .vehicle-info p { font-size: 10px; line-height: 1.4; }
+  #garage-page .vehicle-price { margin: 5px 0 8px; font-size: 14px; }
+  #garage-page .vehicle-requirement { font-size: 9px; }
+  #garage-page .vehicle-filters { margin: 8px 0; }
+  #garage-page .vehicle-filters button { min-height: 44px; padding: 6px 9px; }
+  .social-list .friend-person { padding: 7px 10px; }
+  .clan-banner { padding: 18px; margin-bottom: 12px; }
+  #settings-page .setting-row { min-height: 48px; padding-block: 7px; }
+}
+
+@media (max-width: 760px) {
+  main .topline { padding-bottom: 8px; }
+  main .section-title { align-items: center; }
+  .leader-summary { gap: 6px 10px; }
+  .leader-summary button { margin-left: 0; }
+  .social-list .friend-person { padding: 9px; gap: 8px !important; }
+  .social-list .friend-person > button:not(.player-name-link) { flex: 1 1 100%; max-width: none; }
+  .social-list .rank-number { min-width: 30px; }
+  #garage-page .garage-summary { padding: 15px; }
+  #garage-page .vehicle-grid { gap: 8px; }
+  #garage-page .vehicle-info { padding: 10px; }
+  #garage-page .vehicle-info h3 { font-size: 19px; }
+  #garage-page .vehicle-bonuses span { line-height: 1.25; }
+  #settings-page .setting-row { min-height: 58px; }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  #garage-page .garage-showroom { grid-template-columns: 1fr; }
+  #garage-page .garage-platform { min-height: 160px; }
+  #garage-page .vehicle-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #garage-page .vehicle-info p { font-size: 11px; }
+  #garage-page .vehicle-card button { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
